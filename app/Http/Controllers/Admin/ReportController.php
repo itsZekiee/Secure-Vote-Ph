@@ -10,6 +10,7 @@ use App\Models\Candidate;
 use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ReportController extends Controller
 {
@@ -21,7 +22,7 @@ class ReportController extends Controller
         $stats = [
             'total_elections' => Election::count(),
             'active_elections' => Election::where('status', 'active')->count(),
-            'total_voters' => User::where('role', 'voter')->count(),
+            'total_voters' => $this->voterQuery()->count(),
             'total_candidates' => Candidate::count(),
             'total_votes' => Vote::count(),
             'organizations_count' => Organization::count(),
@@ -33,7 +34,10 @@ class ReportController extends Controller
             ->take(5)
             ->get();
 
-        return view('main-admin.reports.index', compact('stats', 'recent_elections'));
+        // Organizations for the dropdown on the reports page
+        $organizations = Organization::orderBy('name')->get();
+
+        return view('main-admin.reports', compact('stats', 'recent_elections', 'organizations'));
     }
 
     /**
@@ -54,9 +58,9 @@ class ReportController extends Controller
      */
     public function voters()
     {
-        $voters = User::with(['organization'])
+        $voters = $this->voterQuery()
+            ->with(['organization'])
             ->withCount(['votes'])
-            ->where('role', 'voter')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -112,7 +116,7 @@ class ReportController extends Controller
     {
         $data = [
             'elections' => Election::withCount(['candidates', 'votes'])->get(),
-            'voters' => User::where('role', 'voter')->withCount(['votes'])->get(),
+            'voters' => $this->voterQuery()->withCount(['votes'])->get(),
             'candidates' => Candidate::with(['user', 'election'])->withCount(['votes'])->get(),
         ];
 
@@ -120,7 +124,6 @@ class ReportController extends Controller
             return response()->json($data);
         }
 
-        // CSV export for overview
         $filename = 'system_overview_' . now()->format('Y-m-d_H-i-s') . '.csv';
 
         $headers = [
@@ -209,7 +212,10 @@ class ReportController extends Controller
 
     private function exportVoters($format)
     {
-        $voters = User::with(['organization'])->where('role', 'voter')->withCount(['votes'])->get();
+        $voters = $this->voterQuery()
+            ->with(['organization'])
+            ->withCount(['votes'])
+            ->get();
 
         if ($format === 'json') {
             return response()->json(['voters' => $voters]);
@@ -248,45 +254,38 @@ class ReportController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
-    private function exportCandidates($format)
+    /**
+     * Build a safe query for "voters" using available schema/roles.
+     * Falls back to an empty result when no voter indicator is present.
+     */
+    private function voterQuery()
     {
-        $candidates = Candidate::with(['user', 'election', 'position', 'partylist'])->withCount(['votes'])->get();
+        $query = User::query();
 
-        if ($format === 'json') {
-            return response()->json(['candidates' => $candidates]);
+        if (Schema::hasColumn('users', 'role')) {
+            return $query->where('role', 'voter');
         }
 
-        $filename = 'candidates_report_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        if (Schema::hasColumn('users', 'type')) {
+            return $query->where('type', 'voter');
+        }
 
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
-        ];
-
-        $callback = function () use ($candidates) {
-            $file = fopen('php://output', 'w');
-
-            fputcsv($file, [
-                'ID', 'Name', 'Email', 'Election', 'Position', 'Partylist', 'Status', 'Votes Received', 'Created At'
-            ]);
-
-            foreach ($candidates as $candidate) {
-                fputcsv($file, [
-                    $candidate->id,
-                    $candidate->user->name,
-                    $candidate->user->email,
-                    $candidate->election->title,
-                    $candidate->position->name ?? 'N/A',
-                    $candidate->partylist->name ?? 'Independent',
-                    $candidate->status,
-                    $candidate->votes_count,
-                    $candidate->created_at->format('Y-m-d H:i:s')
-                ]);
+        if (Schema::hasColumn('users', 'role_id')) {
+            if (Schema::hasTable('roles')) {
+                $roleId = DB::table('roles')->where('name', 'voter')->value('id');
+                if ($roleId) {
+                    return $query->where('role_id', $roleId);
+                }
             }
+            // roles table missing or no matching role => return empty query
+            return $query->whereRaw('0 = 1');
+        }
 
-            fclose($file);
-        };
+        if (Schema::hasColumn('users', 'is_voter')) {
+            return $query->where('is_voter', 1);
+        }
 
-        return response()->stream($callback, 200, $headers);
+        // Unknown schema: avoid SQL errors by returning an empty query
+        return $query->whereRaw('0 = 1');
     }
 }
