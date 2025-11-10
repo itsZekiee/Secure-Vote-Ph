@@ -70,11 +70,9 @@
                 <!-- Progress Stepper -->
                 <div class="mb-8">
                     <div class="flex items-center justify-between bg-white p-4 border border-gray-200 rounded-lg shadow-sm">
-                        <!-- Stepper content simplified and polished -->
                         <div class="w-full">
                             <div class="flex items-center">
                                 <div class="flex items-center gap-6 w-full">
-                                    <!-- Steps (responsive) -->
                                     <div class="flex items-center gap-6 w-full">
                                         <div class="flex items-center gap-4">
                                             <div :class="activeTab === 'basic' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-400 border border-gray-200'"
@@ -224,7 +222,6 @@
                                                 <input type="text" x-model="position.name" :name="`positions[${index}][name]`"
                                                        class="block w-full rounded-lg border-gray-200 shadow-sm focus:ring-2 focus:ring-indigo-500 px-4 py-3" placeholder="e.g., Mayor">
                                             </div>
-                                            <!-- max_votes field removed as requested -->
                                         </div>
 
                                         <div class="space-y-3">
@@ -287,12 +284,13 @@
                             </div>
                         </section>
 
-                        <!-- Panel 3: Voting Settings -->
+                        <!-- Panel 3: Voting Settings (enhanced with Geo & extra fields) -->
                         <section x-show="activeTab === 'settings'"
                                  x-transition:enter="transition ease-out duration-300"
                                  x-transition:enter-start="opacity-0 transform translate-x-4"
                                  x-transition:enter-end="opacity-100 transform translate-x-0"
-                                 x-data="{ enableGeo: false }"
+                                 x-data="{ enableGeo: false, mapInitialized: false }"
+                                 x-init="$watch('enableGeo', value => { if(value && !mapInitialized){ setTimeout(() => { initGeoMap(); mapInitialized = true }, 200) } })"
                                  aria-labelledby="settings-heading">
                             <div class="mb-8">
                                 <h2 id="settings-heading" class="text-2xl font-bold text-gray-900 mb-2">Voting Settings</h2>
@@ -310,20 +308,90 @@
                                     </label>
                                 </div>
 
+                                <!-- Geo configuration: show when enabled -->
                                 <div x-show="enableGeo"
                                      x-transition:enter="transition ease-out duration-300"
                                      x-transition:enter-start="opacity-0 transform translate-y-4"
                                      x-transition:enter-end="opacity-100 transform translate-y-0"
-                                     class="bg-white border border-gray-200 rounded-xl p-6">
-                                    <h3 class="text-lg font-medium text-gray-900 mb-4">Geographic Configuration</h3>
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                     class="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+                                    <h3 class="text-lg font-medium text-gray-900 mb-2">Geographic Configuration</h3>
+
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-end">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-900 mb-2">Search location</label>
+                                            <input id="geoSearch" class="block w-full rounded-lg border-gray-200 px-3 py-2" placeholder="Search address or place (autocomplete)">
+                                        </div>
+
+                                        <div class="flex gap-2">
+                                            <button type="button" id="useMyLocation" class="px-3 py-2 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-lg">Use my location</button>
+                                            <select id="mapType" class="rounded-lg border-gray-200 px-3 py-2">
+                                                <option value="terrain">Terrain</option>
+                                                <option value="satellite">Satellite</option>
+                                                <option value="roadmap">Roadmap</option>
+                                            </select>
+                                        </div>
+
                                         <div>
                                             <label class="block text-sm font-medium text-gray-900 mb-2">Latitude</label>
-                                            <input type="text" id="geoLatitude" name="geo_latitude" class="block w-full rounded-lg border-gray-200 px-3 py-2">
+                                            <input type="text" id="geoLatitude" name="geo_latitude"
+                                                   class="block w-full rounded-lg border-gray-200 px-3 py-2" placeholder="e.g., 37.421998">
                                         </div>
+
                                         <div>
                                             <label class="block text-sm font-medium text-gray-900 mb-2">Longitude</label>
-                                            <input type="text" id="geoLongitude" name="geo_longitude" class="block w-full rounded-lg border-gray-200 px-3 py-2">
+                                            <input type="text" id="geoLongitude" name="geo_longitude"
+                                                   class="block w-full rounded-lg border-gray-200 px-3 py-2" placeholder="e.g., -122.084000">
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-900 mb-2">Radius (meters)</label>
+                                            <div class="flex items-center gap-2">
+                                                <input type="number" id="geoRadius" name="geo_radius" min="10" value="1000"
+                                                       class="block w-full rounded-lg border-gray-200 px-3 py-2" />
+                                                <span class="text-sm text-gray-600">m</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-span-1 lg:col-span-2">
+                                            <label class="block text-sm font-medium text-gray-900 mb-2">Map preview</label>
+                                            <div id="geoMap" class="w-full h-64 rounded-lg border border-gray-200 overflow-hidden"></div>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-sm text-gray-500">Map shows a marker for the chosen location and a radius circle. Use the search box or "Use my location".</p>
+                                </div>
+
+                                <!-- Additional settings below geo: allowed email domain, registration deadline -->
+                                <div class="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Access & Registration</h3>
+
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-900 mb-2">Allowed email domain (comma separated)</label>
+                                            <input type="text" name="allowed_email_domain" placeholder="example.com, org.edu"
+                                                   class="block w-full rounded-lg border-gray-200 px-3 py-2" />
+                                            <p class="text-xs text-gray-500 mt-1">Only emails matching these domains will be allowed (validated server-side).</p>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-900 mb-2">Registration deadline</label>
+                                            <input type="datetime-local" name="registration_deadline"
+                                                   class="block w-full rounded-lg border-gray-200 px-3 py-2" />
+                                            <p class="text-xs text-gray-500 mt-1">After this time new voters cannot register to vote in this election.</p>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-900 mb-2">Require authentication</label>
+                                            <select name="require_authentication" class="block w-full rounded-lg border-gray-200 px-3 py-2">
+                                                <option value="1">Yes - require login</option>
+                                                <option value="0" selected>No - open access</option>
+                                            </select>
+                                        </div>
+
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-900 mb-2">Max votes per voter</label>
+                                            <input type="number" name="max_votes_per_voter" min="1" value="1"
+                                                   class="block w-full rounded-lg border-gray-200 px-3 py-2" />
                                         </div>
                                     </div>
                                 </div>
@@ -380,4 +448,153 @@
             </form>
         </main>
     </div>
+
+    <!-- Google Maps & helper scripts -->
+    @php
+        $gmKey = config('services.google_maps.key') ?? env('GOOGLE_MAPS_API_KEY');
+    @endphp
+
+    @if(!$gmKey)
+        <script>console.warn('Google Maps API key not set in config/services.php or .env (GOOGLE_MAPS_API_KEY)');</script>
+    @endif
+
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ $gmKey }}&libraries=places&v=weekly" defer></script>
+    <script>
+        // Geolocation map logic. initGeoMap is called when the geo section is first enabled.
+        function initGeoMap() {
+            if (!window.google || !google.maps) {
+                console.error('Google Maps JS not loaded yet.');
+                return;
+            }
+
+            const mapEl = document.getElementById('geoMap');
+            const latInput = document.getElementById('geoLatitude');
+            const lngInput = document.getElementById('geoLongitude');
+            const radiusInput = document.getElementById('geoRadius');
+            const searchInput = document.getElementById('geoSearch');
+            const useMyLocBtn = document.getElementById('useMyLocation');
+            const mapTypeSelect = document.getElementById('mapType');
+
+            const defaultPos = { lat: 37.421998, lng: -122.084000 }; // fallback
+            const map = new google.maps.Map(mapEl, {
+                center: defaultPos,
+                zoom: 13,
+                mapTypeId: google.maps.MapTypeId.TERRAIN,
+            });
+
+            let marker = new google.maps.Marker({
+                position: defaultPos,
+                map,
+                draggable: true,
+            });
+
+            let circle = new google.maps.Circle({
+                map,
+                radius: Number(radiusInput.value || 1000),
+                center: defaultPos,
+                fillColor: '#3b82f6',
+                fillOpacity: 0.12,
+                strokeColor: '#3b82f6',
+                strokeOpacity: 0.6,
+                strokeWeight: 1,
+            });
+
+            // keep inputs synced
+            function updateInputsFromPosition(pos) {
+                latInput.value = pos.lat.toFixed(6);
+                lngInput.value = pos.lng.toFixed(6);
+            }
+            function updateCircleRadius() {
+                const r = Number(radiusInput.value) || 0;
+                circle.setRadius(r);
+            }
+
+            // Drag marker -> update circle and inputs
+            marker.addListener('dragend', () => {
+                const pos = marker.getPosition();
+                const latlng = { lat: pos.lat(), lng: pos.lng() };
+                circle.setCenter(latlng);
+                updateInputsFromPosition(latlng);
+                map.panTo(latlng);
+            });
+
+            // Changing numeric inputs should update marker & circle
+            latInput.addEventListener('change', () => {
+                const lat = parseFloat(latInput.value) || defaultPos.lat;
+                const lng = parseFloat(lngInput.value) || defaultPos.lng;
+                const pos = { lat, lng };
+                marker.setPosition(pos);
+                circle.setCenter(pos);
+                map.panTo(pos);
+            });
+            lngInput.addEventListener('change', () => {
+                const lat = parseFloat(latInput.value) || defaultPos.lat;
+                const lng = parseFloat(lngInput.value) || defaultPos.lng;
+                const pos = { lat, lng };
+                marker.setPosition(pos);
+                circle.setCenter(pos);
+                map.panTo(pos);
+            });
+            radiusInput.addEventListener('input', () => {
+                updateCircleRadius();
+            });
+
+            // Map type selector
+            mapTypeSelect.addEventListener('change', () => {
+                const val = mapTypeSelect.value;
+                map.setMapTypeId(val.toUpperCase() === 'SATELLITE' ? google.maps.MapTypeId.SATELLITE : (val.toUpperCase() === 'TERRAIN' ? google.maps.MapTypeId.TERRAIN : google.maps.MapTypeId.ROADMAP));
+            });
+
+            // Places Autocomplete
+            const autocomplete = new google.maps.places.Autocomplete(searchInput);
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+                if (!place.geometry) return;
+                const loc = {
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng()
+                };
+                marker.setPosition(loc);
+                circle.setCenter(loc);
+                updateInputsFromPosition(loc);
+                map.panTo(loc);
+                map.setZoom(14);
+            });
+
+            // Use current location
+            useMyLocBtn.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    alert('Geolocation is not supported by your browser.');
+                    return;
+                }
+                useMyLocBtn.disabled = true;
+                useMyLocBtn.innerText = 'Locating...';
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    marker.setPosition(pos);
+                    circle.setCenter(pos);
+                    updateInputsFromPosition(pos);
+                    map.panTo(pos);
+                    map.setZoom(14);
+                    useMyLocBtn.disabled = false;
+                    useMyLocBtn.innerText = 'Use my location';
+                }, (err) => {
+                    console.error(err);
+                    alert('Unable to retrieve your location.');
+                    useMyLocBtn.disabled = false;
+                    useMyLocBtn.innerText = 'Use my location';
+                }, { timeout: 10000 });
+            });
+
+            // Initialize inputs from defaults
+            updateInputsFromPosition(defaultPos);
+            updateCircleRadius();
+
+            // expose for debugging
+            window._geoMap = { map, marker, circle, updateCircleRadius };
+        }
+    </script>
 @endsection

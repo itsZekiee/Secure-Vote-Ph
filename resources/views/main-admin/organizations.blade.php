@@ -281,16 +281,25 @@
                                             <i class="ri-building-line"></i>
                                         </div>
                                         <div class="text-sm">
-                                            <div class="font-medium text-gray-900" x-text="org.name"></div>
-                                            <div class="text-xs text-gray-500" x-text="org.description || '-'"></div>
+                                            <div
+                                                class="font-medium text-gray-900 max-w-[220px] overflow-hidden whitespace-nowrap truncate"
+                                                :title="org.name"
+                                                x-text="org.name">
+                                            </div>
+                                            <div
+                                                class="text-xs text-gray-500 max-w-[360px] overflow-hidden whitespace-nowrap truncate"
+                                                :title="org.description || '-'"
+                                                x-text="org.description || '-'">
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
 
                                 <td class="px-6 py-4 whitespace-nowrap hidden sm:table-cell">
                                         <span
-                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                                            :class="org.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'">
+                                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium max-w-[120px] overflow-hidden whitespace-nowrap truncate"
+                                            :class="org.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'"
+                                            :title="org.status ? org.status.charAt(0).toUpperCase()+org.status.slice(1) : 'Unknown'">
                                             <span x-text="org.status ? org.status.charAt(0).toUpperCase()+org.status.slice(1) : 'Unknown'"></span>
                                         </span>
                                 </td>
@@ -300,7 +309,11 @@
                                 </td>
 
                                 <td class="px-6 py-4 whitespace-nowrap hidden md:table-cell">
-                                    <div class="text-sm text-gray-600" x-text="org.created_at ? new Date(org.created_at).toLocaleString() : '-'"></div>
+                                    <div
+                                        class="text-sm text-gray-600 max-w-[180px] overflow-hidden whitespace-nowrap truncate"
+                                        :title="org.created_at ? new Date(org.created_at).toLocaleString() : '-'"
+                                        x-text="org.created_at ? new Date(org.created_at).toLocaleString() : '-'">
+                                    </div>
                                 </td>
 
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
