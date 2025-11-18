@@ -14,13 +14,21 @@
             },
             errors: {},
             loading: false,
-            showSuccessModal: false,
             logoPreview: null,
+            currentStep: 1,
 
             progressPercent() {
                 const fields = ['name','acronym','description','platform','organization_id','logo'];
                 const filled = fields.reduce((acc, key) => acc + (this.formData[key] ? 1 : 0), 0);
                 return Math.round((filled / fields.length) * 100);
+            },
+
+            nextStep() {
+                this.currentStep = 2;
+            },
+
+            prevStep() {
+                this.currentStep = 1;
             },
 
             submitForm() {
@@ -49,8 +57,7 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        this.showSuccessModal = true;
-                        this.resetFormData();
+                        window.location.href = '{{ route('admin.partylists.index') }}';
                     } else {
                         this.errors = data.errors || {};
                     }
@@ -134,13 +141,15 @@
                     <div class="mt-6">
                         <div class="flex items-center space-x-6 text-sm">
                             <div class="flex items-center space-x-3">
-                                <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold">1</div>
-                                <div class="text-gray-700 font-medium">Basic Information</div>
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center font-semibold"
+                                     :class="currentStep >= 1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'">1</div>
+                                <div :class="currentStep >= 1 ? 'text-gray-700 font-medium' : 'text-gray-500'">Basic Information</div>
                             </div>
-                            <div class="flex-1 border-t border-gray-200"></div>
-                            <div class="flex items-center space-x-3 text-gray-400">
-                                <div class="w-8 h-8 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center">2</div>
-                                <div>Review & Submit</div>
+                            <div class="flex-1 border-t" :class="currentStep >= 2 ? 'border-indigo-600' : 'border-gray-200'"></div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center font-semibold"
+                                     :class="currentStep >= 2 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'">2</div>
+                                <div :class="currentStep >= 2 ? 'text-gray-700 font-medium' : 'text-gray-500'">Review & Submit</div>
                             </div>
                         </div>
                     </div>
@@ -164,127 +173,184 @@
                             </div>
                         </div>
 
-                        <form @submit.prevent="submitForm()" class="p-8 space-y-6">
-                            @csrf
+                        <!-- Step 1: Basic Information -->
+                        <div x-show="currentStep === 1" class="p-8 space-y-6">
+                            <form @submit.prevent="submitForm()" class="space-y-6">
+                                @csrf
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <!-- Party Name -->
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Party Name <span class="text-red-500">*</span></label>
-                                    <input type="text"
-                                           x-model="formData.name"
-                                           placeholder="Enter party name"
-                                           class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
-                                    <div x-show="errors.name" class="text-red-500 text-sm mt-1" x-text="errors.name?.[0]"></div>
-                                </div>
-
-                                <!-- Acronym -->
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Acronym</label>
-                                    <input type="text"
-                                           x-model="formData.acronym"
-                                           placeholder="e.g., ABC"
-                                           class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
-                                    <div x-show="errors.acronym" class="text-red-500 text-sm mt-1" x-text="errors.acronym?.[0]"></div>
-                                </div>
-                            </div>
-
-                            <!-- Description -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Description <span class="text-sm text-gray-400">(Optional)</span></label>
-                                <textarea x-model="formData.description"
-                                          placeholder="Describe mission, goals and activities"
-                                          rows="5"
-                                          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white resize-none"></textarea>
-                                <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- Party Name -->
                                     <div>
-                                        <i class="ri-lightbulb-line text-amber-400 mr-1"></i>
-                                        Help users understand the party's purpose.
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Party Name <span class="text-red-500">*</span></label>
+                                        <input type="text"
+                                               x-model="formData.name"
+                                               placeholder="Enter party name"
+                                               class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                                        <div x-show="errors.name" class="text-red-500 text-sm mt-1" x-text="errors.name?.[0]"></div>
                                     </div>
-                                    <div x-text="(formData.description || '').length + '/500'"></div>
+
+                                    <!-- Acronym -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Acronym</label>
+                                        <input type="text"
+                                               x-model="formData.acronym"
+                                               placeholder="e.g., ABC"
+                                               class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                                        <div x-show="errors.acronym" class="text-red-500 text-sm mt-1" x-text="errors.acronym?.[0]"></div>
+                                    </div>
                                 </div>
-                                <div x-show="errors.description" class="text-red-500 text-sm mt-1" x-text="errors.description?.[0]"></div>
-                            </div>
 
-                            <!-- Platform -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Platform</label>
-                                <textarea x-model="formData.platform"
-                                          placeholder="Key positions or platform highlights"
-                                          rows="4"
-                                          class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"></textarea>
-                                <div x-show="errors.platform" class="text-red-500 text-sm mt-1" x-text="errors.platform?.[0]"></div>
-                            </div>
+                                <!-- Description -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Description <span class="text-sm text-gray-400">(Optional)</span></label>
+                                    <textarea x-model="formData.description"
+                                              placeholder="Describe mission, goals and activities"
+                                              rows="5"
+                                              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white resize-none"></textarea>
+                                    <div class="flex items-center justify-between mt-2 text-xs text-gray-400">
+                                        <div>
+                                            <i class="ri-lightbulb-line text-amber-400 mr-1"></i>
+                                            Help users understand the party's purpose.
+                                        </div>
+                                        <div x-text="(formData.description || '').length + '/500'"></div>
+                                    </div>
+                                    <div x-show="errors.description" class="text-red-500 text-sm mt-1" x-text="errors.description?.[0]"></div>
+                                </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <!-- Logo Upload -->
-                                <div class="md:col-span-1">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Logo</label>
-                                    <div class="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center">
-                                        <div x-show="!logoPreview" class="space-y-3">
-                                            <div class="w-20 h-20 rounded-xl bg-gray-50 mx-auto flex items-center justify-center">
-                                                <i class="ri-image-line text-gray-400 text-2xl"></i>
+                                <!-- Platform -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Platform</label>
+                                    <textarea x-model="formData.platform"
+                                              placeholder="Key positions or platform highlights"
+                                              rows="4"
+                                              class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"></textarea>
+                                    <div x-show="errors.platform" class="text-red-500 text-sm mt-1" x-text="errors.platform?.[0]"></div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <!-- Logo Upload -->
+                                    <div class="md:col-span-1">
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Logo</label>
+                                        <div class="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center">
+                                            <div x-show="!logoPreview" class="space-y-3">
+                                                <div class="w-20 h-20 rounded-xl bg-gray-50 mx-auto flex items-center justify-center">
+                                                    <i class="ri-image-line text-gray-400 text-2xl"></i>
+                                                </div>
+                                                <div class="text-sm text-gray-600">PNG, JPG up to 2MB</div>
+                                                <input type="file" @change="handleLogoUpload($event)" accept="image/*" class="hidden" id="logo-upload">
+                                                <label for="logo-upload" class="mt-2 inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg cursor-pointer hover:bg-indigo-700">Upload</label>
                                             </div>
-                                            <div class="text-sm text-gray-600">PNG, JPG up to 2MB</div>
-                                            <input type="file" @change="handleLogoUpload($event)" accept="image/*" class="hidden" id="logo-upload">
-                                            <label for="logo-upload" class="mt-2 inline-flex items-center px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg cursor-pointer hover:bg-indigo-700">Upload</label>
-                                        </div>
 
-                                        <div x-show="logoPreview" class="relative">
-                                            <img :src="logoPreview" alt="Logo preview" class="mx-auto w-28 h-28 object-cover rounded-lg">
-                                            <button type="button" @click="logoPreview = null; formData.logo = null" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">×</button>
+                                            <div x-show="logoPreview" class="relative">
+                                                <img :src="logoPreview" alt="Logo preview" class="mx-auto w-28 h-28 object-cover rounded-lg">
+                                                <button type="button" @click="logoPreview = null; formData.logo = null" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">×</button>
+                                            </div>
                                         </div>
+                                        <div x-show="errors.logo" class="text-red-500 text-sm mt-2" x-text="errors.logo?.[0]"></div>
                                     </div>
-                                    <div x-show="errors.logo" class="text-red-500 text-sm mt-2" x-text="errors.logo?.[0]"></div>
+
+                                    <!-- Color -->
+                                    <div class="md:col-span-1">
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Party Color</label>
+                                        <div class="flex items-center space-x-3">
+                                            <input type="color" x-model="formData.color" class="w-14 h-10 p-0 border-0 rounded-md" />
+                                            <div class="text-sm text-gray-600">Selected: <span class="font-medium" x-text="formData.color"></span></div>
+                                        </div>
+                                        <div x-show="errors.color" class="text-red-500 text-sm mt-2" x-text="errors.color?.[0]"></div>
+                                    </div>
+
+                                    <!-- Organization -->
+                                    <div class="md:col-span-1">
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Organization <span class="text-red-500">*</span></label>
+                                        <select x-model="formData.organization_id" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+                                            <option value="">Select Organization</option>
+                                            @foreach($organizations as $organization)
+                                                <option value="{{ $organization->id }}">{{ $organization->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div x-show="errors.organization_id" class="text-red-500 text-sm mt-2" x-text="errors.organization_id?.[0]"></div>
+                                    </div>
                                 </div>
 
-                                <!-- Color -->
-                                <div class="md:col-span-1">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Party Color</label>
-                                    <div class="flex items-center space-x-3">
-                                        <input type="color" x-model="formData.color" class="w-14 h-10 p-0 border-0 rounded-md" />
-                                        <div class="text-sm text-gray-600">Selected: <span class="font-medium" x-text="formData.color"></span></div>
-                                    </div>
-                                    <div x-show="errors.color" class="text-red-500 text-sm mt-2" x-text="errors.color?.[0]"></div>
-                                </div>
-
-                                <!-- Organization -->
-                                <div class="md:col-span-1">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Organization <span class="text-red-500">*</span></label>
-                                    <select x-model="formData.organization_id" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
-                                        <option value="">Select Organization</option>
-                                        @foreach($organizations as $organization)
-                                            <option value="{{ $organization->id }}">{{ $organization->name }}</option>
-                                        @endforeach
+                                <!-- Status -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                                    <select x-model="formData.status" class="w-full md:w-56 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+                                        <option value="active">Active</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="inactive">Inactive</option>
                                     </select>
-                                    <div x-show="errors.organization_id" class="text-red-500 text-sm mt-2" x-text="errors.organization_id?.[0]"></div>
+                                    <div x-show="errors.status" class="text-red-500 text-sm mt-1" x-text="errors.status?.[0]"></div>
                                 </div>
-                            </div>
 
-                            <!-- Status -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                                <select x-model="formData.status" class="w-full md:w-56 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
-                                    <option value="active">Active</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                                <div x-show="errors.status" class="text-red-500 text-sm mt-1" x-text="errors.status?.[0]"></div>
-                            </div>
+                                <!-- Next Step Actions -->
+                                <div class="flex items-center justify-between pt-6 border-t border-gray-100">
+                                    <a href="{{ route('admin.partylists.index') }}" class="px-6 py-3 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</a>
+                                    <div class="flex items-center space-x-3">
+                                        <button type="button" @click="resetFormData()" class="px-6 py-3 border border-gray-200 bg-white text-gray-700 rounded-lg hover:bg-gray-50">Reset</button>
+                                        <button type="button" @click="nextStep()" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                                            Next: Review & Submit
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
 
-                            <!-- Action Row -->
-                            <div class="flex items-center justify-between pt-6 border-t border-gray-100">
-                                <a href="{{ route('admin.partylists.index') }}" class="px-6 py-3 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50">Cancel</a>
-                                <div class="flex items-center space-x-3">
-                                    <button type="button" @click="resetFormData()" class="px-6 py-3 border border-gray-200 bg-white text-gray-700 rounded-lg hover:bg-gray-50">Reset</button>
-                                    <button type="submit" :disabled="loading" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-60">
+                        <!-- Step 2: Review & Submit -->
+                        <div x-show="currentStep === 2" class="p-8 space-y-6">
+                            <form @submit.prevent="submitForm()" class="space-y-6">
+                                <!-- Review Content -->
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700">Party Name:</label>
+                                        <p x-text="formData.name" class="text-gray-900"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700">Acronym:</label>
+                                        <p x-text="formData.acronym || 'N/A'" class="text-gray-900"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700">Description:</label>
+                                        <p x-text="formData.description || 'N/A'" class="text-gray-900"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700">Platform:</label>
+                                        <p x-text="formData.platform || 'N/A'" class="text-gray-900"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700">Logo:</label>
+                                        <div x-show="logoPreview" class="mt-2">
+                                            <img :src="logoPreview" alt="Logo" class="w-20 h-20 object-cover rounded-lg border">
+                                        </div>
+                                        <p x-show="!logoPreview" class="text-gray-500">No logo uploaded</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700">Party Color:</label>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="w-6 h-6 rounded" :style="'background-color: ' + formData.color"></div>
+                                            <span x-text="formData.color" class="text-gray-900"></span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700">Organization:</label>
+                                        <p x-text="formData.organization_id ? 'Selected' : 'Not selected'" class="text-gray-900"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700">Status:</label>
+                                        <p x-text="formData.status" class="text-gray-900"></p>
+                                    </div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="flex items-center justify-between pt-6 border-t border-gray-100">
+                                    <button type="button" @click="prevStep()" class="px-6 py-3 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50">Back</button>
+                                    <button type="button" @click="submitForm()" :disabled="loading" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50">
                                         <span x-show="!loading">Create Party List</span>
                                         <span x-show="loading">Creating...</span>
                                     </button>
                                 </div>
-                            </div>
-                        </form>
-                    </div>
+                            </form>
+                        </div>
                 </section>
 
                 <!-- Right: Sidebar -->

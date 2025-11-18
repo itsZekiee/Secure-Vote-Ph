@@ -11,8 +11,9 @@ class Position extends Model
 
     protected $fillable = [
         'election_id',
-        'name',
-        'max_votes',
+        'title',
+        'description',
+        'max_selection',
         'order',
     ];
 

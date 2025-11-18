@@ -62,7 +62,9 @@ class CandidateController extends Controller
             $positions = Position::all();
         }
 
-        return view('main-admin.candidate.candidate-create', compact('users', 'elections', 'partylists', 'positions'));
+        $commonPositions = ['President','Vice President','Secretary','Treasurer','Auditor','Representative','Senator','Councilor'];
+
+        return view('main-admin.candidate.candidate-create', compact('users', 'elections', 'partylists', 'positions', 'commonPositions'));
     }
 
     /**
@@ -73,7 +75,8 @@ class CandidateController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'election_id' => 'required|exists:elections,id',
-            'position_id' => 'required|exists:positions,id',
+            'position_id' => 'nullable|exists:positions,id',
+            'new_position_name' => 'required_if:position_id,null|string|max:255',
             'partylist_id' => 'nullable|exists:partylists,id',
             'platform' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -83,12 +86,25 @@ class CandidateController extends Controller
         try {
             DB::beginTransaction();
 
+            // Handle new position creation
+            if (empty($validated['position_id'])) {
+                $position = Position::firstOrCreate([
+                    'election_id' => $validated['election_id'],
+                    'title' => $validated['new_position_name']
+                ]);
+                $validated['position_id'] = $position->id;
+            }
+
             $existingCandidate = Candidate::where('user_id', $validated['user_id'])
                 ->where('election_id', $validated['election_id'])
                 ->where('position_id', $validated['position_id'])
                 ->first();
 
             if ($existingCandidate) {
+                DB::rollBack();
+                if ($request->ajax()) {
+                    return response()->json(['errors' => ['user_id' => ['This user is already a candidate for this position in this election']]], 422);
+                }
                 return back()->withErrors(['user_id' => 'This user is already a candidate for this position in this election'])
                     ->withInput();
             }
@@ -102,11 +118,19 @@ class CandidateController extends Controller
 
             DB::commit();
 
+            if ($request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Candidate created successfully.']);
+            }
+
             return redirect()->route('admin.candidates.index')
                 ->with('success', 'Candidate created successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('CandidateController@store error: '.$e->getMessage());
+
+            if ($request->ajax()) {
+                return response()->json(['errors' => ['general' => ['An error occurred while creating the candidate']]], 422);
+            }
 
             return back()->withErrors(['general' => 'An error occurred while creating the candidate'])
                 ->withInput();
@@ -315,7 +339,7 @@ class CandidateController extends Controller
                     $candidate->user->name,
                     $candidate->user->email,
                     $candidate->election->title,
-                    $candidate->position->name,
+                    $candidate->position->title,
                     $candidate->partylist->name ?? 'Independent',
                     $candidate->status,
                     $candidate->votes_count,
@@ -391,6 +415,6 @@ class CandidateController extends Controller
             Log::debug('positionsQuery: hasColumn(status) check failed: '.$e->getMessage());
         }
 
-        return Position::query()->orderBy('name');
+        return Position::query()->orderBy('title');
     }
 }

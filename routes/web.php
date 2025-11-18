@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+// use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ElectionController;
@@ -35,11 +35,11 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // User profile routes
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+// Route::middleware('auth')->group(function () {
+//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+// });
 
 /*
 |--------------------------------------------------------------------------
@@ -257,23 +257,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
 | Voter/Candidate Portal Routes
 |--------------------------------------------------------------------------
 */
-Route::prefix('portal')->name('portal.')->middleware(['auth'])->group(function () {
-    Route::prefix('voter')->name('voter.')->group(function () {
-        Route::get('dashboard', [\App\Http\Controllers\Portal\VoterController::class, 'dashboard'])->name('dashboard');
-        Route::get('elections', [\App\Http\Controllers\Portal\VoterController::class, 'elections'])->name('elections');
-        Route::get('elections/{election}/vote', [\App\Http\Controllers\Portal\VoterController::class, 'vote'])->name('vote');
-        Route::post('elections/{election}/cast-vote', [\App\Http\Controllers\Portal\VoterController::class, 'castVote'])->name('cast-vote');
-        Route::get('voting-history', [\App\Http\Controllers\Portal\VoterController::class, 'votingHistory'])->name('history');
-        Route::get('profile', [\App\Http\Controllers\Portal\VoterController::class, 'profile'])->name('profile');
-    });
+// Route::prefix('portal')->name('portal.')->middleware(['auth'])->group(function () {
+//     Route::prefix('voter')->name('voter.')->group(function () {
+//         Route::get('dashboard', [\App\Http\Controllers\Portal\VoterController::class, 'dashboard'])->name('dashboard');
+//         Route::get('elections', [\App\Http\Controllers\Portal\VoterController::class, 'elections'])->name('elections');
+//         Route::get('elections/{election}/vote', [\App\Http\Controllers\Portal\VoterController::class, 'vote'])->name('vote');
+//         Route::post('elections/{election}/cast-vote', [\App\Http\Controllers\Portal\VoterController::class, 'castVote'])->name('cast-vote');
+//         Route::get('voting-history', [\App\Http\Controllers\Portal\VoterController::class, 'votingHistory'])->name('history');
+//         Route::get('profile', [\App\Http\Controllers\Portal\VoterController::class, 'profile'])->name('profile');
+//     });
 
-    Route::prefix('candidate')->name('candidate.')->group(function () {
-        Route::get('dashboaWeb', [\App\Http\Controllers\Portal\CandidateController::class, 'profile'])->name('profile');
-        Route::post('profile', [\App\Http\Controllers\Portal\CandidateController::class, 'updateProfile'])->name('profile.update');
-        Route::get('campaigns', [\App\Http\Controllers\Portal\CandidateController::class, 'campaigns'])->name('campaigns');
-        Route::get('statistics', [\App\Http\Controllers\Portal\CandidateController::class, 'statistics'])->name('statistics');
-    });
-});
+//     Route::prefix('candidate')->name('candidate.')->group(function () {
+//         Route::get('dashboaWeb', [\App\Http\Controllers\Portal\CandidateController::class, 'profile'])->name('profile');
+//         Route::post('profile', [\App\Http\Controllers\Portal\CandidateController::class, 'updateProfile'])->name('profile.update');
+//         Route::get('campaigns', [\App\Http\Controllers\Portal\CandidateController::class, 'campaigns'])->name('campaigns');
+//         Route::get('statistics', [\App\Http\Controllers\Portal\CandidateController::class, 'statistics'])->name('statistics');
+//     });
+// });
 
 /*
 |--------------------------------------------------------------------------

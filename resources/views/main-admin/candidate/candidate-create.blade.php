@@ -1,121 +1,7 @@
 @extends('layouts.app-main-admin')
 
 @section('content')
-    <div x-data="{
-    users: @json($users->map(fn($u) => ['id' => $u->id, 'name' => $u->name ?? '', 'email' => $u->email ?? ''])->values()),
-    existingPositions: @json($positions->map(fn($p) => ['id' => $p->id, 'name' => $p->name])->values()),
-    commonPositions: ['President','Vice President','Secretary','Treasurer','Auditor','Representative','Senator','Councilor'],
-    formData: {
-        user_search: '',
-        user_id: '',
-        election_id: '',
-        position_id: '',
-        new_position_name: '',
-        partylist_id: '',
-        platform: '',
-        photo: null,
-        status: 'active'
-    },
-    errors: {},
-    loading: false,
-    showSuccess: false,
-    photoPreview: null,
-
-    get selectedUserDisplay() {
-        const u = this.users.find(x => String(x.id) === String(this.formData.user_id));
-        return u ? (u.name || u.email) + (u.email ? ' <' + u.email + '>' : '') : '';
-    },
-
-    resolveUser() {
-        this.formData.user_id = '';
-        const text = (this.formData.user_search || '').trim().toLowerCase();
-        if (!text) return;
-        const byExactDisplay = this.users.find(u => ((u.name || '') + ' <' + (u.email || '') + '>').toLowerCase() === text);
-        if (byExactDisplay) { this.formData.user_id = byExactDisplay.id; return; }
-        const byEmail = this.users.find(u => (u.email || '').toLowerCase() === text);
-        if (byEmail) { this.formData.user_id = byEmail.id; return; }
-        const byId = this.users.find(u => String(u.id) === text);
-        if (byId) { this.formData.user_id = byId.id; return; }
-        const byName = this.users.find(u => (u.name || '').toLowerCase() === text || (u.name || '').toLowerCase().startsWith(text));
-        if (byName) { this.formData.user_id = byName.id; return; }
-        // leave user_id empty if not found
-    },
-
-    handlePhotoUpload(e) {
-        const file = e.target.files[0];
-        if (!file) { this.photoPreview = null; this.formData.photo = null; return; }
-        if (!file.type.startsWith('image/')) {
-            this.errors.photo = ['File must be an image'];
-            return;
-        }
-        this.formData.photo = file;
-        const reader = new FileReader();
-        reader.onload = (ev) => this.photoPreview = ev.target.result;
-        reader.readAsDataURL(file);
-    },
-
-    validate() {
-        this.errors = {};
-        if (!this.formData.user_id) this.errors.user_id = ['Select a valid user from suggestions'];
-        if (!this.formData.election_id) this.errors.election_id = ['Election is required'];
-        if (!this.formData.position_id) {
-            this.errors.position_id = ['Position is required'];
-        } else if (this.formData.position_id === 'new' && !this.formData.new_position_name) {
-            this.errors.new_position_name = ['Enter the new position name'];
-        } else if (String(this.formData.position_id).startsWith('preset:') && !this.formData.new_position_name) {
-            // presets are treated as new positions unless server maps them differently
-            // (we'll send the preset name as new_position_name)
-        }
-        return Object.keys(this.errors).length === 0;
-    },
-
-    async submit() {
-        if (!this.validate()) return;
-        this.loading = true;
-        const payload = new FormData();
-        payload.append('_token', document.querySelector('input[name=_token]').value);
-        payload.append('user_id', this.formData.user_id);
-        payload.append('election_id', this.formData.election_id);
-
-        // Position handling:
-        // - numeric id -> existing position (append position_id)
-        // - 'preset:Name' -> treat as new position (send new_position_name)
-        // - 'new' -> send new_position_name
-        if (String(this.formData.position_id).startsWith('preset:')) {
-            payload.append('position_id', '');
-            payload.append('new_position_name', String(this.formData.position_id).replace(/^preset:/, ''));
-        } else if (this.formData.position_id === 'new') {
-            payload.append('position_id', '');
-            payload.append('new_position_name', this.formData.new_position_name || '');
-        } else {
-            payload.append('position_id', this.formData.position_id || '');
-            payload.append('new_position_name', '');
-        }
-
-        payload.append('partylist_id', this.formData.partylist_id || '');
-        payload.append('platform', this.formData.platform || '');
-        payload.append('status', this.formData.status);
-        if (this.formData.photo) payload.append('photo', this.formData.photo);
-
-        try {
-            const r = await fetch('{{ route('admin.candidates.store') }}', {
-                method: 'POST',
-                body: payload,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-            const json = await r.json().catch(() => ({}));
-            if (r.ok && json.success) {
-                this.showSuccess = true;
-            } else {
-                this.errors = json.errors || { general: ['Unable to create candidate'] };
-            }
-        } catch (e) {
-            this.errors = { general: ['Server error. Try again.'] };
-        } finally {
-            this.loading = false;
-        }
-    }
-}"
+    <div x-data="candidateData()"
          x-init=""
          class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 flex">
 
@@ -144,7 +30,7 @@
             <div class="max-w-7xl mx-auto px-6 py-8">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <section class="lg:col-span-8">
-                        <form @submit.prevent="submit()" class="space-y-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                        <form @submit.prevent="submitForm()" class="space-y-6 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                             @csrf
                             <div class="px-6 py-5 bg-gradient-to-r from-white via-indigo-50 to-white border-b">
                                 <div class="flex items-center justify-between">
@@ -159,9 +45,9 @@
                             <div class="p-6 space-y-6">
                                 <!-- User input -->
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">User  <span class="text-red-500">*</span></label>
+                                    <label for="user-search" class="block text-sm font-medium text-gray-700 mb-2">User  <span class="text-red-500">*</span></label>
                                     <div class="flex gap-3">
-                                        <input list="users-list" x-model="formData.user_search" @blur="resolveUser()" @keyup.enter="resolveUser()"
+                                        <input id="user-search" list="users-list" x-model="formData.user_search" @blur="resolveUser()" @keyup.enter="resolveUser()"
                                                placeholder="Start typing name, email or id"
                                                class="flex-1 px-4 py-3 border border-gray-200 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500">
                                         <button type="button" @click="formData.user_search=''; formData.user_id='';"
@@ -174,14 +60,12 @@
                                             <option :value="(u.name || '') + (u.email ? ' <' + u.email + '>' : '')"></option>
                                         </template>
                                     </datalist>
-                                    <input type="hidden" name="user_id" :value="formData.user_id">
-                                </div>
 
                                 <!-- Election & Partylist -->
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Election <span class="text-red-500">*</span></label>
-                                        <select name="election_id" x-model="formData.election_id"
+                                        <label for="election_id" class="block text-sm font-medium text-gray-700 mb-2">Election <span class="text-red-500">*</span></label>
+                                        <select id="election_id" name="election_id" x-model="formData.election_id"
                                                 class="w-full px-4 py-3 border rounded-lg border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500">
                                             <option value="">Select Election</option>
                                             @foreach($elections as $e)
@@ -192,21 +76,23 @@
                                     </div>
 
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Partylist</label>
-                                        <select name="partylist_id" x-model="formData.partylist_id"
+                                        <label for="partylist_id" class="block text-sm font-medium text-gray-700 mb-2">Partylist</label>
+                                        <select id="partylist_id" name="partylist_id" x-model="formData.partylist_id"
                                                 class="w-full px-4 py-3 border rounded-lg border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500">
                                             <option value="">Independent / None</option>
                                             @foreach($partylists as $p)
                                                 <option value="{{ $p->id }}">{{ $p->name ?? $p->title ?? 'Party #' . $p->id }}</option>
                                             @endforeach
                                         </select>
+                                        <div x-show="errors.partylist_id" class="text-red-500 text-sm mt-1" x-text="errors.partylist_id?.[0]"></div>
                                     </div>
                                 </div>
 
                                 <!-- Position -->
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Position <span class="text-red-500">*</span></label>
-                                    <select name="position_id" x-model="formData.position_id"
+                                    <label for="position_id" class="block text-sm font-medium text-gray-700 mb-2">Position <span class="text-red-500">*</span></label>
+                                    <select id="position_id" name="position_id" x-model="formData.position_id"
+                                            @change="if (String($event.target.value).startsWith('preset:')) { formData.new_position_name = String($event.target.value).replace(/^preset:/, ''); } else { formData.new_position_name = ''; }"
                                             class="w-full px-4 py-3 border rounded-lg border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500">
                                         <option value="">Select Position</option>
 
@@ -228,6 +114,7 @@
                                         <label class="block text-sm font-medium text-gray-700 mb-2" x-text="formData.position_id === 'new' ? 'New position name' : 'New position preview'"></label>
                                         <input type="text" x-model="formData.new_position_name"
                                                :placeholder="formData.position_id === 'new' ? 'e.g., Chief Technology Officer' : ''"
+                                               :readonly="String(formData.position_id).startsWith('preset:')"
                                                class="w-full px-4 py-3 border rounded-lg border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500">
                                         <div x-show="errors.new_position_name" class="text-red-500 text-sm mt-1" x-text="errors.new_position_name?.[0]"></div>
                                         <template x-if="String(formData.position_id).startsWith('preset:')">
@@ -303,7 +190,7 @@
                                 <ul class="space-y-2 text-sm text-gray-700">
                                     <li class="flex justify-between"><span class="text-gray-500">User</span><span class="font-medium" x-text="selectedUserDisplay || '-'"></span></li>
                                     <li class="flex justify-between"><span class="text-gray-500">Election</span><span class="font-medium" x-text="formData.election_id ? (document.querySelector('[name=\\'election_id\\'] option[value=\"'+formData.election_id+'\"]')?.textContent || formData.election_id) : '-'"></span></li>
-                                    <li class="flex justify-between"><span class="text-gray-500">Position</span><span class="font-medium" x-text="formData.position_id === 'new' ? (formData.new_position_name || 'New position') : (String(formData.position_id).startsWith('preset:') ? String(formData.position_id).replace('preset:','') : (document.querySelector('[name=\\'position_id\\'] option[value=\"'+formData.position_id+'\"]')?.textContent || formData.position_id || '-'))"></span></li>
+                                    <li class="flex justify-between"><span class="text-gray-500">Position</span><span class="font-medium" x-text="formData.position_id === 'new' ? (formData.new_position_name || 'New position') : (String(formData.position_id).startsWith('preset:') ? formData.new_position_name : (document.querySelector('[name=\\'position_id\\'] option[value=\"'+formData.position_id+'\"]')?.textContent || formData.position_id || '-'))"></span></li>
                                     <li class="flex justify-between"><span class="text-gray-500">Partylist</span><span class="font-medium" x-text="formData.partylist_id ? (document.querySelector('[name=\\'partylist_id\\'] option[value=\"'+formData.partylist_id+'\"]')?.textContent || formData.partylist_id) : 'Independent'"></span></li>
                                     <li class="flex justify-between"><span class="text-gray-500">Status</span><span class="font-medium" x-text="formData.status"></span></li>
                                 </ul>
@@ -341,3 +228,126 @@
         </main>
     </div>
 @endsection
+
+<script>
+function candidateData() {
+    return {
+        users: @json($users->map(fn($u) => ['id' => $u->id, 'name' => $u->name ?? '', 'email' => $u->email ?? ''])->values()),
+        existingPositions: @json($positions->map(fn($p) => ['id' => $p->id, 'name' => $p->name])->values()),
+        commonPositions: @json($commonPositions),
+        formData: {
+            user_search: '',
+            user_id: '',
+            election_id: '',
+            position_id: '',
+            new_position_name: '',
+            partylist_id: '',
+            platform: '',
+            photo: null,
+            status: 'active'
+        },
+        errors: {},
+        loading: false,
+        showSuccess: false,
+        photoPreview: null,
+
+        get selectedUserDisplay() {
+            const u = this.users.find(x => String(x.id) === String(this.formData.user_id));
+            return u ? (u.name || u.email) + (u.email ? ' <' + u.email + '>' : '') : '';
+        },
+
+        resolveUser() {
+            this.formData.user_id = '';
+            const text = (this.formData.user_search || '').trim().toLowerCase();
+            if (!text) return;
+            const byExactDisplay = this.users.find(u => ((u.name || '') + ' <' + (u.email || '') + '>').toLowerCase() === text);
+            if (byExactDisplay) { this.formData.user_id = byExactDisplay.id; return; }
+            const byEmail = this.users.find(u => (u.email || '').toLowerCase() === text);
+            if (byEmail) { this.formData.user_id = byEmail.id; return; }
+            const byId = this.users.find(u => String(u.id) === text);
+            if (byId) { this.formData.user_id = byId.id; return; }
+            const byName = this.users.find(u => (u.name || '').toLowerCase() === text || (u.name || '').toLowerCase().startsWith(text));
+            if (byName) { this.formData.user_id = byName.id; return; }
+            // leave user_id empty if not found
+        },
+
+        handlePhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) { this.photoPreview = null; this.formData.photo = null; return; }
+            if (!file.type.startsWith('image/')) {
+                this.errors.photo = ['File must be an image'];
+                return;
+            }
+            this.formData.photo = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => this.photoPreview = ev.target.result;
+            reader.readAsDataURL(file);
+        },
+
+        validate() {
+            this.errors = {};
+            if (!this.formData.user_id) this.errors.user_id = ['Select a valid user from suggestions'];
+            if (!this.formData.election_id) this.errors.election_id = ['Election is required'];
+            if (!this.formData.position_id) {
+                this.errors.position_id = ['Position is required'];
+            } else if (this.formData.position_id === 'new' && !this.formData.new_position_name.trim()) {
+                this.errors.new_position_name = ['Enter the new position name'];
+            } else if (String(this.formData.position_id).startsWith('preset:') && !this.formData.new_position_name.trim()) {
+                this.errors.new_position_name = ['Position name is required for preset'];
+            }
+            return Object.keys(this.errors).length === 0;
+        },
+
+        submitForm() {
+            if (!this.validate()) return;
+            this.loading = true;
+            this.errors = {};
+
+            const formData = new FormData();
+            formData.append('_token', document.querySelector('input[name=_token]').value);
+            formData.append('user_id', this.formData.user_id);
+            formData.append('election_id', this.formData.election_id);
+
+            // Position handling:
+            // - numeric id -> existing position (append position_id)
+            // - 'preset:Name' -> treat as new position (send new_position_name)
+            // - 'new' -> send new_position_name
+            if (String(this.formData.position_id).startsWith('preset:')) {
+                formData.append('position_id', '');
+                formData.append('new_position_name', this.formData.new_position_name.trim());
+            } else if (this.formData.position_id === 'new') {
+                formData.append('position_id', '');
+                formData.append('new_position_name', this.formData.new_position_name.trim());
+            } else {
+                formData.append('position_id', this.formData.position_id || '');
+                formData.append('new_position_name', '');
+            }
+
+            formData.append('partylist_id', this.formData.partylist_id || '');
+            formData.append('platform', this.formData.platform || '');
+            formData.append('status', this.formData.status);
+            if (this.formData.photo) formData.append('photo', this.formData.photo);
+
+            fetch('{{ route('admin.candidates.store') }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '{{ route('admin.candidates.index') }}';
+                } else {
+                    this.errors = data.errors || {};
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.errors = { general: ['Server error. Try again.'] };
+            })
+            .finally(() => {
+                this.loading = false;
+            });
+        }
+    };
+}
+</script>

@@ -11,9 +11,18 @@
             },
             errors: {},
             loading: false,
-            showSuccessModal: false,
             currentStep: 1,
             validationPassed: false,
+
+            nextStep() {
+                if (this.validateForm()) {
+                    this.currentStep = 2;
+                }
+            },
+
+            prevStep() {
+                this.currentStep = 1;
+            },
 
             submitForm() {
                 this.loading = true;
@@ -37,22 +46,16 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        this.showSuccessModal = true;
-                        this.formData = {
-                            name: '',
-                            description: '',
-                            contact_email: '',
-                            contact_phone: '',
-                            status: 'active'
-                        };
-                        localStorage.removeItem('organization_draft');
+                        window.location.href = '{{ route('admin.organizations.index') }}';
                     } else {
                         this.errors = data.errors || {};
+                        this.currentStep = 1; // Go back to form if error
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     this.showToast('An error occurred while creating the organization.', 'error');
+                    this.currentStep = 1;
                 })
                 .finally(() => {
                     this.loading = false;
@@ -207,7 +210,9 @@
                     <div class="grid grid-cols-12 gap-8">
                         <!-- Main Form -->
                         <div class="col-span-8">
-                            <form @submit.prevent="submitForm()" class="space-y-8">
+                            <!-- Step 1: Basic Information -->
+                            <div x-show="currentStep === 1" class="space-y-8">
+                                <form @submit.prevent="nextStep()" class="space-y-8">
                                 @csrf
 
                                 <!-- Organization Details Card -->
@@ -377,16 +382,16 @@
                                     </div>
                                 </div>
 
-                                <!-- Submit Actions -->
+                                <!-- Next Step Actions -->
                                 <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-8">
                                     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                                         <div class="flex items-center space-x-4">
                                             <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl flex items-center justify-center">
-                                                <i class="ri-rocket-line text-purple-600 text-lg"></i>
+                                                <i class="ri-arrow-right-line text-purple-600 text-lg"></i>
                                             </div>
                                             <div>
-                                                <p class="text-lg font-bold text-gray-900">Ready to Launch?</p>
-                                                <p class="text-gray-600">Review your information and create the organization</p>
+                                                <p class="text-lg font-bold text-gray-900">Continue to Review</p>
+                                                <p class="text-gray-600">Proceed to review your information before creating</p>
                                             </div>
                                         </div>
 
@@ -398,19 +403,95 @@
                                             </a>
 
                                             <button type="submit"
-                                                    :disabled="loading || !validationPassed"
+                                                    :disabled="!validationPassed"
                                                     class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
-                                                <div x-show="loading" class="animate-spin mr-2">
-                                                    <i class="ri-loader-4-line"></i>
-                                                </div>
-                                                <i x-show="!loading" class="ri-add-circle-line mr-2"></i>
-                                                <span x-text="loading ? 'Creating Organization...' : 'Create Organization'"></span>
+                                                <i class="ri-arrow-right-line mr-2"></i>
+                                                Next: Review & Submit
                                             </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
-                        </div>
+                                </form>
+                            </div>
+
+                            <!-- Step 2: Review & Submit -->
+                            <div x-show="currentStep === 2" class="space-y-8">
+                                <form @submit.prevent="submitForm()" class="space-y-8">
+                                    <!-- Review Content -->
+                                    <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
+                                        <div class="px-8 py-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-gray-200/60">
+                                            <div class="flex items-center space-x-4">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                                                    <i class="ri-eye-line text-white text-lg"></i>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-xl font-bold text-gray-900">Review Your Information</h3>
+                                                    <p class="text-gray-600 text-sm mt-0.5">Please review all details before creating the organization</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="p-8 space-y-6">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Organization Name:</label>
+                                                    <p x-text="formData.name" class="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg border"></p>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Status:</label>
+                                                    <p x-text="formData.status" class="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg border"></p>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Description:</label>
+                                                <p x-text="formData.description || 'No description provided'" class="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg border min-h-[60px]"></p>
+                                            </div>
+
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Email:</label>
+                                                    <p x-text="formData.contact_email" class="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg border"></p>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Phone:</label>
+                                                    <p x-text="formData.contact_phone || 'Not provided'" class="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg border"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Actions -->
+                                    <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-8">
+                                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                                            <div class="flex items-center space-x-4">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center">
+                                                    <i class="ri-check-double-line text-green-600 text-lg"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="text-lg font-bold text-gray-900">Ready to Create</p>
+                                                    <p class="text-gray-600">Click create to add this organization to the system</p>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                                                <button type="button" @click="prevStep()" class="inline-flex items-center justify-center px-6 py-3 border-2 border-gray-200 rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-semibold">
+                                                    <i class="ri-arrow-left-line mr-2"></i>
+                                                    Back to Edit
+                                                </button>
+
+                                                <button type="submit" :disabled="loading" class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                                                    <span x-show="!loading">
+                                                        <i class="ri-add-circle-line mr-2"></i>
+                                                        Create Organization
+                                                    </span>
+                                                    <span x-show="loading">
+                                                        <i class="ri-loader-4-line mr-2 animate-spin"></i>
+                                                        Creating...
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        </div>
 
                         <!-- Sidebar -->
                         <div class="col-span-4">
@@ -476,47 +557,7 @@
                 </div>
             </div>
 
-            <!-- Success Modal -->
-            <div x-show="showSuccessModal"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
-                 @click.self="showSuccessModal = false">
 
-                <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 border border-gray-200/50"
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform scale-95"
-                     x-transition:enter-end="opacity-100 transform scale-100"
-                     x-transition:leave="transition ease-in duration-200"
-                     x-transition:leave-start="opacity-100 transform scale-100"
-                     x-transition:leave-end="opacity-0 transform scale-95">
-
-                    <div class="text-center">
-                        <div class="w-24 h-24 bg-gradient-to-br from-emerald-100 via-emerald-50 to-teal-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg border border-emerald-200/50">
-                            <i class="ri-check-double-line text-emerald-600 text-4xl"></i>
-                        </div>
-                        <h3 class="text-3xl font-bold text-gray-900 mb-4">Organization Created Successfully!</h3>
-                        <p class="text-gray-600 mb-8 text-lg leading-relaxed">Your organization has been created and is now ready to use. You can start inviting members and managing activities right away.</p>
-
-                        <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-                            <button @click="showSuccessModal = false; window.location.href = '{{ route('admin.organizations.index') }}'"
-                                    class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-bold shadow-lg hover:shadow-xl">
-                                <i class="ri-list-check mr-2"></i>
-                                View Organizations
-                            </button>
-                            <button @click="resetForm(); showSuccessModal = false"
-                                    class="flex-1 inline-flex items-center justify-center px-6 py-4 border-2 border-gray-200 text-gray-700 bg-white rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-semibold">
-                                <i class="ri-add-line mr-2"></i>
-                                Create Another
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
 @endsection
