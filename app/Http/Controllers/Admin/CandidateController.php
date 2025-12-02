@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Candidate;
 use App\Models\User;
 use App\Models\Election;
+use App\Models\Organization;
 use App\Models\Partylist;
 use App\Models\Position;
 use Illuminate\Http\Request;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 class CandidateController extends Controller
 {
@@ -33,109 +36,148 @@ class CandidateController extends Controller
      */
     public function create()
     {
-        try {
-            $usersQuery = $this->voterUsersQuery();
+        $users = User::select('id', 'name', 'email')->get();
+        $positions = Position::select('id', 'title as name')->get();
+        $elections = Election::select('id', 'title')->get();
+        $organizations = Organization::select('id', 'name')->get();
+        $partylists = Partylist::select('id', 'name', 'organization_id')->get();
 
-            // Only apply is_active filter if the column exists
-            if (Schema::hasColumn('users', 'is_active')) {
-                $usersQuery = $usersQuery->where('is_active', true);
-            }
+        $commonPositions = [
+            'President',
+            'Vice President',
+            'Secretary',
+            'Treasurer',
+            'Auditor',
+            'Public Relations Officer',
+            'Representative'
+        ];
 
-            $users = $usersQuery->get();
-        } catch (\Throwable $e) {
-            Log::error('CandidateController@create - voterUsersQuery failed: '.$e->getMessage());
-            $users = collect();
-        }
-
-        $elections = (Schema::hasColumn('elections', 'status'))
-            ? Election::whereIn('status', ['active', 'draft'])->get()
-            : Election::all();
-
-        $partylists = (Schema::hasColumn('partylists', 'status'))
-            ? Partylist::where('status', 'active')->get()
-            : Partylist::all();
-
-        try {
-            $positions = $this->positionsQuery()->get();
-        } catch (\Throwable $e) {
-            Log::error('CandidateController@create - positionsQuery failed: '.$e->getMessage());
-            $positions = Position::all();
-        }
-
-        $commonPositions = ['President','Vice President','Secretary','Treasurer','Auditor','Representative','Senator','Councilor'];
-
-        return view('main-admin.candidate.candidate-create', compact('users', 'elections', 'partylists', 'positions', 'commonPositions'));
+        return view('main-admin.candidate.candidate-create', compact(
+            'users',
+            'positions',
+            'elections',
+            'organizations',
+            'partylists',
+            'commonPositions'
+        ));
     }
 
     /**
      * Store a newly created candidate
+     *
+     * Accepts either:
+     * - `user_id` (existing user), OR
+     * - `user_name` and `user_email` (will find or create user)
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'election_id' => 'required|exists:elections,id',
+        $rules = [
+            'user_id' => 'nullable|exists:users,id',
+            'user_name' => 'required_without:user_id|string|max:255',
+            'user_email' => 'required_without:user_id|email|max:255',
+            'organization_id' => 'required|exists:organizations,id',
+            'election_id' => 'nullable|exists:elections,id',
             'position_id' => 'nullable|exists:positions,id',
-            'new_position_name' => 'required_if:position_id,null|string|max:255',
+            'new_position_name' => 'nullable|string|max:255',
             'partylist_id' => 'nullable|exists:partylists,id',
             'platform' => 'nullable|string',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:3072',
             'status' => 'required|in:active,inactive,disqualified'
-        ]);
+        ];
+
+        $validated = $request->validate($rules);
 
         try {
             DB::beginTransaction();
 
-            // Handle new position creation
-            if (empty($validated['position_id'])) {
-                $position = Position::firstOrCreate([
-                    'election_id' => $validated['election_id'],
-                    'title' => $validated['new_position_name']
-                ]);
+            // Resolve or create user (only pass columns that exist in your users table)
+            if (!empty($validated['user_id'])) {
+                $userId = $validated['user_id'];
+            } else {
+                $user = User::firstWhere('email', $validated['user_email']);
+                if (!$user) {
+                    // Only insert name, email, password (remove role, is_active, etc.)
+                    $user = User::create([
+                        'name' => $validated['user_name'],
+                        'email' => $validated['user_email'],
+                        'password' => Hash::make(Str::random(16)),
+                    ]);
+                } else {
+                    if (empty($user->name) && !empty($validated['user_name'])) {
+                        $user->name = $validated['user_name'];
+                        $user->save();
+                    }
+                }
+                $userId = $user->id;
+            }
+
+            // Handle position
+            if (empty($validated['position_id']) && !empty($validated['new_position_name'])) {
+                $position = Position::firstOrCreate(
+                    ['title' => $validated['new_position_name']],
+                    ['organization_id' => $validated['organization_id'] ?? null]
+                );
                 $validated['position_id'] = $position->id;
             }
 
-            $existingCandidate = Candidate::where('user_id', $validated['user_id'])
-                ->where('election_id', $validated['election_id'])
+            // Check duplicate candidate
+            $existingCandidate = Candidate::where('user_id', $userId)
+                ->when(!empty($validated['election_id']), fn($q) => $q->where('election_id', $validated['election_id']), fn($q) => $q->whereNull('election_id'))
                 ->where('position_id', $validated['position_id'])
                 ->first();
 
             if ($existingCandidate) {
                 DB::rollBack();
                 if ($request->ajax()) {
-                    return response()->json(['errors' => ['user_id' => ['This user is already a candidate for this position in this election']]], 422);
+                    return response()->json(['message' => 'This user is already a candidate for this position in this election', 'errors' => ['user_email' => ['Duplicate candidate']]], 422);
                 }
-                return back()->withErrors(['user_id' => 'This user is already a candidate for this position in this election'])
-                    ->withInput();
+                return back()->withErrors(['user_email' => 'Duplicate candidate'])->withInput();
             }
 
+            // Handle photo upload
+            $photoPath = null;
             if ($request->hasFile('photo')) {
-                $path = $request->file('photo')->store('candidates', 'public');
-                $validated['photo'] = $path;
+                $photoPath = $request->file('photo')->store('candidates', 'public');
             }
 
-            Candidate::create($validated);
+            // Create candidate
+            $candidateData = [
+                'user_id' => $userId,
+                'organization_id' => $validated['organization_id'],
+                'election_id' => $validated['election_id'] ?? null,
+                'position_id' => $validated['position_id'],
+                'partylist_id' => $validated['partylist_id'] ?? null,
+                'platform' => $validated['platform'] ?? null,
+                'photo_path' => $photoPath,
+                'status' => $validated['status'],
+            ];
+
+            Candidate::create($candidateData);
 
             DB::commit();
 
             if ($request->ajax()) {
-                return response()->json(['success' => true, 'message' => 'Candidate created successfully.']);
+                return response()->json([
+                    'success' => true,
+                    'title' => 'Candidate Created',
+                    'message' => 'Candidate created and linked to the selected partylist.'
+                ]);
             }
 
-            return redirect()->route('admin.candidates.index')
-                ->with('success', 'Candidate created successfully.');
+            return redirect()->route('admin.candidates.index')->with('success', 'Candidate created successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('CandidateController@store error: '.$e->getMessage());
 
             if ($request->ajax()) {
-                return response()->json(['errors' => ['general' => ['An error occurred while creating the candidate']]], 422);
+                return response()->json(['message' => 'An error occurred: '.$e->getMessage(), 'errors' => []], 500);
             }
 
-            return back()->withErrors(['general' => 'An error occurred while creating the candidate'])
-                ->withInput();
+            return back()->withErrors(['general' => 'An error occurred'])->withInput();
         }
     }
+
+
 
     /**
      * Display the specified candidate
@@ -190,11 +232,11 @@ class CandidateController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'election_id' => 'required|exists:elections,id',
+            'election_id' => 'nullable|exists:elections,id',
             'position_id' => 'required|exists:positions,id',
             'partylist_id' => 'nullable|exists:partylists,id',
             'platform' => 'nullable|string',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:3072',
             'status' => 'required|in:active,inactive,disqualified'
         ]);
 
@@ -338,8 +380,8 @@ class CandidateController extends Controller
                     $candidate->id,
                     $candidate->user->name,
                     $candidate->user->email,
-                    $candidate->election->title,
-                    $candidate->position->title,
+                    optional($candidate->election)->title,
+                    optional($candidate->position)->title,
                     $candidate->partylist->name ?? 'Independent',
                     $candidate->status,
                     $candidate->votes_count,

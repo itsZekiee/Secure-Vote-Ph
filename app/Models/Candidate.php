@@ -9,7 +9,6 @@ class Candidate extends Model
 {
     use HasFactory;
 
-    // adjust as needed: $fillable or $guarded
     protected $guarded = [];
 
     /**

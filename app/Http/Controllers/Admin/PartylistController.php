@@ -9,6 +9,8 @@ use App\Models\Election;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 
 class PartylistController extends Controller
 {
@@ -20,15 +22,39 @@ class PartylistController extends Controller
             ->get();
 
         $elections = Election::all();
+        $organizations = Organization::where('is_active', 1)->orderBy('name')->get();
 
-        return view('main-admin.partylists', compact('partylists', 'elections'));
+        return view('main-admin.partylists', compact('partylists', 'elections', 'organizations'));
     }
 
     public function create()
     {
-        $organizations = Organization::orderBy('name')->get();
+        // organizations: use 'status' if present, otherwise fall back to 'is_active' if present
+        $orgQuery = Organization::query();
+        if (Schema::hasColumn('organizations', 'status')) {
+            $orgQuery->where('status', 'active');
+        } elseif (Schema::hasColumn('organizations', 'is_active')) {
+            $orgQuery->where('is_active', 1);
+        }
+        $organizations = $orgQuery->orderBy('name')->get();
 
-        return view('main-admin.partylist.partylists-create', compact('organizations'));
+        // elections: only order by a column that exists
+        $electionQuery = Election::query();
+        if (Schema::hasColumn('elections', 'status')) {
+            $electionQuery->where('status', 'active');
+        }
+
+        if (Schema::hasColumn('elections', 'name')) {
+            $electionQuery->orderBy('name');
+        } elseif (Schema::hasColumn('elections', 'title')) {
+            $electionQuery->orderBy('title');
+        } else {
+            $electionQuery->orderBy('created_at', 'desc');
+        }
+
+        $elections = $electionQuery->get();
+
+        return view('main-admin.partylist.partylists-create', compact('organizations', 'elections'));
     }
 
     public function store(Request $request)
@@ -48,8 +74,9 @@ class PartylistController extends Controller
             DB::beginTransaction();
 
             if ($request->hasFile('logo')) {
-                $logoPath = $request->file('logo')->store('partylists/logos', 'public');
-                $validated['logo'] = $logoPath;
+                $logoName = time() . '_' . $request->file('logo')->getClientOriginalName();
+                $request->file('logo')->storeAs('public/partylists', $logoName);
+                $validated['logo'] = $logoName;
             }
 
             $partylist = Partylist::create($validated);
@@ -65,7 +92,7 @@ class PartylistController extends Controller
             }
 
             return redirect()->route('admin.partylists.index')
-                ->with('success', 'Party list created successfully.');
+                ->with('success', 'Party list created successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -75,7 +102,7 @@ class PartylistController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'An error occurred while creating the party list.',
-                    'errors' => ['general' => 'An error occurred while creating the party list.']
+                    'errors' => ['general' => $e->getMessage()]
                 ], 422);
             }
 
@@ -86,11 +113,46 @@ class PartylistController extends Controller
 
     public function show(Partylist $partylist)
     {
-        $partylist->load(['election', 'candidates.position', 'candidates.user']);
-        // pass both variables so views expecting `$party` or `$partylist` work
+        $partylist->load(['election', 'organization', 'candidates.position', 'candidates.user']);
+
         return view('main-admin.partylist.partylist-view', [
             'partylist' => $partylist,
             'party' => $partylist
+        ]);
+    }
+
+    public function edit(Partylist $partylist)
+    {
+        $orgQuery = Organization::query();
+        if (Schema::hasColumn('organizations', 'status')) {
+            $orgQuery->where('status', 'active');
+        } elseif (Schema::hasColumn('organizations', 'is_active')) {
+            $orgQuery->where('is_active', 1);
+        }
+        $organizations = $orgQuery->orderBy('name')->get();
+
+        $selectionQuery = Election::query();
+        if (Schema::hasColumn('elections', 'status')) {
+            $selectionQuery->where('status', 'active');
+        }
+
+        if (Schema::hasColumn('elections', 'name')) {
+            $selectionQuery->orderBy('name');
+        } elseif (Schema::hasColumn('elections', 'title')) {
+            $selectionQuery->orderBy('title');
+        } else {
+            $selectionQuery->orderBy('created_at', 'desc');
+        }
+
+        $selections = $selectionQuery->get();
+
+        $partylist->load('organization');
+
+        return view('main-admin.partylist.partylist-edit', [
+            'partylist' => $partylist,
+            'party' => $partylist,
+            'organizations' => $organizations,
+            'elections' => $selections
         ]);
     }
 
@@ -110,12 +172,16 @@ class PartylistController extends Controller
         try {
             DB::beginTransaction();
 
+            // Handle logo upload
             if ($request->hasFile('logo')) {
-                if ($partylist->logo && \Storage::disk('public')->exists($partylist->logo)) {
-                    \Storage::disk('public')->delete($partylist->logo);
+                // Delete old logo if exists
+                if ($partylist->logo && Storage::exists('public/partylists/' . $partylist->logo)) {
+                    Storage::delete('public/partylists/' . $partylist->logo);
                 }
-                $logoPath = $request->file('logo')->store('partylists/logos', 'public');
-                $validated['logo'] = $logoPath;
+
+                $logoName = time() . '_' . $request->file('logo')->getClientOriginalName();
+                $request->file('logo')->storeAs('public/partylists', $logoName);
+                $validated['logo'] = $logoName;
             }
 
             $partylist->update($validated);
@@ -131,26 +197,23 @@ class PartylistController extends Controller
             }
 
             return redirect()->route('admin.partylists.index')
-                ->with('success', 'Party list updated successfully.');
+                ->with('success', 'Party list updated successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating partylist: ' . $e->getMessage());
 
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while updating the party list.',
+                    'errors' => ['general' => $e->getMessage()]
+                ], 422);
+            }
+
             return back()->withErrors(['general' => 'An error occurred while updating the party list.'])
                 ->withInput();
         }
-    }
-
-    public function edit(Partylist $partylist)
-    {
-        $elections = Election::where('status', 'active')->get();
-        // include both `partylist` and `party` for the edit view compatibility
-        return view('main-admin.partylist.partylist-edit', [
-            'partylist' => $partylist,
-            'party' => $partylist,
-            'elections' => $elections
-        ]);
     }
 
     public function destroy(Partylist $partylist)
@@ -158,55 +221,51 @@ class PartylistController extends Controller
         try {
             DB::beginTransaction();
 
-            if ($partylist->candidates()->count() > 0) {
-                if (request()->ajax()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Cannot delete party list with existing candidates.'
-                    ], 422);
-                }
-
-                return back()->withErrors(['general' => 'Cannot delete party list with existing candidates.']);
+            // Check if partylist has candidates
+            if ($partylist->candidates()->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot delete party list with existing candidates.'
+                ], 422);
             }
 
-            if ($partylist->logo && \Storage::disk('public')->exists($partylist->logo)) {
-                \Storage::disk('public')->delete($partylist->logo);
+            // Delete logo file if exists
+            if ($partylist->logo && Storage::exists('public/partylists/' . $partylist->logo)) {
+                Storage::delete('public/partylists/' . $partylist->logo);
             }
 
             $partylist->delete();
 
             DB::commit();
 
-            if (request()->ajax()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Party list deleted successfully!'
-                ]);
-            }
-
-            return redirect()->route('admin.partylists.index')
-                ->with('success', 'Party list deleted successfully.');
+            return response()->json([
+                'success' => true,
+                'message' => 'Party list deleted successfully!'
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error deleting partylist: ' . $e->getMessage());
 
-            return back()->withErrors(['general' => 'An error occurred while deleting the party list.']);
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while deleting the party list.'
+            ], 500);
         }
     }
 
     public function toggleStatus(Partylist $partylist)
     {
         try {
-            $partylist->update([
-                'status' => $partylist->status === 'active' ? 'inactive' : 'active'
-            ]);
+            $newStatus = $partylist->status === 'active' ? 'inactive' : 'active';
+            $partylist->update(['status' => $newStatus]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Status updated successfully!',
-                'status' => $partylist->status
+                'message' => 'Party list status updated successfully!',
+                'status' => $newStatus
             ]);
+
         } catch (\Exception $e) {
             Log::error('Error toggling partylist status: ' . $e->getMessage());
 
@@ -222,18 +281,25 @@ class PartylistController extends Controller
         $query = $request->get('q', '');
         $status = $request->get('status', '');
         $election_id = $request->get('election_id', '');
+        $organization_id = $request->get('organization_id', '');
 
-        $partylists = Partylist::with(['election'])
+        $partylists = Partylist::with(['election', 'organization'])
             ->withCount(['candidates'])
             ->when($query, function ($q) use ($query) {
-                return $q->where('name', 'like', "%{$query}%")
-                    ->orWhere('acronym', 'like', "%{$query}%");
+                return $q->where(function ($subQuery) use ($query) {
+                    $subQuery->where('name', 'LIKE', "%{$query}%")
+                        ->orWhere('acronym', 'LIKE', "%{$query}%")
+                        ->orWhere('description', 'LIKE', "%{$query}%");
+                });
             })
             ->when($status, function ($q) use ($status) {
                 return $q->where('status', $status);
             })
             ->when($election_id, function ($q) use ($election_id) {
                 return $q->where('election_id', $election_id);
+            })
+            ->when($organization_id, function ($q) use ($organization_id) {
+                return $q->where('organization_id', $organization_id);
             })
             ->orderBy('created_at', 'desc')
             ->get();
@@ -243,8 +309,17 @@ class PartylistController extends Controller
 
     public function export(Request $request)
     {
-        $partylists = Partylist::with(['election'])
+        $organization_id = $request->get('organization_id', '');
+        $status = $request->get('status', '');
+
+        $partylists = Partylist::with(['election', 'organization'])
             ->withCount(['candidates'])
+            ->when($organization_id, function ($q) use ($organization_id) {
+                return $q->where('organization_id', $organization_id);
+            })
+            ->when($status, function ($q) use ($status) {
+                return $q->where('status', $status);
+            })
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -252,14 +327,25 @@ class PartylistController extends Controller
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0'
         ];
 
         $callback = function () use ($partylists) {
             $file = fopen('php://output', 'w');
-
             fputcsv($file, [
-                'ID', 'Name', 'Acronym', 'Election', 'Status', 'Candidates', 'Created At'
+                'ID',
+                'Name',
+                'Acronym',
+                'Organization',
+                'Description',
+                'Platform',
+                'Color',
+                'Status',
+                'Candidates Count',
+                'Created At'
             ]);
 
             foreach ($partylists as $partylist) {
@@ -267,8 +353,11 @@ class PartylistController extends Controller
                     $partylist->id,
                     $partylist->name,
                     $partylist->acronym,
-                    $partylist->election->name ?? 'N/A',
-                    $partylist->status,
+                    $partylist->organization ? $partylist->organization->name : 'N/A',
+                    $partylist->description,
+                    $partylist->platform,
+                    $partylist->color,
+                    ucfirst($partylist->status),
                     $partylist->candidates_count,
                     $partylist->created_at->format('Y-m-d H:i:s')
                 ]);
@@ -283,6 +372,7 @@ class PartylistController extends Controller
     public function members(Partylist $partylist)
     {
         $members = $partylist->candidates()->with('user')->get();
+
         return view('main-admin.partylists-members', [
             'partylist' => $partylist,
             'party' => $partylist,
@@ -293,27 +383,32 @@ class PartylistController extends Controller
     public function addMember(Request $request, Partylist $partylist)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id'
+            'user_id' => 'required|exists:users,id',
+            'position_id' => 'required|exists:positions,id'
         ]);
 
         try {
-            $existingCandidate = $partylist->election->candidates()
+            DB::beginTransaction();
+
+            // Check if user is already a candidate in this partylist
+            $existingCandidate = $partylist->candidates()
                 ->where('user_id', $request->user_id)
                 ->first();
 
             if ($existingCandidate) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User is already a candidate in this election.'
+                    'message' => 'User is already a member of this party list.'
                 ], 422);
             }
 
             $partylist->candidates()->create([
                 'user_id' => $request->user_id,
-                'election_id' => $partylist->election_id,
-                'position_id' => $request->position_id ?? null,
-                'status' => 'pending'
+                'position_id' => $request->position_id,
+                'status' => 'active'
             ]);
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -321,7 +416,8 @@ class PartylistController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error adding partylist member: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error('Error adding member to partylist: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -333,6 +429,8 @@ class PartylistController extends Controller
     public function removeMember(Partylist $partylist, $userId)
     {
         try {
+            DB::beginTransaction();
+
             $candidate = $partylist->candidates()
                 ->where('user_id', $userId)
                 ->first();
@@ -340,11 +438,13 @@ class PartylistController extends Controller
             if (!$candidate) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Member not found.'
+                    'message' => 'Member not found in this party list.'
                 ], 404);
             }
 
             $candidate->delete();
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -352,7 +452,8 @@ class PartylistController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error removing partylist member: ' . $e->getMessage());
+            DB::rollBack();
+            Log::error('Error removing member from partylist: ' . $e->getMessage());
 
             return response()->json([
                 'success' => false,
@@ -365,6 +466,7 @@ class PartylistController extends Controller
     {
         $candidates = $partylist->candidates()
             ->with(['user', 'position'])
+            ->withCount(['votes'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -382,8 +484,43 @@ class PartylistController extends Controller
             'active_candidates' => $partylist->candidates()->where('status', 'active')->count(),
             'pending_candidates' => $partylist->candidates()->where('status', 'pending')->count(),
             'total_votes' => $partylist->candidates()->withCount('votes')->get()->sum('votes_count'),
+            'organization' => $partylist->organization ? $partylist->organization->name : null,
         ];
 
         return response()->json(['statistics' => $stats]);
+    }
+
+    /**
+     * Get partylists by organization
+     */
+    public function byOrganization(Organization $organization)
+    {
+        $partylists = $organization->partylists()
+            ->with(['candidates.user', 'candidates.position'])
+            ->withCount(['candidates'])
+            ->orderBy('name')
+            ->get();
+
+        return view('main-admin.organization-partylists', [
+            'organization' => $organization,
+            'partylists' => $partylists
+        ]);
+    }
+
+    /**
+     * API endpoint to get partylists for a specific organization
+     */
+    public function getByOrganization(Request $request, $organizationId)
+    {
+        $partylists = Partylist::where('organization_id', $organizationId)
+            ->with(['candidates.user'])
+            ->withCount(['candidates'])
+            ->orderBy('name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'partylists' => $partylists
+        ]);
     }
 }
