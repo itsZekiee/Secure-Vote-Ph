@@ -6,20 +6,42 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
     public function up()
     {
-        Schema::table('organizations', function (Blueprint $table) {
-            $table->string('status')->default('active')->after('name');
-        });
+        if (!Schema::hasTable('organizations')) {
+            Schema::create('organizations', function (Blueprint $table) {
+                $table->id();
+                $table->string('name');
+                $table->string('status')->default('active');
+                $table->timestamps();
+            });
 
-        // Optional: set status for existing rows if you need a specific value
-        // \DB::table('organizations')->update(['status' => 'active']);
+            return;
+        }
+
+        if (!Schema::hasColumn('organizations', 'status')) {
+            Schema::table('organizations', function (Blueprint $table) {
+                $table->string('status')->default('active')->after('name');
+            });
+        }
     }
 
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
     public function down()
     {
-        Schema::table('organizations', function (Blueprint $table) {
-            $table->dropColumn('status');
-        });
+        if (Schema::hasColumn('organizations', 'status')) {
+            Schema::table('organizations', function (Blueprint $table) {
+                $table->dropColumn('status');
+            });
+        }
     }
 };
