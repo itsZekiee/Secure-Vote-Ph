@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class ElectionController extends Controller
 {
-    /**
-     * Display a listing of elections
-     */
     public function index()
     {
         $elections = Election::with(['organization'])
@@ -20,7 +17,6 @@ class ElectionController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // use boolean column 'is_active' (change to whatever exists in your schema)
         $organizations = Organization::where('is_active', 1)->get();
 
         return view('main-admin.elections', compact('elections', 'organizations'));
@@ -38,9 +34,7 @@ class ElectionController extends Controller
         return view('main-admin.elections.edit', compact('election', 'organizations'));
     }
 
-    /**
-     * Store a newly created election
-     */
+    // Store a newly created election
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -70,9 +64,7 @@ class ElectionController extends Controller
         }
     }
 
-    /**
-     * Display the specified election
-     */
+    // Display the specified election
     public function show(Election $election)
     {
         $election->load(['organization', 'candidates', 'votes']);
@@ -80,9 +72,7 @@ class ElectionController extends Controller
         return view('main-admin.elections.show', compact('election'));
     }
 
-    /**
-     * Update the specified election
-     */
+    // Update the specified election
     public function update(Request $request, Election $election)
     {
         $validated = $request->validate([
@@ -112,9 +102,7 @@ class ElectionController extends Controller
         }
     }
 
-    /**
-     * Remove the specified election from storage
-     */
+    //Remove the specified election from storage
     public function destroy(Election $election)
     {
         try {
@@ -139,9 +127,7 @@ class ElectionController extends Controller
         }
     }
 
-    /**
-     * Get election candidates
-     */
+    // Get election candidates
     public function candidates(Election $election)
     {
         $candidates = $election->candidates()->with(['user', 'partylist'])->get();
@@ -149,9 +135,7 @@ class ElectionController extends Controller
         return response()->json(['candidates' => $candidates]);
     }
 
-    /**
-     * Search elections
-     */
+    // Search Elections
     public function search(Request $request)
     {
         $query = $request->get('q', '');
@@ -175,9 +159,7 @@ class ElectionController extends Controller
         return response()->json(['elections' => $elections]);
     }
 
-    /**
-     * Export elections data
-     */
+    // Export elections data
     public function export(Request $request)
     {
         $format = $request->get('format', 'csv');
@@ -191,7 +173,7 @@ class ElectionController extends Controller
             return response()->json(['elections' => $elections]);
         }
 
-        // CSV export logic here
+        // CSV export logic
         $filename = 'elections_' . now()->format('Y-m-d_H-i-s') . '.csv';
 
         $headers = [
