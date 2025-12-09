@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up()
     {
-        // Add columns if missing
+        // Add columns first
         if (!Schema::hasColumn('partylists', 'platform')) {
             Schema::table('partylists', function (Blueprint $table) {
                 $table->text('platform')->nullable()->after('description');
@@ -22,21 +22,20 @@ return new class extends Migration
             });
         }
 
-        // Add indexes if missing (works on MySQL)
-        $database = DB::getDatabaseName();
-        $indexRows = DB::select(
-            'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?',
-            [$database, 'partylists']
-        );
-        $indexNames = array_map(fn($r) => $r->INDEX_NAME, $indexRows);
+        if (!Schema::hasColumn('partylists', 'election_id')) {
+            Schema::table('partylists', function (Blueprint $table) {
+                $table->unsignedBigInteger('election_id')->nullable();
+            });
+        }
 
-        if (!in_array('partylists_status_index', $indexNames, true)) {
+        // Add indexes after columns exist
+        if (!$this->indexExists('partylists', 'partylists_status_index')) {
             Schema::table('partylists', function (Blueprint $table) {
                 $table->index('status');
             });
         }
 
-        if (!in_array('partylists_election_id_index', $indexNames, true)) {
+        if (!$this->indexExists('partylists', 'partylists_election_id_index')) {
             Schema::table('partylists', function (Blueprint $table) {
                 $table->index('election_id');
             });
@@ -45,25 +44,18 @@ return new class extends Migration
 
     public function down()
     {
-        // Remove indexes if they exist
-        $database = DB::getDatabaseName();
-        $indexRows = DB::select(
-            'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?',
-            [$database, 'partylists']
-        );
-        $indexNames = array_map(fn($r) => $r->INDEX_NAME, $indexRows);
-
-        Schema::table('partylists', function (Blueprint $table) use ($indexNames) {
-            if (in_array('partylists_status_index', $indexNames, true)) {
+        // Remove indexes first
+        Schema::table('partylists', function (Blueprint $table) {
+            if ($this->indexExists('partylists', 'partylists_status_index')) {
                 $table->dropIndex(['status']);
             }
 
-            if (in_array('partylists_election_id_index', $indexNames, true)) {
+            if ($this->indexExists('partylists', 'partylists_election_id_index')) {
                 $table->dropIndex(['election_id']);
             }
         });
 
-        // Remove columns if they exist
+        // Remove columns
         if (Schema::hasColumn('partylists', 'platform')) {
             Schema::table('partylists', function (Blueprint $table) {
                 $table->dropColumn('platform');
@@ -75,5 +67,17 @@ return new class extends Migration
                 $table->dropColumn('status');
             });
         }
+
+        if (Schema::hasColumn('partylists', 'election_id')) {
+            Schema::table('partylists', function (Blueprint $table) {
+                $table->dropColumn('election_id');
+            });
+        }
+    }
+
+    private function indexExists($table, $index)
+    {
+        $indexes = DB::select("SHOW INDEX FROM `{$table}` WHERE Key_name = ?", [$index]);
+        return !empty($indexes);
     }
 };
