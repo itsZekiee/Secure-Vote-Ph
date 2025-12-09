@@ -12,6 +12,7 @@
                 logoName: '',
                 color: '#3b82f6',
                 organization_id: '',
+                election_id: '',
                 status: 'active'
             },
             errors: {},
@@ -38,7 +39,7 @@
 
             prevStep() { this.currentStep = 1; },
 
-            validateStep1() {
+                validateStep1() {
                 const requiredFields = ['name', 'organization_id'];
                 let valid = true;
                 this.errors = {};
@@ -357,6 +358,21 @@
                                         @endforeach
                                     </select>
                                     <div class="text-sm text-red-600 mt-2 font-medium" x-text="errors.organization_id?.[0]"></div>
+                                </div>
+                                {{-- Election --}}
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                            Election
+                                        </label>
+                                    <select x-model="formData.election_id"
+                                            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
+                                            :class="errors.election_id ? 'border-red-300 bg-red-50' : ''">
+                                        <option value="">Select Election</option>
+                                        @foreach($elections ?? [] as $election)
+                                            <option value="{{ $election->id }}">{{ $election->title ?? $election->name ?? 'Election #' . $election->id }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="text-sm text-red-600 mt-2 font-medium" x-text="errors.election_id?.[0]"></div>
                                 </div>
                             </div>
                         </div>

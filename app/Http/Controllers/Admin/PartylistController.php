@@ -16,7 +16,16 @@ class PartylistController extends Controller
 {
     public function index()
     {
-        $partylists = Partylist::with(['election', 'organization'])
+        $partylists = Partylist::where(function($q) {
+                $q->where('created_by', auth()->id())
+                  ->orWhereHas('election', function($qe) {
+                      $qe->where('created_by', auth()->id())
+                         ->orWhereHas('subAdmins', function($qs) {
+                             $qs->where('user_id', auth()->id());
+                         });
+                  });
+            })
+            ->with(['election', 'organization'])
             ->withCount(['candidates'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -29,30 +38,20 @@ class PartylistController extends Controller
 
     public function create()
     {
-        // organizations: use 'status' if present, otherwise fall back to 'is_active' if present
-        $orgQuery = Organization::query();
-        if (Schema::hasColumn('organizations', 'status')) {
-            $orgQuery->where('status', 'active');
-        } elseif (Schema::hasColumn('organizations', 'is_active')) {
-            $orgQuery->where('is_active', 1);
-        }
-        $organizations = $orgQuery->orderBy('name')->get();
+        // Get only user's created organizations
+        $organizations = Organization::where('created_by', auth()->id())
+            ->orderBy('name')
+            ->get();
 
-        // elections: only order by a column that exists
-        $electionQuery = Election::query();
-        if (Schema::hasColumn('elections', 'status')) {
-            $electionQuery->where('status', 'active');
-        }
-
-        if (Schema::hasColumn('elections', 'name')) {
-            $electionQuery->orderBy('name');
-        } elseif (Schema::hasColumn('elections', 'title')) {
-            $electionQuery->orderBy('title');
-        } else {
-            $electionQuery->orderBy('created_at', 'desc');
-        }
-
-        $elections = $electionQuery->get();
+        // Get elections the user created or is assigned to
+        $elections = Election::where(function($q) {
+                $q->where('created_by', auth()->id())
+                  ->orWhereHas('subAdmins', function($qs) {
+                      $qs->where('user_id', auth()->id());
+                  });
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('main-admin.partylist.partylists-create', compact('organizations', 'elections'));
     }
@@ -67,6 +66,7 @@ class PartylistController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'color' => 'nullable|string|max:7|regex:/^#[0-9A-F]{6}$/i',
             'organization_id' => 'required|exists:organizations,id',
+            'election_id' => 'nullable|exists:elections,id',
             'status' => 'required|in:active,pending,inactive'
         ]);
 
@@ -79,6 +79,26 @@ class PartylistController extends Controller
                 $validated['logo'] = $logoName;
             }
 
+            // If an election_id was provided, ensure the selected election belongs to the current user
+            if (! empty($validated['election_id'])) {
+                $electionBelongsToUser = Election::where('id', $validated['election_id'])
+                    ->where(function($q) {
+                        $q->where('created_by', auth()->id())
+                          ->orWhereHas('subAdmins', function($qs) {
+                              $qs->where('user_id', auth()->id());
+                          });
+                    })->exists();
+
+                if (! $electionBelongsToUser) {
+                    DB::rollBack();
+                    if ($request->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Unauthorized election selection'], 403);
+                    }
+                    return back()->withErrors(['election_id' => 'Unauthorized election selection'])->withInput();
+                }
+            }
+
+            $validated['created_by'] = auth()->id();
             $partylist = Partylist::create($validated);
 
             DB::commit();
@@ -87,7 +107,7 @@ class PartylistController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Party list created successfully!',
-                    'partylist' => $partylist->load('organization')
+                    'partylist' => $partylist->load(['organization', 'election'])
                 ]);
             }
 
@@ -113,6 +133,10 @@ class PartylistController extends Controller
 
     public function show(Partylist $partylist)
     {
+        if (! $this->canUserManagePartylist($partylist)) {
+            abort(403, 'Unauthorized');
+        }
+
         $partylist->load(['election', 'organization', 'candidates.position', 'candidates.user']);
 
         return view('main-admin.partylist.partylist-view', [
@@ -123,6 +147,10 @@ class PartylistController extends Controller
 
     public function edit(Partylist $partylist)
     {
+        if (! $this->canUserManagePartylist($partylist)) {
+            abort(403, 'Unauthorized');
+        }
+
         $orgQuery = Organization::query();
         if (Schema::hasColumn('organizations', 'status')) {
             $orgQuery->where('status', 'active');
@@ -158,6 +186,10 @@ class PartylistController extends Controller
 
     public function update(Request $request, Partylist $partylist)
     {
+        if (! $this->canUserManagePartylist($partylist)) {
+            return back()->withErrors(['general' => 'Unauthorized']);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:partylists,name,' . $partylist->id,
             'acronym' => 'nullable|string|max:10|unique:partylists,acronym,' . $partylist->id,
@@ -166,6 +198,7 @@ class PartylistController extends Controller
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'color' => 'nullable|string|max:7|regex:/^#[0-9A-F]{6}$/i',
             'organization_id' => 'required|exists:organizations,id',
+            'election_id' => 'nullable|exists:elections,id',
             'status' => 'required|in:active,pending,inactive'
         ]);
 
@@ -184,6 +217,25 @@ class PartylistController extends Controller
                 $validated['logo'] = $logoName;
             }
 
+            // Ensure the selected election belongs to the current user or they're an assigned sub-admin
+            if (! empty($validated['election_id'])) {
+                $electionBelongsToUser = Election::where('id', $validated['election_id'])
+                    ->where(function($q) {
+                        $q->where('created_by', auth()->id())
+                          ->orWhereHas('subAdmins', function($qs) {
+                              $qs->where('user_id', auth()->id());
+                          });
+                    })->exists();
+
+                if (! $electionBelongsToUser) {
+                    DB::rollBack();
+                    if ($request->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Unauthorized election selection'], 403);
+                    }
+                    return back()->withErrors(['election_id' => 'Unauthorized election selection'])->withInput();
+                }
+            }
+
             $partylist->update($validated);
 
             DB::commit();
@@ -192,7 +244,7 @@ class PartylistController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Party list updated successfully!',
-                    'partylist' => $partylist->load('organization')
+                    'partylist' => $partylist->load(['organization', 'election'])
                 ]);
             }
 
@@ -218,6 +270,10 @@ class PartylistController extends Controller
 
     public function destroy(Partylist $partylist)
     {
+        if (! $this->canUserManagePartylist($partylist)) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+        }
+
         try {
             DB::beginTransaction();
 
@@ -254,6 +310,29 @@ class PartylistController extends Controller
         }
     }
 
+    /**
+     * Determine if the current user can manage the given partylist.
+     * Creators of the partylist or sub-admins assigned to the partylist's election may manage the record.
+     */
+    private function canUserManagePartylist(Partylist $partylist): bool
+    {
+        if ($partylist->created_by === auth()->id()) {
+            return true;
+        }
+
+        if ($partylist->election_id) {
+            return Election::where('id', $partylist->election_id)
+                ->where(function($q) {
+                    $q->where('created_by', auth()->id())
+                      ->orWhereHas('subAdmins', function($qs) {
+                          $qs->where('user_id', auth()->id());
+                      });
+                })->exists();
+        }
+
+        return false;
+    }
+
     public function toggleStatus(Partylist $partylist)
     {
         try {
@@ -283,7 +362,8 @@ class PartylistController extends Controller
         $election_id = $request->get('election_id', '');
         $organization_id = $request->get('organization_id', '');
 
-        $partylists = Partylist::with(['election', 'organization'])
+        $partylists = Partylist::where('created_by', auth()->id())
+            ->with(['election', 'organization'])
             ->withCount(['candidates'])
             ->when($query, function ($q) use ($query) {
                 return $q->where(function ($subQuery) use ($query) {
@@ -312,7 +392,8 @@ class PartylistController extends Controller
         $organization_id = $request->get('organization_id', '');
         $status = $request->get('status', '');
 
-        $partylists = Partylist::with(['election', 'organization'])
+        $partylists = Partylist::where('created_by', auth()->id())
+            ->with(['election', 'organization'])
             ->withCount(['candidates'])
             ->when($organization_id, function ($q) use ($organization_id) {
                 return $q->where('organization_id', $organization_id);

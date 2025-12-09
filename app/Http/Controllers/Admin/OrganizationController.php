@@ -17,7 +17,8 @@ class OrganizationController extends Controller
      */
     public function index()
     {
-        $organizations = Organization::withCount(['users', 'elections'])
+        $organizations = Organization::where('created_by', auth()->id())
+            ->withCount(['users', 'elections'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -53,6 +54,7 @@ class OrganizationController extends Controller
         }
 
         $data = $validator->validated();
+        $data['created_by'] = auth()->id();
 
         $organization = Organization::create($data);
 
@@ -67,6 +69,10 @@ class OrganizationController extends Controller
      */
     public function show(Organization $organization)
     {
+        if ($organization->created_by !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         $organization->load(['users' => function($query) {
             $query->orderBy('created_at', 'desc');
         }, 'elections' => function($query) {
@@ -93,6 +99,10 @@ class OrganizationController extends Controller
      */
     public function edit(Organization $organization)
     {
+        if ($organization->created_by !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
         return view('main-admin.organizations.organization-edit', compact('organization'));
     }
 
@@ -101,6 +111,10 @@ class OrganizationController extends Controller
      */
     public function update(Request $request, Organization $organization)
     {
+        if ($organization->created_by !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -153,6 +167,10 @@ class OrganizationController extends Controller
      */
     public function destroy(Organization $organization)
     {
+        if ($organization->created_by !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         try {
             DB::beginTransaction();
 
@@ -253,7 +271,8 @@ class OrganizationController extends Controller
         $status = $request->get('status', '');
         $year = $request->get('year', '');
 
-        $organizations = Organization::withCount(['users', 'elections'])
+        $organizations = Organization::where('created_by', auth()->id())
+            ->withCount(['users', 'elections'])
             ->when($query, function ($q) use ($query) {
                 return $q->where(function ($subQuery) use ($query) {
                     $subQuery->where('name', 'like', "%{$query}%")
@@ -280,7 +299,8 @@ class OrganizationController extends Controller
     {
         $format = $request->get('format', 'csv');
 
-        $organizations = Organization::withCount(['users', 'elections'])
+        $organizations = Organization::where('created_by', auth()->id())
+            ->withCount(['users', 'elections'])
             ->orderBy('created_at', 'desc')
             ->get();
 

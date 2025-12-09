@@ -20,6 +20,7 @@ class Organization extends Model
         'email',
         'logo',
         'is_active',
+        'created_by',
     ];
 
     protected $casts = [
@@ -27,6 +28,14 @@ class Organization extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    /**
+     * Get the user who created this organization
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     /**
      * Relationships

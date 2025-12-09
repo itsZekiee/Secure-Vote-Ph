@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PartylistController;
 use App\Http\Controllers\Admin\VoterController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\CandidateController;
+use App\Http\Controllers\Admin\SubAdminDashboardController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -51,6 +52,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     // Admin Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
+    // Sub-Admin Dashboard Routes
+    Route::prefix('sub-admin')->name('sub-admin.')->group(function () {
+        Route::get('/dashboard', [SubAdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/elections', [SubAdminDashboardController::class, 'getAssignedElections'])->name('elections');
+        Route::get('/elections/{election}/data', [SubAdminDashboardController::class, 'getElectionData'])->name('election-data');
+    });
+
     // Direct voter page route (legacy)
     Route::get('/voters', [AdminController::class, 'voters'])->name('voters');
 
@@ -60,6 +68,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::post('/settings/reset', [SettingsController::class, 'reset'])->name('settings.reset');
     Route::get('/settings/backup', [SettingsController::class, 'backup'])->name('settings.backup');
     Route::post('/settings/restore', [SettingsController::class, 'restore'])->name('settings.restore');
+
+    // Sub-Admin Dashboard Routes
+    Route::prefix('sub-admin')->name('sub-admin.')->group(function () {
+        Route::get('dashboard', [SubAdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('elections', [SubAdminDashboardController::class, 'getAssignedElections'])->name('elections');
+        Route::get('elections/{election}', [SubAdminDashboardController::class, 'getElectionData'])->name('election-data');
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -88,6 +103,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('search', [ElectionController::class, 'search'])->name('search');
         Route::get('export', [ElectionController::class, 'export'])->name('export');
         Route::post('{election}/toggle-status', [ElectionController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('{election}/assign-sub-admin', [ElectionController::class, 'assignSubAdmin'])->name('assign-sub-admin');
+        Route::post('{election}/remove-sub-admin', [ElectionController::class, 'removeSubAdmin'])->name('remove-sub-admin');
         Route::get('{election}/candidates', [ElectionController::class, 'candidates'])->name('candidates');
         Route::get('{election}/voters', [ElectionController::class, 'voters'])->name('voters');
         Route::get('{election}/results', [ElectionController::class, 'results'])->name('results');

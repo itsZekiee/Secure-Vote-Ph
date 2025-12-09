@@ -12,6 +12,14 @@ class Candidate extends Model
     protected $guarded = [];
 
     /**
+     * Get the user who created this candidate
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
      * The user that represents this candidate (if applicable).
      */
     public function user()

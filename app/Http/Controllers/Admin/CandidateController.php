@@ -23,12 +23,43 @@ class CandidateController extends Controller
      */
     public function index()
     {
-        $candidates = Candidate::with(['user', 'election', 'position', 'partylist'])
+        $candidates = Candidate::where(function($q) {
+                $q->where('created_by', auth()->id())
+                  ->orWhereHas('election', function($qe) {
+                      $qe->where('created_by', auth()->id())
+                         ->orWhereHas('subAdmins', function($qs) {
+                             $qs->where('user_id', auth()->id());
+                         });
+                  });
+            })
+            ->with(['user', 'election', 'position', 'partylist'])
             ->withCount(['votes'])
             ->orderBy('created_at', 'desc')
             ->get();
 
         return view('main-admin.candidates', compact('candidates'));
+    }
+
+    /**
+     * Determine if the current user can manage the given candidate.
+     * Creators of the candidate or sub-admins assigned to the candidate's election may manage the record.
+     */
+    private function canUserManageCandidate(Candidate $candidate): bool
+    {
+        if ($candidate->created_by === auth()->id()) {
+            return true;
+        }
+        if ($candidate->election_id) {
+            return Election::where('id', $candidate->election_id)
+                ->where(function($q) {
+                    $q->where('created_by', auth()->id())
+                      ->orWhereHas('subAdmins', function($qs) {
+                          $qs->where('user_id', auth()->id());
+                      });
+                })->exists();
+        }
+
+        return false;
     }
 
     /**
@@ -38,9 +69,28 @@ class CandidateController extends Controller
     {
         $users = User::select('id', 'name', 'email')->get();
         $positions = Position::select('id', 'title as name')->get();
-        $elections = Election::select('id', 'title')->get();
-        $organizations = Organization::select('id', 'name')->get();
-        $partylists = Partylist::select('id', 'name', 'organization_id')->get();
+        // Allow elections the user created or is assigned to
+        $elections = Election::where(function($q) {
+                $q->where('created_by', auth()->id())
+                  ->orWhereHas('subAdmins', function($qs) {
+                      $qs->where('user_id', auth()->id());
+                  });
+            })->select('id', 'title')->get();
+
+        $organizations = Organization::where(function($q) {
+                $q->where('created_by', auth()->id());
+            })->select('id', 'name')->get();
+
+        // Partylists that belong to allowed elections or created by user
+        $partylists = Partylist::where(function($q) {
+                $q->where('created_by', auth()->id())
+                  ->orWhereHas('election', function($qe) {
+                      $qe->where('created_by', auth()->id())
+                         ->orWhereHas('subAdmins', function($qs) {
+                             $qs->where('user_id', auth()->id());
+                         });
+                  });
+            })->select('id', 'name', 'organization_id')->get();
 
         $commonPositions = [
             'President',
@@ -140,6 +190,25 @@ class CandidateController extends Controller
                 $photoPath = $request->file('photo')->store('candidates', 'public');
             }
 
+            // If an election is provided, ensure the user can manage that election (creator or sub-admin)
+            if (!empty($validated['election_id'])) {
+                $allowed = Election::where('id', $validated['election_id'])
+                    ->where(function($q) {
+                        $q->where('created_by', auth()->id())
+                          ->orWhereHas('subAdmins', function($qs) {
+                              $qs->where('user_id', auth()->id());
+                          });
+                    })->exists();
+
+                if (! $allowed) {
+                    DB::rollBack();
+                    if ($request->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Unauthorized election selection'], 403);
+                    }
+                    return back()->withErrors(['election_id' => 'Unauthorized election selection'])->withInput();
+                }
+            }
+
             // Create candidate
             $candidateData = [
                 'user_id' => $userId,
@@ -150,6 +219,7 @@ class CandidateController extends Controller
                 'platform' => $validated['platform'] ?? null,
                 'photo_path' => $photoPath,
                 'status' => $validated['status'],
+                'created_by' => auth()->id(),
             ];
 
             Candidate::create($candidateData);
@@ -184,6 +254,10 @@ class CandidateController extends Controller
      */
     public function show(Candidate $candidate)
     {
+        if (! $this->canUserManageCandidate($candidate)) {
+            abort(403, 'Unauthorized');
+        }
+
         $candidate->load(['user', 'election', 'position', 'partylist', 'votes']);
 
         return view('main-admin.candidates.show', compact('candidate'));
@@ -194,6 +268,10 @@ class CandidateController extends Controller
      */
     public function edit(Candidate $candidate)
     {
+        if (! $this->canUserManageCandidate($candidate)) {
+            abort(403, 'Unauthorized');
+        }
+
         try {
             $usersQuery = $this->voterUsersQuery();
 
@@ -230,6 +308,10 @@ class CandidateController extends Controller
      */
     public function update(Request $request, Candidate $candidate)
     {
+        if (! $this->canUserManageCandidate($candidate)) {
+            return back()->withErrors(['general' => 'Unauthorized']);
+        }
+
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'election_id' => 'nullable|exists:elections,id',
@@ -283,6 +365,10 @@ class CandidateController extends Controller
      */
     public function destroy(Candidate $candidate)
     {
+        if (! $this->canUserManageCandidate($candidate)) {
+            return back()->withErrors(['general' => 'Unauthorized']);
+        }
+
         try {
             DB::beginTransaction();
 
@@ -319,7 +405,8 @@ class CandidateController extends Controller
         $partylist_id = $request->get('partylist_id', '');
         $status = $request->get('status', '');
 
-        $candidates = Candidate::with(['user', 'election', 'position', 'partylist'])
+        $candidates = Candidate::where('created_by', auth()->id())
+            ->with(['user', 'election', 'position', 'partylist'])
             ->withCount(['votes'])
             ->when($query, function ($q) use ($query) {
                 return $q->whereHas('user', function ($userQuery) use ($query) {
@@ -352,7 +439,8 @@ class CandidateController extends Controller
     {
         $format = $request->get('format', 'csv');
 
-        $candidates = Candidate::with(['user', 'election', 'position', 'partylist'])
+        $candidates = Candidate::where('created_by', auth()->id())
+            ->with(['user', 'election', 'position', 'partylist'])
             ->withCount(['votes'])
             ->orderBy('created_at', 'desc')
             ->get();

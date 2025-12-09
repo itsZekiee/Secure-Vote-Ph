@@ -22,6 +22,7 @@ class Election extends Model
         'geo_longitude',
         'geo_radius',
         'status',
+        'created_by',
     ];
 
     protected $casts = [
@@ -31,6 +32,22 @@ class Election extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    /**
+     * Get the user who created this election
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get users assigned as sub-admins for this election
+     */
+    public function subAdmins()
+    {
+        return $this->belongsToMany(User::class, 'election_user')->withTimestamps();
+    }
 
     public function organization()
     {
@@ -50,5 +67,10 @@ class Election extends Model
     public function votes(): HasMany
     {
         return $this->hasMany(Vote::class);
+    }
+
+    public function partylists()
+    {
+        return $this->hasMany(Partylist::class);
     }
 }

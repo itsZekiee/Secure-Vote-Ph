@@ -21,6 +21,7 @@ class Partylist extends Model
         'organization_id',
         'election_id',
         'status',
+        'created_by',
     ];
 
     protected $casts = [
@@ -30,6 +31,14 @@ class Partylist extends Model
     protected $dates = [
         'deleted_at',
     ];
+
+    /**
+     * Get the user who created this partylist
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     // Relationships
     public function election()

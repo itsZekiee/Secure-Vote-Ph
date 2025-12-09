@@ -54,15 +54,47 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the elections created by this user (if admin/election officer)
+     * Get the organizations created by this user
      */
-    public function elections()
+    public function createdOrganizations()
+    {
+        return $this->hasMany(Organization::class, 'created_by');
+    }
+
+    /**
+     * Get the elections created by this user
+     */
+    public function createdElections()
     {
         return $this->hasMany(Election::class, 'created_by');
     }
 
     /**
-     * Get the candidacies for this user
+     * Get the partylists created by this user
+     */
+    public function createdPartylists()
+    {
+        return $this->hasMany(Partylist::class, 'created_by');
+    }
+
+    /**
+     * Get the candidates created by this user
+     */
+    public function createdCandidates()
+    {
+        return $this->hasMany(Candidate::class, 'created_by');
+    }
+
+    /**
+     * Get elections where this user is assigned as sub-admin
+     */
+    public function assignedElections()
+    {
+        return $this->belongsToMany(Election::class, 'election_user');
+    }
+
+    /**
+     * Get the candidacies for this user (if user represents a candidate)
      */
     public function candidacies()
     {
