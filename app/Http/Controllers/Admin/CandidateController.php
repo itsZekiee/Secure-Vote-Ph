@@ -126,8 +126,7 @@ class CandidateController extends Controller
             'user_name' => 'required_without:user_id|string|max:255',
             'user_email' => 'required_without:user_id|email|max:255',
             'organization_id' => 'required|exists:organizations,id',
-            // If creating a new position, an election must be provided so the position can be tied to an election
-            'election_id' => 'nullable|exists:elections,id|required_with:new_position_name',
+            'election_id' => 'nullable|exists:elections,id',
             'position_id' => 'nullable|exists:positions,id',
             'new_position_name' => 'nullable|string|max:255',
             'partylist_id' => 'nullable|exists:partylists,id',
