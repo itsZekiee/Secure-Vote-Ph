@@ -163,17 +163,26 @@ class CandidateController extends Controller
 
             // Handle position
             if (empty($validated['position_id']) && !empty($validated['new_position_name'])) {
-                // Ensure election_id is present (validation above enforces this when new_position_name is given)
+
+                // Determine election_id for the new position (may be null)
                 $electionIdForPosition = $validated['election_id'] ?? null;
 
-                // Create or find position scoped to the election to avoid cross-election collision
-                $position = Position::firstOrCreate(
-                    [
-                        'title' => $validated['new_position_name'],
-                        'election_id' => $electionIdForPosition,
-                    ],
-                    ['organization_id' => $validated['organization_id'] ?? null]
-                );
+                // Create or find position. If an election_id is provided, scope the position to that election.
+                if ($electionIdForPosition !== null) {
+                    $position = Position::firstOrCreate(
+                        [
+                            'title' => $validated['new_position_name'],
+                            'election_id' => $electionIdForPosition,
+                        ],
+                        ['organization_id' => $validated['organization_id'] ?? null]
+                    );
+                } else {
+                    // If no election specified, create/find a global position record by title only
+                    $position = Position::firstOrCreate(
+                        ['title' => $validated['new_position_name']],
+                        ['organization_id' => $validated['organization_id'] ?? null]
+                    );
+                }
 
                 $validated['position_id'] = $position->id;
             }

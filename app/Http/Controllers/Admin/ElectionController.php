@@ -29,20 +29,20 @@ class ElectionController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $organizations = Organization::where('is_active', 1)->get();
+        $organizations = Organization::where('created_by', auth()->id())->get();
 
         return view('main-admin.elections', compact('elections', 'organizations'));
     }
 
     public function create()
     {
-        $organizations = Organization::where('is_active', 1)->get();
+        $organizations = Organization::where('created_by', auth()->id())->get();
         return view('main-admin.elections.create', compact('organizations'));
     }
 
     public function edit(Election $election)
     {
-        $organizations = Organization::where('is_active', 1)->get();
+        $organizations = Organization::where('created_by', auth()->id())->get();
         return view('main-admin.elections.edit', compact('election', 'organizations'));
     }
 
