@@ -177,7 +177,30 @@ class CandidateController extends Controller
                         ['organization_id' => $validated['organization_id'] ?? null]
                     );
                 } else {
-                    // If no election specified, create/find a global position record by title only
+                    // If no election specified, check whether the DB allows NULL for positions.election_id
+                    $col = DB::select("SELECT IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='positions' AND COLUMN_NAME='election_id'");
+                    $isNullable = null;
+                    if (!empty($col) && is_array($col)) {
+                        $row = $col[0];
+                        // Column name casing varies by driver; check possible property names
+                        if (isset($row->IS_NULLABLE)) {
+                            $isNullable = $row->IS_NULLABLE;
+                        } elseif (isset($row->is_nullable)) {
+                            $isNullable = $row->is_nullable;
+                        }
+                    }
+
+                    if ($isNullable === 'NO' || $isNullable === '0') {
+                        // Database requires election_id. Return validation error asking user to select an election.
+                        DB::rollBack();
+                        $message = 'Creating a new position requires selecting an election on this server. Please select an election or use an existing position.';
+                        if ($request->ajax()) {
+                            return response()->json(['message' => $message, 'errors' => ['election_id' => ['Election required when creating a new position']]], 422);
+                        }
+                        return back()->withErrors(['election_id' => 'Election required when creating a new position'])->withInput();
+                    }
+
+                    // If DB allows NULL, create/find a global position record by title only
                     $position = Position::firstOrCreate(
                         ['title' => $validated['new_position_name']],
                         ['organization_id' => $validated['organization_id'] ?? null]
