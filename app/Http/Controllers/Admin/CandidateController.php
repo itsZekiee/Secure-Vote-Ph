@@ -126,7 +126,8 @@ class CandidateController extends Controller
             'user_name' => 'required_without:user_id|string|max:255',
             'user_email' => 'required_without:user_id|email|max:255',
             'organization_id' => 'required|exists:organizations,id',
-            'election_id' => 'nullable|exists:elections,id',
+            // If creating a new position, an election must be provided so the position can be tied to an election
+            'election_id' => 'nullable|exists:elections,id|required_with:new_position_name',
             'position_id' => 'nullable|exists:positions,id',
             'new_position_name' => 'nullable|string|max:255',
             'partylist_id' => 'nullable|exists:partylists,id',
@@ -163,10 +164,18 @@ class CandidateController extends Controller
 
             // Handle position
             if (empty($validated['position_id']) && !empty($validated['new_position_name'])) {
+                // Ensure election_id is present (validation above enforces this when new_position_name is given)
+                $electionIdForPosition = $validated['election_id'] ?? null;
+
+                // Create or find position scoped to the election to avoid cross-election collision
                 $position = Position::firstOrCreate(
-                    ['title' => $validated['new_position_name']],
+                    [
+                        'title' => $validated['new_position_name'],
+                        'election_id' => $electionIdForPosition,
+                    ],
                     ['organization_id' => $validated['organization_id'] ?? null]
                 );
+
                 $validated['position_id'] = $position->id;
             }
 
@@ -217,7 +226,7 @@ class CandidateController extends Controller
                 'position_id' => $validated['position_id'],
                 'partylist_id' => $validated['partylist_id'] ?? null,
                 'platform' => $validated['platform'] ?? null,
-                'photo_path' => $photoPath,
+                'photo' => $photoPath,
                 'status' => $validated['status'],
                 'created_by' => auth()->id(),
             ];
