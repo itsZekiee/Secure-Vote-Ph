@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Voter\VoterElectionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -34,13 +35,6 @@ Route::post('/register', [RegisteredUserController::class, 'store'])->name('regi
 Route::get('/dashboard', function () {
     return view('main-admin.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
-
-// User profile routes
-// Route::middleware('auth')->group(function () {
-//     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-//     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-//     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-// });
 
 /*
 |--------------------------------------------------------------------------
@@ -271,29 +265,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
 
 /*
 |--------------------------------------------------------------------------
-| Voter/Candidate Portal Routes
-|--------------------------------------------------------------------------
-*/
-// Route::prefix('portal')->name('portal.')->middleware(['auth'])->group(function () {
-//     Route::prefix('voter')->name('voter.')->group(function () {
-//         Route::get('dashboard', [\App\Http\Controllers\Portal\VoterController::class, 'dashboard'])->name('dashboard');
-//         Route::get('elections', [\App\Http\Controllers\Portal\VoterController::class, 'elections'])->name('elections');
-//         Route::get('elections/{election}/vote', [\App\Http\Controllers\Portal\VoterController::class, 'vote'])->name('vote');
-//         Route::post('elections/{election}/cast-vote', [\App\Http\Controllers\Portal\VoterController::class, 'castVote'])->name('cast-vote');
-//         Route::get('voting-history', [\App\Http\Controllers\Portal\VoterController::class, 'votingHistory'])->name('history');
-//         Route::get('profile', [\App\Http\Controllers\Portal\VoterController::class, 'profile'])->name('profile');
-//     });
-
-//     Route::prefix('candidate')->name('candidate.')->group(function () {
-//         Route::get('dashboaWeb', [\App\Http\Controllers\Portal\CandidateController::class, 'profile'])->name('profile');
-//         Route::post('profile', [\App\Http\Controllers\Portal\CandidateController::class, 'updateProfile'])->name('profile.update');
-//         Route::get('campaigns', [\App\Http\Controllers\Portal\CandidateController::class, 'campaigns'])->name('campaigns');
-//         Route::get('statistics', [\App\Http\Controllers\Portal\CandidateController::class, 'statistics'])->name('statistics');
-//     });
-// });
-
-/*
-|--------------------------------------------------------------------------
 | Public API Routes
 |--------------------------------------------------------------------------
 */
@@ -303,5 +274,27 @@ Route::prefix('api/v1')->name('api.v1.')->group(function () {
     Route::get('elections/{election}/candidates', [ElectionController::class, 'apiCandidates'])->name('elections.candidates');
     Route::get('elections/{election}/results', [ElectionController::class, 'apiResults'])->name('elections.results');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Voter Portal Routes
+|--------------------------------------------------------------------------
+*/
+Route::prefix('voter')->name('voter.')->group(function () {
+    Route::get('/registration', function () {
+        return view('voter.registration.index');
+    })->name('registration.index');
+
+    Route::post('/login', [App\Http\Controllers\Voter\AuthController::class, 'login'])->name('login');
+    Route::post('/register', [App\Http\Controllers\Voter\AuthController::class, 'register'])->name('register');
+
+    // Election Join Routes (for entering election code/link)
+    Route::get('/elections/join', [VoterElectionController::class, 'showJoinForm'])->name('elections.join');
+    Route::post('/elections/join', [VoterElectionController::class, 'join'])->name('elections.verify');
+});
+
+Route::get('/password/reset', function () {
+    return view('auth.passwords.email');
+})->name('password.request');
 
 require __DIR__.'/auth.php';
