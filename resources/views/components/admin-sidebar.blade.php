@@ -150,18 +150,6 @@
                       class="font-medium text-sm">Reports & Tally</span>
             </a>
 
-            <!-- User Management -->
-            <a href="{{ route('admin.users.index') }}"
-               :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
-               class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.users.*') ? 'bg-slate-700 text-white border-l-4 border-teal-500 shadow-lg' : '' }}">
-                <i class="ri-user-settings-line text-lg {{ request()->routeIs('admin.users.*') ? 'text-teal-400' : 'text-slate-400' }}"></i>
-                <span x-show="!collapsed || isMobile"
-                      x-transition:enter="transition ease-out duration-200 delay-75"
-                      x-transition:enter-start="opacity-0 translate-x-2"
-                      x-transition:enter-end="opacity-100 translate-x-0"
-                      class="font-medium text-sm">User Management</span>
-            </a>
-
             <!-- Settings -->
             <a href="{{ route('admin.settings') }}"
                :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"

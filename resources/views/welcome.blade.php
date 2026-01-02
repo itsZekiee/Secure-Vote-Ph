@@ -66,11 +66,11 @@
                                     Experience the future of democratic participation with cutting-edge security, real-time analytics, and geo-location verification.
                                 </p>
                                 <div class="flex flex-col sm:flex-row gap-4">
-                                    <button class="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl">
+                                    <a href="{{ route('voter.elections.join') }}" class="group bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-2xl inline-flex items-center">
                                         Start Voting Now
                                         <i class="ri-arrow-right-line ml-2 group-hover:translate-x-1 transition-transform"></i>
-                                    </button>
-                                    <button class="bg-white border-2 border-gray-200 hover:border-primary text-gray-700 hover:text-primary px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-lg">
+                                    </a>
+                                    <button onclick="window.location.href='{{ route('voter.registration.index') }}'" class="bg-white border-2 border-gray-200 hover:border-primary text-gray-700 hover:text-primary px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-lg">
                                         Learn More
                                     </button>
                                 </div>
