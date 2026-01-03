@@ -15,6 +15,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Voter\VoterElectionController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Elections\Store as ElectionStoreController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -94,6 +95,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     |--------------------------------------------------------------------------
     */
     Route::resource('elections', ElectionController::class);
+    // Custom store route for elections using dedicated Store controller
+    Route::post('elections', ElectionStoreController::class)->name('elections.store');
+
     Route::prefix('elections')->name('elections.')->group(function () {
         Route::get('search', [ElectionController::class, 'search'])->name('search');
         Route::get('export', [ElectionController::class, 'export'])->name('export');
