@@ -90,12 +90,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     });
 
     /*
-    |--------------------------------------------------------------------------
-    | Election Management Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::resource('elections', ElectionController::class);
-    // Custom store route for elections using dedicated Store controller
+|--------------------------------------------------------------------------
+| Election Management Routes
+|--------------------------------------------------------------------------
+*/
+    Route::resource('elections', ElectionController::class)->except(['store']);
+// Custom store route for elections using dedicated Store controller
     Route::post('elections', ElectionStoreController::class)->name('elections.store');
 
     Route::prefix('elections')->name('elections.')->group(function () {
