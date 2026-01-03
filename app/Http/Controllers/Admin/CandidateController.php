@@ -18,6 +18,12 @@ use Illuminate\Support\Facades\Hash;
 
 class CandidateController extends Controller
 {
+    public function __construct()
+    {
+        if (! auth()->check()) {
+            redirect()->route('login')->with('error', 'Please login to access the admin area.')->send();
+        }
+    }
     /**
      * Display a listing of candidates
      */
@@ -67,8 +73,9 @@ class CandidateController extends Controller
      */
     public function create()
     {
-        $users = User::select('id', 'name', 'email')->get();
-        $positions = Position::select('id', 'title as name')->get();
+        $users = User::select('id', 'name', 'email')->get();                                  
+        // Include organization_id and election_id so the frontend can filter positions
+        $positions = Position::select('id', 'title', 'election_id')->get();
         // Allow elections the user created or is assigned to
         $elections = Election::where(function($q) {
                 $q->where('created_by', auth()->id())
@@ -121,13 +128,22 @@ class CandidateController extends Controller
      */
     public function store(Request $request)
     {
+        // Normalize position_id to prevent validation error
+        if (
+            $request->position_id === '' ||
+            $request->position_id === 'new' ||
+            str_starts_with((string) $request->position_id, 'preset:')
+        ) {
+            $request->merge(['position_id' => null]);
+        }
+
         $rules = [
             'user_id' => 'nullable|exists:users,id',
             'user_name' => 'required_without:user_id|string|max:255',
             'user_email' => 'required_without:user_id|email|max:255',
             'organization_id' => 'required|exists:organizations,id',
             'election_id' => 'nullable|exists:elections,id',
-            'position_id' => 'nullable|exists:positions,id',
+            'position_id' => 'nullable|integer|exists:positions,id',
             'new_position_name' => 'nullable|string|max:255',
             'partylist_id' => 'nullable|exists:partylists,id',
             'platform' => 'nullable|string',
@@ -340,7 +356,7 @@ class CandidateController extends Controller
             $positions = Position::all();
         }
 
-        return view('main-admin.candidates.edit', compact('candidate', 'users', 'elections', 'partylists', 'positions'));
+        return view('main-admin.candidate.candidate-edit', compact('candidate', 'users', 'elections', 'partylists', 'positions'));
     }
 
     /**
@@ -574,7 +590,7 @@ class CandidateController extends Controller
                 return Position::where('is_active', true);
             }
         } catch (\Throwable $e) {
-            Log::debug('positionsQuery: hasColumn(is_active) check failed: '.$e->getMessage());
+            Log::debug(message: 'positionsQuery: hasColumn(is_active) check failed: '.$e->getMessage());
         }
 
         try {
@@ -587,4 +603,5 @@ class CandidateController extends Controller
 
         return Position::query()->orderBy('title');
     }
+
 }
