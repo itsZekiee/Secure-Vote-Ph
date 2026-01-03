@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
-class store extends Controller
+class Store extends Controller
 {
     public function __invoke(Request $request)
     {
