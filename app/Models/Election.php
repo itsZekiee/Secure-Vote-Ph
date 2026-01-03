@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Election extends Model
@@ -15,28 +17,32 @@ class Election extends Model
         'title',
         'organization_id',
         'description',
-        'voting_start',
-        'voting_end',
-        'enable_geo_location',
-        'geo_latitude',
-        'geo_longitude',
-        'geo_radius',
+        'start_date',
+        'end_date',
         'status',
         'created_by',
+        'geo_latitude',
+        'geo_longitude',
+        'geo_radius_meters',
+        'require_geo_verification',
     ];
 
     protected $casts = [
-        'voting_start' => 'datetime',
-        'voting_end' => 'datetime',
-        'enable_geo_location' => 'boolean',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'require_geo_verification' => 'boolean',
+        'geo_latitude' => 'decimal:8',
+        'geo_longitude' => 'decimal:8',
+        'geo_radius_meters' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     /**
      * Get the user who created this election
      */
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
@@ -44,33 +50,84 @@ class Election extends Model
     /**
      * Get users assigned as sub-admins for this election
      */
-    public function subAdmins()
+    public function subAdmins(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'election_user')->withTimestamps();
     }
 
-    public function organization()
+    /**
+     * Get the organization that owns this election
+     */
+    public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function positions()
+    /**
+     * Get all positions for this election
+     */
+    public function positions(): HasMany
     {
         return $this->hasMany(Position::class)->orderBy('order');
     }
 
+    /**
+     * Get all candidates for this election (through positions)
+     */
     public function candidates(): HasMany
     {
         return $this->hasMany(Candidate::class);
     }
 
+    /**
+     * Get all votes cast in this election
+     */
     public function votes(): HasMany
     {
         return $this->hasMany(Vote::class);
     }
 
-    public function partylists()
+    /**
+     * Get all partylists associated with this election
+     */
+    public function partylists(): HasMany
     {
         return $this->hasMany(Partylist::class);
+    }
+
+    /**
+     * Scope to filter active elections
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    /**
+     * Scope to filter upcoming elections
+     */
+    public function scopeUpcoming($query)
+    {
+        return $query->where('start_date', '>', now())
+            ->where('status', '!=', 'cancelled');
+    }
+
+    /**
+     * Scope to filter ongoing elections
+     */
+    public function scopeOngoing($query)
+    {
+        return $query->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->where('status', 'active');
+    }
+
+    /**
+     * Scope to filter completed elections
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->where('end_date', '<', now())
+            ->orWhere('status', 'completed');
     }
 }

@@ -67,6 +67,9 @@
                       x-data="{
                           activeTab: 'basic',
                           electionCreated: false,
+                          electionId: null,
+                          electionCode: null,
+                          registrationUrl: null,
                           positions: [{ name: '', candidates: [''] }],
                           formData: {
                               title: '',
@@ -91,6 +94,23 @@
                                   return false;
                               }
                               return true;
+                          },
+                          generateQRCode(text) {
+                              const qrContainer = document.getElementById('qrCodeDisplay');
+                              qrContainer.innerHTML = '';
+                              new QRCode(qrContainer, {
+                                  text: text,
+                                  width: 256,
+                                  height: 256,
+                                  colorDark: '#4F46E5',
+                                  colorLight: '#ffffff',
+                                  correctLevel: QRCode.CorrectLevel.H
+                              });
+                          },
+                          copyToClipboard(text) {
+                              navigator.clipboard.writeText(text).then(() => {
+                                  alert('Copied to clipboard!');
+                              });
                           }
                       }"
                       class="max-w-7xl mx-auto">
@@ -144,6 +164,23 @@
                                         <div class="min-w-0">
                                             <div :class="activeTab === 'settings' ? 'text-indigo-700 font-bold' : 'text-gray-600 font-medium'" class="text-sm">Voting Settings</div>
                                             <div class="text-xs text-gray-500 mt-0.5">Configure restrictions</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex-1 h-1 bg-gray-200 rounded-full mx-4 relative overflow-hidden">
+                                        <div :class="activeTab === 'share' ? 'w-full' : 'w-0'"
+                                             class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500 ease-out rounded-full"></div>
+                                    </div>
+
+                                    <!-- Step 4 -->
+                                    <div class="flex items-center gap-4 flex-1">
+                                        <div :class="activeTab === 'share' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white text-gray-400 border-2 border-gray-200'"
+                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold transition-all duration-300 flex-shrink-0">
+                                            <span class="text-base">4</span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div :class="activeTab === 'share' ? 'text-indigo-700 font-bold' : 'text-gray-600 font-medium'" class="text-sm">Share Election</div>
+                                            <div class="text-xs text-gray-500 mt-0.5">QR & Access Codes</div>
                                         </div>
                                     </div>
                                 </div>
@@ -349,6 +386,7 @@
                                 </div>
 
                                 <div class="space-y-8">
+
                                     <!-- Geographic Restriction Toggle Switch -->
                                     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6">
                                         <label class="flex items-start justify-between cursor-pointer gap-4">
@@ -359,7 +397,7 @@
 
                                             <!-- Toggle Switch -->
                                             <div class="relative flex-shrink-0">
-                                                <input type="checkbox" name="enable_geo_location" x-model="enableGeo" class="sr-only peer" id="geoToggle">
+                                                <input type="checkbox" name="enable_geo_location" value="1" x-model="enableGeo" class="sr-only peer" id="geoToggle">
                                                 <label for="geoToggle"
                                                        :class="enableGeo ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gray-300'"
                                                        class="block w-14 h-8 rounded-full transition-all duration-300 cursor-pointer relative shadow-inner">
@@ -395,10 +433,12 @@
                                             <label class="block text-sm font-semibold text-gray-900">Search Location</label>
                                             <div class="flex gap-3">
                                                 <input id="geoSearch"
-                                                       class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base"
+                                                       :disabled="!enableGeo"
+                                                       class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
                                                        placeholder="Search address or place...">
                                                 <button type="button" id="useMyLocation"
-                                                        class="px-5 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 transition-all flex items-center gap-2 font-medium">
+                                                        :disabled="!enableGeo"
+                                                        class="px-5 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 transition-all flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
                                                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
                                                         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                                                         <circle cx="12" cy="12" r="3" fill="currentColor"/>
@@ -412,13 +452,16 @@
                                         <div class="space-y-4">
                                             <label class="block text-sm font-semibold text-gray-900">Allowed Radius</label>
                                             <div class="flex gap-3">
-                                                <input type="number" id="geoRadius"
+                                                <input type="number"
+                                                       id="geoRadius"
+                                                       name="geo_radius"
                                                        x-model="radiusValue"
-                                                       :name="radiusUnit === 'meters' ? 'geo_radius' : 'geo_radius_km'"
                                                        min="1"
-                                                       class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base" />
+                                                       :disabled="!enableGeo"
+                                                       class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base disabled:bg-gray-100 disabled:cursor-not-allowed" />
                                                 <select x-model="radiusUnit"
-                                                        class="rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base font-medium">
+                                                        :disabled="!enableGeo"
+                                                        class="rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base font-medium disabled:bg-gray-100 disabled:cursor-not-allowed">
                                                     <option value="meters">Meters</option>
                                                     <option value="kilometers">Kilometers</option>
                                                 </select>
@@ -431,7 +474,9 @@
                                             <label class="block text-sm font-semibold text-gray-900">Map Preview</label>
                                             <div id="geoMap" class="w-full h-96 rounded-2xl border-2 border-gray-200 overflow-hidden shadow-lg"></div>
                                             <div class="flex justify-end">
-                                                <select id="mapType" class="rounded-xl border-gray-300 shadow-sm px-4 py-2 text-sm">
+                                                <select id="mapType"
+                                                        :disabled="!enableGeo"
+                                                        class="rounded-xl border-gray-300 shadow-sm px-4 py-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed">
                                                     <option value="terrain">Terrain</option>
                                                     <option value="satellite">Satellite</option>
                                                     <option value="roadmap">Roadmap</option>
@@ -485,8 +530,226 @@
                                             ← Previous
                                         </button>
                                         <button type="submit"
+                                                @click.prevent="
+                                                    const form = $el.closest('form');
+                                                    const formData = new FormData(form);
+
+                                                    // Remove any existing positions fields
+                                                    for (let key of Array.from(formData.keys())) {
+                                                        if (key.startsWith('positions')) {
+                                                            formData.delete(key);
+                                                        }
+                                                    }
+
+                                                    // Add positions data properly
+                                                    positions.forEach((position, idx) => {
+                                                        formData.append(`positions[${idx}][name]`, position.name);
+                                                        position.candidates.forEach((candidate, cidx) => {
+                                                            if (candidate.trim()) {
+                                                                formData.append(`positions[${idx}][candidates][${cidx}]`, candidate);
+                                                            }
+                                                        });
+                                                    });
+
+                                                    // Debug: Log what we're sending
+                                                    console.log('Sending data:');
+                                                    for (let [key, value] of formData.entries()) {
+                                                        console.log(key, value);
+                                                    }
+
+                                                    fetch(form.action, {
+                                                        method: 'POST',
+                                                        body: formData,
+                                                        headers: {
+                                                            'X-Requested-With': 'XMLHttpRequest',
+                                                            'Accept': 'application/json',
+                                                            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
+                                                        }
+                                                    })
+                                                    .then(res => {
+                                                        console.log('Response status:', res.status);
+                                                        console.log('Response headers:', [...res.headers.entries()]);
+
+                                                        if (!res.ok) {
+                                                            return res.text().then(text => {
+                                                                console.error('Error response:', text);
+                                                                throw new Error(`Server error: ${res.status} - ${text.substring(0, 200)}`);
+                                                            });
+                                                        }
+
+                                                        return res.text().then(text => {
+                                                            console.log('Raw response:', text);
+                                                            try {
+                                                                return JSON.parse(text);
+                                                            } catch (e) {
+                                                                console.error('Failed to parse JSON:', e);
+                                                                throw new Error('Server returned invalid JSON: ' + text.substring(0, 200));
+                                                            }
+                                                        });
+                                                    })
+                                                    .then(data => {
+                                                        console.log('Parsed data:', data);
+                                                        if (data.success) {
+                                                            electionCreated = true;
+                                                            electionId = data.election.id;
+                                                            electionCode = data.election.code;
+                                                            registrationUrl = data.registration_url;
+                                                            activeTab = 'share';
+                                                            setTimeout(() => generateQRCode(registrationUrl), 100);
+                                                        } else {
+                                                            alert('Failed: ' + (data.message || 'Unknown error'));
+                                                        }
+                                                    })
+                                                    .catch(err => {
+                                                        console.error('Fetch error:', err);
+                                                        alert('Error: ' + err.message);
+                                                    })
+                                                "
                                                 class="px-10 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-xl hover:shadow-green-500/30 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 font-semibold transition-all">
                                             🎉 Create Election
+                                        </button>
+
+
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Panel 4: Share Election -->
+                            <section x-show="activeTab === 'share'"
+                                     x-transition:enter="transition ease-out duration-300"
+                                     x-transition:enter-start="opacity-0 transform translate-x-4"
+                                     x-transition:enter-end="opacity-100 transform translate-x-0"
+                                     aria-labelledby="share-heading">
+                                <div class="mb-10">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none">
+                                                <path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </div>
+                                        <h2 id="share-heading" class="text-3xl font-bold text-gray-900">Share Election</h2>
+                                    </div>
+                                    <p class="text-gray-600 text-base">Election created successfully! Share with voters using these methods</p>
+                                </div>
+
+                                <div class="space-y-8">
+                                    <!-- Success Banner -->
+                                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
+                                        <div class="flex items-center gap-4">
+                                            <div class="flex-shrink-0">
+                                                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                                                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 class="text-lg font-bold text-green-900">Election Created Successfully!</h3>
+                                                <p class="text-sm text-green-700 mt-1">Your election is now ready. Share it with voters using the options below.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 6-Digit Code Card -->
+                                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg">
+                                        <div class="flex items-center gap-3 mb-6">
+                                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-purple-600" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <h3 class="text-xl font-bold text-gray-900">6-Digit Access Code</h3>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-6">Voters can enter this code from the welcome page to access the registration form</p>
+
+                                        <div class="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl p-8 text-center">
+                                            <div class="text-sm font-medium text-gray-600 mb-3">Election Code</div>
+                                            <div class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 tracking-widest mb-4" x-text="electionCode || '------'"></div>
+                                            <button type="button"
+                                                    @click="copyToClipboard(electionCode)"
+                                                    class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/30 font-medium transition-all">
+                                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                Copy Code
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Registration Link Card -->
+                                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg">
+                                        <div class="flex items-center gap-3 mb-6">
+                                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <h3 class="text-xl font-bold text-gray-900">Registration Link</h3>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-6">Share this direct link for voters to register and cast their vote</p>
+
+                                        <div class="flex gap-3">
+                                            <input type="text"
+                                                   :value="registrationUrl"
+                                                   readonly
+                                                   class="flex-1 rounded-xl border-gray-300 bg-gray-50 px-5 py-4 text-sm font-mono text-gray-700">
+                                            <button type="button"
+                                                    @click="copyToClipboard(registrationUrl)"
+                                                    class="px-6 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:shadow-lg hover:shadow-blue-500/30 font-medium transition-all flex items-center gap-2">
+                                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                Copy Link
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- QR Code Card -->
+                                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg">
+                                        <div class="flex items-center gap-3 mb-6">
+                                            <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <h3 class="text-xl font-bold text-gray-900">QR Code</h3>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-6">Voters can scan this QR code to instantly access the registration form</p>
+
+                                        <div class="bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-xl p-8">
+                                            <div class="flex flex-col items-center gap-6">
+                                                <div id="qrCodeDisplay" class="bg-white p-4 rounded-xl shadow-lg"></div>
+                                                <button type="button"
+                                                        @click="
+                                                            const canvas = document.querySelector('#qrCodeDisplay canvas');
+                                                            const link = document.createElement('a');
+                                                            link.download = 'election-qr-code.png';
+                                                            link.href = canvas.toDataURL();
+                                                            link.click();
+                                                        "
+                                                        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 font-medium transition-all">
+                                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                    Download QR Code
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Action Buttons -->
+                                    <div class="flex justify-between pt-10 border-t border-gray-200">
+                                        <a href="{{ route('admin.elections.index') }}"
+                                           class="px-8 py-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-semibold transition-all">
+                                            ← Back to Elections
+                                        </a>
+                                        <button type="button"
+                                                @click="window.print()"
+                                                class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-semibold transition-all flex items-center gap-2">
+                                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            Print Details
                                         </button>
                                     </div>
                                 </div>
@@ -504,130 +767,123 @@
     @endphp
 
     @if(!$gmKey)
-        <script>console.warn('Google Maps API key not set in config/services.php or .env (GOOGLE_MAPS_API_KEY)');</script>
+        <script>console.warn('Google Maps API key not set');</script>
     @endif
 
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ $gmKey }}&libraries=places&v=weekly" defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ $gmKey }}&libraries=places&callback=initMap" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
     <script>
-        function initGeoMap() {
-            if (!window.google || !google.maps) {
-                console.error('Google Maps JS not loaded yet.');
-                return;
-            }
+        let map, marker, circle, autocomplete;
 
-            const mapEl = document.getElementById('geoMap');
-            const latInput = document.getElementById('geoLatitude');
-            const lngInput = document.getElementById('geoLongitude');
-            const radiusInput = document.getElementById('geoRadius');
-            const searchInput = document.getElementById('geoSearch');
-            const useMyLocBtn = document.getElementById('useMyLocation');
-            const mapTypeSelect = document.getElementById('mapType');
+        function initMap() {
+            const defaultCenter = { lat: 14.5995, lng: 120.9842 };
+            const mapOptions = { zoom: 13, center: defaultCenter, mapTypeId: 'terrain' };
+            map = new google.maps.Map(document.getElementById('geoMap'), mapOptions);
 
-            const defaultPos = { lat: 37.421998, lng: -122.084000 };
-            const map = new google.maps.Map(mapEl, {
-                center: defaultPos,
-                zoom: 14,
-                mapTypeId: google.maps.MapTypeId.TERRAIN,
-                styles: [
-                    {
-                        featureType: "poi",
-                        elementType: "labels",
-                        stylers: [{ visibility: "off" }]
-                    }
-                ]
+            const input = document.getElementById('geoSearch');
+            autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.bindTo('bounds', map);
+
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+                if (!place.geometry?.location) {
+                    alert("No details available for input: '" + place.name + "'");
+                    return;
+                }
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(15);
+                }
+                placeMarkerAndCircle(place.geometry.location);
             });
 
-            let marker = new google.maps.Marker({
-                position: defaultPos,
-                map,
+            document.getElementById('useMyLocation')?.addEventListener('click', () => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
+                            map.setCenter(pos);
+                            map.setZoom(15);
+                            placeMarkerAndCircle(pos);
+                        },
+                        () => alert('Error: The Geolocation service failed.')
+                    );
+                } else {
+                    alert('Error: Your browser doesn\'t support geolocation.');
+                }
+            });
+
+            document.getElementById('mapType')?.addEventListener('change', (e) => {
+                map.setMapTypeId(e.target.value);
+            });
+
+            document.getElementById('geoRadius')?.addEventListener('input', updateCircle);
+        }
+
+        function initGeoMap() {
+            if (typeof google !== 'undefined' && google.maps) {
+                initMap();
+            } else {
+                setTimeout(initGeoMap, 500);
+            }
+        }
+
+        function placeMarkerAndCircle(location) {
+            if (marker) marker.setMap(null);
+            if (circle) circle.setMap(null);
+
+            marker = new google.maps.Marker({
+                position: location,
+                map: map,
                 draggable: true,
                 animation: google.maps.Animation.DROP,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: '#4F46E5',
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 3
+                }
             });
 
-            let circle = new google.maps.Circle({
-                map,
-                radius: Number(radiusInput.value || 50),
-                center: defaultPos,
-                fillColor: '#4F46E5',
-                fillOpacity: 0.15,
-                strokeColor: '#4F46E5',
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-            });
+            document.getElementById('geoLatitude').value = location.lat;
+            document.getElementById('geoLongitude').value = location.lng;
 
-            function updateInputsFromPosition(pos) {
-                latInput.value = pos.lat.toFixed(6);
-                lngInput.value = pos.lng.toFixed(6);
-            }
-
-            function updateCircleRadius() {
-                const r = Number(radiusInput.value) || 50;
-                circle.setRadius(r);
-            }
+            updateCircle();
 
             marker.addListener('dragend', () => {
                 const pos = marker.getPosition();
-                const latlng = { lat: pos.lat(), lng: pos.lng() };
-                circle.setCenter(latlng);
-                updateInputsFromPosition(latlng);
-                map.panTo(latlng);
+                document.getElementById('geoLatitude').value = pos.lat();
+                document.getElementById('geoLongitude').value = pos.lng();
+                updateCircle();
             });
-
-            radiusInput.addEventListener('input', () => {
-                updateCircleRadius();
-            });
-
-            mapTypeSelect.addEventListener('change', () => {
-                const val = mapTypeSelect.value;
-                map.setMapTypeId(val.toUpperCase());
-            });
-
-            const autocomplete = new google.maps.places.Autocomplete(searchInput);
-            autocomplete.addListener('place_changed', () => {
-                const place = autocomplete.getPlace();
-                if (!place.geometry) return;
-                const loc = {
-                    lat: place.geometry.location.lat(),
-                    lng: place.geometry.location.lng()
-                };
-                marker.setPosition(loc);
-                circle.setCenter(loc);
-                updateInputsFromPosition(loc);
-                map.panTo(loc);
-                map.setZoom(15);
-            });
-
-            useMyLocBtn.addEventListener('click', () => {
-                if (!navigator.geolocation) {
-                    alert('Geolocation is not supported by your browser.');
-                    return;
-                }
-                useMyLocBtn.disabled = true;
-                const originalText = useMyLocBtn.innerHTML;
-                useMyLocBtn.innerHTML = '<svg class="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Locating...';
-
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const pos = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-                    marker.setPosition(pos);
-                    circle.setCenter(pos);
-                    updateInputsFromPosition(pos);
-                    map.panTo(pos);
-                    map.setZoom(15);
-                    useMyLocBtn.disabled = false;
-                    useMyLocBtn.innerHTML = originalText;
-                }, (err) => {
-                    console.error(err);
-                    alert('Unable to retrieve your location.');
-                    useMyLocBtn.disabled = false;
-                    useMyLocBtn.innerHTML = originalText;
-                }, { timeout: 10000 });
-            });
-
-            updateInputsFromPosition(defaultPos);
-            updateCircleRadius();
         }
-    </script>
-@endsection
+
+        function updateCircle() {
+            if (!marker) return;
+            if (circle) circle.setMap(null);
+
+            const radiusValue = parseFloat(document.getElementById('geoRadius')?.value) || 50;
+            const radiusUnit = document.querySelector('[x-model="radiusUnit"]')?.value || 'meters';
+            const radiusInMeters = radiusUnit === 'kilometers' ? radiusValue * 1000 : radiusValue;
+
+            circle = new google.maps.Circle({
+                map: map,
+                center: marker.getPosition(),
+                radius: radiusInMeters,
+                fillColor: '#4F46E5',
+                fillOpacity: 0.2,
+                strokeColor: '#4F46E5',
+                strokeOpacity: 0.8,
+                strokeWeight: 2
+            });
+
+            map.fitBounds(circle.getBounds());
+        }
+
+        window.initMap = initMap;
+</script>

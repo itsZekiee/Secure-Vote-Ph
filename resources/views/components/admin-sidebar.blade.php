@@ -7,7 +7,7 @@
        x-transition:leave-start="translate-x-0"
        x-transition:leave-end="-translate-x-full"
        :class="collapsed && !isMobile ? 'w-20' : 'w-72'"
-       class="fixed lg:static inset-y-0 left-0 z-40 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-r border-slate-700 shadow-xl lg:shadow-sm transition-all duration-300 flex flex-col">
+       class="fixed lg:static inset-y-0 left-0 z-40 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-xl lg:shadow-sm transition-all duration-300 flex flex-col">
 
     <!-- Mobile Overlay -->
     <div x-show="!collapsed && isMobile"
@@ -23,7 +23,7 @@
 
     <div class="flex flex-col h-full min-h-0">
         <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-700 bg-slate-800/50 flex-shrink-0">
+        <div class="flex items-center justify-between px-6 py-5 bg-slate-800/50 flex-shrink-0">
             <div x-show="!collapsed || isMobile"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 scale-95"
