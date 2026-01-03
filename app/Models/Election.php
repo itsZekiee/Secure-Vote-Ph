@@ -15,17 +15,14 @@ class Election extends Model
 
     protected $fillable = [
         'title',
-        'organization_id',
-        'description',
         'start_date',
         'end_date',
+        'registration_deadline',
         'status',
+        'code',
         'created_by',
-        'geo_latitude',
-        'geo_longitude',
-        'geo_radius_meters',
-        'require_geo_verification',
     ];
+
 
     protected $casts = [
         'start_date' => 'datetime',

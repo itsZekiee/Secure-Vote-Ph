@@ -4,11 +4,89 @@
     <div x-data="{
         collapsed: false,
         isMobile: window.innerWidth < 1024,
-         }"
+        showErrorModal: false,
+        errorMessage: '',
+        errorDetails: []
+    }"
          x-init="window.addEventListener('resize', () => { isMobile = window.innerWidth < 1024 })"
          class="flex min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
 
         <x-admin-sidebar />
+
+        <!-- Error Modal -->
+        <div x-show="showErrorModal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 overflow-y-auto"
+             style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                <!-- Backdrop -->
+                <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" @click="showErrorModal = false"></div>
+
+                <!-- Modal Panel -->
+                <div x-show="showErrorModal"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     class="relative inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+
+                    <!-- Error Icon -->
+                    <div class="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full">
+                        <svg class="w-10 h-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="mt-4 text-center">
+                        <h3 class="text-xl font-bold text-gray-900">Election Creation Failed</h3>
+                        <p class="mt-2 text-sm text-gray-600">The election could not be created. Please review the errors below and try again.</p>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div class="mt-6 bg-red-50 border border-red-200 rounded-xl p-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-red-800" x-text="errorMessage"></p>
+                                <!-- Error Details List -->
+                                <ul x-show="errorDetails.length > 0" class="mt-3 space-y-1">
+                                    <template x-for="(detail, index) in errorDetails" :key="index">
+                                        <li class="text-sm text-red-700 flex items-start gap-2">
+                                            <span class="text-red-400">•</span>
+                                            <span x-text="detail"></span>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-6 flex gap-3">
+                        <button type="button"
+                                @click="showErrorModal = false"
+                                class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-semibold transition-all">
+                            Close
+                        </button>
+                        <button type="button"
+                                @click="showErrorModal = false"
+                                class="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 font-semibold transition-all">
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Main Content -->
         <main class="flex-1">
@@ -70,6 +148,7 @@
                           electionId: null,
                           electionCode: null,
                           registrationUrl: null,
+                          isSubmitting: false,
                           positions: [{ name: '', candidates: [''] }],
                           formData: {
                               title: '',
@@ -111,6 +190,11 @@
                               navigator.clipboard.writeText(text).then(() => {
                                   alert('Copied to clipboard!');
                               });
+                          },
+                          showError(message, details = []) {
+                              $root.errorMessage = message;
+                              $root.errorDetails = details;
+                              $root.showErrorModal = true;
                           }
                       }"
                       class="max-w-7xl mx-auto">
@@ -530,7 +614,12 @@
                                             ← Previous
                                         </button>
                                         <button type="submit"
+                                                :disabled="isSubmitting"
+                                                :class="isSubmitting ? 'opacity-50 cursor-not-allowed' : ''"
                                                 @click.prevent="
+                                                    if (isSubmitting) return;
+                                                    isSubmitting = true;
+
                                                     const form = $el.closest('form');
                                                     const formData = new FormData(form);
 
@@ -551,12 +640,6 @@
                                                         });
                                                     });
 
-                                                    // Debug: Log what we're sending
-                                                    console.log('Sending data:');
-                                                    for (let [key, value] of formData.entries()) {
-                                                        console.log(key, value);
-                                                    }
-
                                                     fetch(form.action, {
                                                         method: 'POST',
                                                         body: formData,
@@ -567,28 +650,18 @@
                                                         }
                                                     })
                                                     .then(res => {
-                                                        console.log('Response status:', res.status);
-                                                        console.log('Response headers:', [...res.headers.entries()]);
-
                                                         if (!res.ok) {
-                                                            return res.text().then(text => {
-                                                                console.error('Error response:', text);
-                                                                throw new Error(`Server error: ${res.status} - ${text.substring(0, 200)}`);
+                                                            return res.json().then(errorData => {
+                                                                throw { status: res.status, data: errorData };
+                                                            }).catch(() => {
+                                                                return res.text().then(text => {
+                                                                    throw { status: res.status, message: text || 'Server error occurred' };
+                                                                });
                                                             });
                                                         }
-
-                                                        return res.text().then(text => {
-                                                            console.log('Raw response:', text);
-                                                            try {
-                                                                return JSON.parse(text);
-                                                            } catch (e) {
-                                                                console.error('Failed to parse JSON:', e);
-                                                                throw new Error('Server returned invalid JSON: ' + text.substring(0, 200));
-                                                            }
-                                                        });
+                                                        return res.json();
                                                     })
                                                     .then(data => {
-                                                        console.log('Parsed data:', data);
                                                         if (data.success) {
                                                             electionCreated = true;
                                                             electionId = data.election.id;
@@ -597,19 +670,60 @@
                                                             activeTab = 'share';
                                                             setTimeout(() => generateQRCode(registrationUrl), 100);
                                                         } else {
-                                                            alert('Failed: ' + (data.message || 'Unknown error'));
+                                                            let errorDetails = [];
+                                                            if (data.errors) {
+                                                                for (let field in data.errors) {
+                                                                    if (Array.isArray(data.errors[field])) {
+                                                                        errorDetails = errorDetails.concat(data.errors[field]);
+                                                                    } else {
+                                                                        errorDetails.push(data.errors[field]);
+                                                                    }
+                                                                }
+                                                            }
+                                                            showError(data.message || 'Failed to create election', errorDetails);
                                                         }
                                                     })
                                                     .catch(err => {
                                                         console.error('Fetch error:', err);
-                                                        alert('Error: ' + err.message);
+                                                        let errorMessage = 'An unexpected error occurred';
+                                                        let errorDetails = [];
+
+                                                        if (err.data) {
+                                                            errorMessage = err.data.message || 'Failed to create election';
+                                                            if (err.data.errors) {
+                                                                for (let field in err.data.errors) {
+                                                                    if (Array.isArray(err.data.errors[field])) {
+                                                                        errorDetails = errorDetails.concat(err.data.errors[field]);
+                                                                    } else {
+                                                                        errorDetails.push(err.data.errors[field]);
+                                                                    }
+                                                                }
+                                                            }
+                                                        } else if (err.message) {
+                                                            errorMessage = err.message;
+                                                        }
+
+                                                        if (err.status === 422) {
+                                                            errorMessage = 'Validation failed. Please check your input.';
+                                                        } else if (err.status === 500) {
+                                                            errorMessage = 'Server error. Please try again later.';
+                                                        } else if (err.status === 403) {
+                                                            errorMessage = 'You do not have permission to create an election.';
+                                                        }
+
+                                                        showError(errorMessage, errorDetails);
                                                     })
+                                                    .finally(() => {
+                                                        isSubmitting = false;
+                                                    });
                                                 "
-                                                class="px-10 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-xl hover:shadow-green-500/30 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 font-semibold transition-all">
-                                            🎉 Create Election
+                                                class="px-10 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-xl hover:shadow-green-500/30 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 font-semibold transition-all flex items-center gap-2">
+                                            <svg x-show="isSubmitting" class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span x-text="isSubmitting ? 'Creating...' : '🎉 Create Election'"></span>
                                         </button>
-
-
                                     </div>
                                 </div>
                             </section>
@@ -707,33 +821,33 @@
                                     <!-- QR Code Card -->
                                     <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg">
                                         <div class="flex items-center gap-3 mb-6">
-                                            <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                                <svg class="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none">
-                                                    <path d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                                <svg class="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
                                             </div>
                                             <h3 class="text-xl font-bold text-gray-900">QR Code</h3>
                                         </div>
-                                        <p class="text-sm text-gray-600 mb-6">Voters can scan this QR code to instantly access the registration form</p>
+                                        <p class="text-sm text-gray-600 mb-6">Voters can scan this QR code to access the registration page</p>
 
-                                        <div class="bg-gradient-to-br from-gray-50 to-white border-2 border-gray-200 rounded-xl p-8">
-                                            <div class="flex flex-col items-center gap-6">
-                                                <div id="qrCodeDisplay" class="bg-white p-4 rounded-xl shadow-lg"></div>
-                                                <button type="button"
-                                                        @click="
-                                                            const canvas = document.querySelector('#qrCodeDisplay canvas');
+                                        <div class="flex flex-col items-center">
+                                            <div id="qrCodeDisplay" class="bg-white p-6 rounded-2xl border-2 border-gray-200 shadow-inner"></div>
+                                            <button type="button"
+                                                    @click="
+                                                        const canvas = document.querySelector('#qrCodeDisplay canvas');
+                                                        if (canvas) {
                                                             const link = document.createElement('a');
-                                                            link.download = 'election-qr-code.png';
-                                                            link.href = canvas.toDataURL();
+                                                            link.download = 'election-qr-' + electionCode + '.png';
+                                                            link.href = canvas.toDataURL('image/png');
                                                             link.click();
-                                                        "
-                                                        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 font-medium transition-all">
-                                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                                                        <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </svg>
-                                                    Download QR Code
-                                                </button>
-                                            </div>
+                                                        }
+                                                    "
+                                                    class="mt-6 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg hover:shadow-green-500/30 font-medium transition-all flex items-center gap-2">
+                                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                Download QR Code
+                                            </button>
                                         </div>
                                     </div>
 
@@ -743,14 +857,13 @@
                                            class="px-8 py-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-semibold transition-all">
                                             ← Back to Elections
                                         </a>
-                                        <button type="button"
-                                                @click="window.print()"
-                                                class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-semibold transition-all flex items-center gap-2">
+                                        <a :href="'/admin/elections/' + electionId"
+                                           class="px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-semibold transition-all flex items-center gap-2">
+                                            View Election Details
                                             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                                                <path d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
-                                            Print Details
-                                        </button>
+                                        </a>
                                     </div>
                                 </div>
                             </section>
@@ -761,120 +874,35 @@
         </main>
     </div>
 
-    <!-- Google Maps & helper scripts -->
-    @php
-        $gmKey = config('services.google_maps.key') ?? env('GOOGLE_MAPS_API_KEY');
-    @endphp
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    @if(!$gmKey)
-        <script>console.warn('Google Maps API key not set');</script>
-    @endif
-
-    <script src="https://maps.googleapis.com/maps/api/js?key={{ $gmKey }}&libraries=places&callback=initMap" async defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-
+    <!-- Google Maps Script -->
     <script>
-        let map, marker, circle, autocomplete;
-
-        function initMap() {
-            const defaultCenter = { lat: 14.5995, lng: 120.9842 };
-            const mapOptions = { zoom: 13, center: defaultCenter, mapTypeId: 'terrain' };
-            map = new google.maps.Map(document.getElementById('geoMap'), mapOptions);
-
-            const input = document.getElementById('geoSearch');
-            autocomplete = new google.maps.places.Autocomplete(input);
-            autocomplete.bindTo('bounds', map);
-
-            autocomplete.addListener('place_changed', () => {
-                const place = autocomplete.getPlace();
-                if (!place.geometry?.location) {
-                    alert("No details available for input: '" + place.name + "'");
-                    return;
-                }
-                if (place.geometry.viewport) {
-                    map.fitBounds(place.geometry.viewport);
-                } else {
-                    map.setCenter(place.geometry.location);
-                    map.setZoom(15);
-                }
-                placeMarkerAndCircle(place.geometry.location);
-            });
-
-            document.getElementById('useMyLocation')?.addEventListener('click', () => {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
-                            map.setCenter(pos);
-                            map.setZoom(15);
-                            placeMarkerAndCircle(pos);
-                        },
-                        () => alert('Error: The Geolocation service failed.')
-                    );
-                } else {
-                    alert('Error: Your browser doesn\'t support geolocation.');
-                }
-            });
-
-            document.getElementById('mapType')?.addEventListener('change', (e) => {
-                map.setMapTypeId(e.target.value);
-            });
-
-            document.getElementById('geoRadius')?.addEventListener('input', updateCircle);
-        }
+        let map, marker, circle;
 
         function initGeoMap() {
-            if (typeof google !== 'undefined' && google.maps) {
-                initMap();
-            } else {
-                setTimeout(initGeoMap, 500);
-            }
-        }
+            const defaultCenter = { lat: 14.5995, lng: 120.9842 }; // Manila, Philippines
 
-        function placeMarkerAndCircle(location) {
-            if (marker) marker.setMap(null);
-            if (circle) circle.setMap(null);
+            map = new google.maps.Map(document.getElementById('geoMap'), {
+                center: defaultCenter,
+                zoom: 15,
+                mapTypeId: 'terrain',
+                styles: [
+                    { featureType: 'poi', stylers: [{ visibility: 'off' }] }
+                ]
+            });
 
             marker = new google.maps.Marker({
-                position: location,
+                position: defaultCenter,
                 map: map,
                 draggable: true,
-                animation: google.maps.Animation.DROP,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 10,
-                    fillColor: '#4F46E5',
-                    fillOpacity: 1,
-                    strokeColor: '#ffffff',
-                    strokeWeight: 3
-                }
+                title: 'Voting Location'
             });
-
-            document.getElementById('geoLatitude').value = location.lat;
-            document.getElementById('geoLongitude').value = location.lng;
-
-            updateCircle();
-
-            marker.addListener('dragend', () => {
-                const pos = marker.getPosition();
-                document.getElementById('geoLatitude').value = pos.lat();
-                document.getElementById('geoLongitude').value = pos.lng();
-                updateCircle();
-            });
-        }
-
-        function updateCircle() {
-            if (!marker) return;
-            if (circle) circle.setMap(null);
-
-            const radiusValue = parseFloat(document.getElementById('geoRadius')?.value) || 50;
-            const radiusUnit = document.querySelector('[x-model="radiusUnit"]')?.value || 'meters';
-            const radiusInMeters = radiusUnit === 'kilometers' ? radiusValue * 1000 : radiusValue;
 
             circle = new google.maps.Circle({
                 map: map,
-                center: marker.getPosition(),
-                radius: radiusInMeters,
+                radius: 50,
                 fillColor: '#4F46E5',
                 fillOpacity: 0.2,
                 strokeColor: '#4F46E5',
@@ -882,8 +910,52 @@
                 strokeWeight: 2
             });
 
-            map.fitBounds(circle.getBounds());
+            circle.bindTo('center', marker, 'position');
+
+            marker.addListener('dragend', function() {
+                updateCoordinates(marker.getPosition());
+            });
+
+            // Map type selector
+            document.getElementById('mapType').addEventListener('change', function() {
+                map.setMapTypeId(this.value);
+            });
+
+            // Use my location button
+            document.getElementById('useMyLocation').addEventListener('click', function() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        map.setCenter(pos);
+                        marker.setPosition(pos);
+                        updateCoordinates(pos);
+                    });
+                }
+            });
+
+            // Radius input listener
+            document.getElementById('geoRadius').addEventListener('input', function() {
+                let radius = parseFloat(this.value) || 50;
+                const unit = document.querySelector('[x-model="radiusUnit"]').value;
+                if (unit === 'kilometers') {
+                    radius = radius * 1000;
+                }
+                circle.setRadius(radius);
+            });
+
+            updateCoordinates(defaultCenter);
         }
 
-        window.initMap = initMap;
-</script>
+        function updateCoordinates(pos) {
+            const lat = typeof pos.lat === 'function' ? pos.lat() : pos.lat;
+            const lng = typeof pos.lng === 'function' ? pos.lng() : pos.lng;
+            document.getElementById('geoLatitude').value = lat;
+            document.getElementById('geoLongitude').value = lng;
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&callback=initGeoMap"></script>
+@endsection
+
