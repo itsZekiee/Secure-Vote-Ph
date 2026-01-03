@@ -9,108 +9,7 @@
                 selectedElection: null,
                 searchQuery: '',
                 statusFilter: 'all',
-                elections: [
-                    {
-                        id: 1,
-                        name: 'Presidential Election 2024',
-                        organization: 'National Electoral Commission',
-                        createdDate: '2024-01-15',
-                        status: 'active',
-                        totalVotes: 8542,
-                        registeredVoters: 11800,
-                        turnoutRate: 72.5,
-                        realtimeMetrics: {
-                            votesPerMinute: [12, 15, 18, 14, 22, 19, 25, 21, 18, 16],
-                            avgTimeToVote: 4.2,
-                            activeSessions: 143,
-                            failedLogins: 8,
-                            suspiciousIPs: 2,
-                            verificationSuccessRate: 94.5,
-                            ghostRegistrations: 234
-                        },
-                        demographicData: {
-                            ageGroups: [
-                                { label: '18-25', votes: 2340, total: 3200 },
-                                { label: '26-35', votes: 1890, total: 2450 },
-                                { label: '36-50', votes: 2512, total: 3150 },
-                                { label: '51+', votes: 1800, total: 3000 }
-                            ],
-                            regions: [
-                                { name: 'Region 1', votes: 2145, percent: 25.1 },
-                                { name: 'Region 2', votes: 1834, percent: 21.5 },
-                                { name: 'Region 3', votes: 2980, percent: 34.9 },
-                                { name: 'Region 4', votes: 1583, percent: 18.5 }
-                            ],
-                            submissionMethods: [
-                                { method: 'In-Person', count: 5126, percent: 60 },
-                                { method: 'Online', count: 2558, percent: 30 },
-                                { method: 'Mail-In', count: 858, percent: 10 }
-                            ]
-                        }
-                    },
-                    {
-                        id: 2,
-                        name: 'Barangay Election 2024',
-                        organization: 'Local Government Unit',
-                        createdDate: '2024-02-20',
-                        status: 'scheduled',
-                        totalVotes: 0,
-                        registeredVoters: 5000,
-                        turnoutRate: 0,
-                        realtimeMetrics: {
-                            votesPerMinute: Array(10).fill(0),
-                            avgTimeToVote: 0,
-                            activeSessions: 0,
-                            failedLogins: 0,
-                            suspiciousIPs: 0,
-                            verificationSuccessRate: 0,
-                            ghostRegistrations: 456
-                        },
-                        demographicData: {
-                            ageGroups: [],
-                            regions: [],
-                            submissionMethods: []
-                        }
-                    },
-                    {
-                        id: 3,
-                        name: 'Municipal Election 2023',
-                        organization: 'Municipal Electoral Office',
-                        createdDate: '2023-11-05',
-                        status: 'completed',
-                        totalVotes: 12456,
-                        registeredVoters: 14620,
-                        turnoutRate: 85.2,
-                        realtimeMetrics: {
-                            votesPerMinute: [8,12,10,15,18,20,16,14,12,0],
-                            avgTimeToVote: 5.8,
-                            activeSessions: 0,
-                            failedLogins: 12,
-                            suspiciousIPs: 3,
-                            verificationSuccessRate: 89.2,
-                            ghostRegistrations: 189
-                        },
-                        demographicData: {
-                            ageGroups: [
-                                { label: '18-25', votes: 3120, total: 3800 },
-                                { label: '26-35', votes: 2890, total: 3450 },
-                                { label: '36-50', votes: 3912, total: 4350 },
-                                { label: '51+', votes: 2534, total: 3020 }
-                            ],
-                            regions: [
-                                { name: 'North', votes: 3245, percent: 26.0 },
-                                { name: 'South', votes: 2834, percent: 22.8 },
-                                { name: 'East', votes: 3980, percent: 31.9 },
-                                { name: 'West', votes: 2397, percent: 19.3 }
-                            ],
-                            submissionMethods: [
-                                { method: 'In-Person', count: 7473, percent: 60 },
-                                { method: 'Online', count: 3737, percent: 30 },
-                                { method: 'Mail-In', count: 1246, percent: 10 }
-                            ]
-                        }
-                    }
-                ],
+                elections: @json($elections ?? []),
                 formatDate(dateString) {
                     const date = new Date(dateString);
                     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -158,9 +57,11 @@
                         return this.currentElection;
                     }
                     return {
-                        totalVotes: this.elections.reduce((sum, e) => sum + e.totalVotes, 0),
-                        registeredVoters: this.elections.reduce((sum, e) => sum + e.registeredVoters, 0),
-                        turnoutRate: (this.elections.reduce((sum, e) => sum + e.turnoutRate, 0) / this.elections.length).toFixed(1)
+                        totalVotes: this.elections.reduce((sum, e) => sum + (e.totalVotes || 0), 0),
+                        registeredVoters: this.elections.reduce((sum, e) => sum + (e.registeredVoters || 0), 0),
+                        turnoutRate: this.elections.length > 0
+                            ? (this.elections.reduce((sum, e) => sum + (e.turnoutRate || 0), 0) / this.elections.length).toFixed(1)
+                            : 0
                     };
                 },
                 get turnoutPercentage() {

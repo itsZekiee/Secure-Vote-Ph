@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Voter\VoterElectionController;
+use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,10 +32,10 @@ Route::get('/', function () {
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.submit');
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
 
-// Authenticated user dashboard
-Route::get('/dashboard', function () {
-    return view('main-admin.dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Authenticated user dashboard - Updated to use controller
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
@@ -43,8 +44,8 @@ Route::get('/dashboard', function () {
 */
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
 
-    // Admin Dashboard
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    // Admin Dashboard - Updated to use DashboardController
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Sub-Admin Dashboard Routes
     Route::prefix('sub-admin')->name('sub-admin.')->group(function () {
