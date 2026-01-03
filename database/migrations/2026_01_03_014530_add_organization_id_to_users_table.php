@@ -6,30 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up()
+    public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('organization_id')->nullable()->after('email');
-
-            // If you have an organizations table, add foreign key:
-            $table->foreign('organization_id')
-                ->references('id')
-                ->on('organizations')
-                ->onDelete('cascade');
+            if (!Schema::hasColumn('users', 'organization_id')) {
+                $table->unsignedBigInteger('organization_id')->nullable()->after('email');
+            }
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down()
+    public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['organization_id']);
-            $table->dropColumn('organization_id');
+            if (Schema::hasColumn('users', 'organization_id')) {
+                $table->dropColumn('organization_id');
+            }
         });
     }
 };

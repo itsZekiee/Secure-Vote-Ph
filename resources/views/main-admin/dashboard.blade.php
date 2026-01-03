@@ -229,6 +229,23 @@
                                             <div class="text-xs text-slate-500">Turnout Rate</div>
                                             <div class="text-sm font-semibold text-emerald-600" x-text="`${currentElection?.turnoutRate}%`"></div>
                                         </div>
+                                        <div class="w-px h-8 bg-gray-200"></div>
+                                        <div>
+                                            <div class="text-xs text-slate-500">Election Code</div>
+                                            <div class="text-sm font-mono font-semibold text-indigo-600" x-text="currentElection?.code"></div>
+                                        </div>
+                                        <div class="w-px h-8 bg-gray-200"></div>
+                                        <div>
+                                            <div class="text-xs text-slate-500">Election Link</div>
+                                            <div class="flex items-center gap-2">
+                                                <a :href="currentElection?.link" target="_blank" class="text-sm text-sky-600 hover:underline truncate max-w-xs" x-text="currentElection?.link"></a>
+                                                <button @click="navigator.clipboard.writeText(currentElection?.link)" class="p-1 hover:bg-slate-100 rounded transition-colors" title="Copy link">
+                                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

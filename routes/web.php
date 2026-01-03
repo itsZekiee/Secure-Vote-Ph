@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Voter\VoterElectionController;
+use App\Http\Controllers\Voter\ElectionAccessController;
+use App\Http\Controllers\Voter\AuthController as VoterAuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Elections\Store as ElectionStoreController;
 use Illuminate\Support\Facades\Route;
@@ -229,17 +231,54 @@ Route::prefix('api/v1')->name('api.v1.')->group(function () {
     Route::get('elections/{election}/results', [ElectionController::class, 'apiResults'])->name('elections.results');
 });
 
-// Voter Portal Routes
+/*
+|--------------------------------------------------------------------------
+| Voter Portal Routes
+|--------------------------------------------------------------------------
+*/
 Route::prefix('voter')->name('voter.')->group(function () {
+    // Election Welcome page with code - displays election info and countdown
+    Route::get('/election/{code}/welcome', [ElectionAccessController::class, 'welcome'])->name('election.welcome');
+
+    // Election Welcome page after registration (uses session data)
+    Route::get('/elections/welcome', [ElectionAccessController::class, 'welcomeFromSession'])->name('elections.welcome');
+
+    // Voter Welcome page (after registration - legacy)
+    Route::get('/welcome', [VoterAuthController::class, 'welcome'])->name('welcome');
+
+    // Election Access - Code/Link verification
+    Route::get('/access', [ElectionAccessController::class, 'show'])->name('elections.access');
+    Route::post('/access/verify', [ElectionAccessController::class, 'verify'])->name('elections.verify');
+
+    // Voter Registration after code verification
+    Route::get('/register/{code}', [ElectionAccessController::class, 'register'])->name('register');
+
+    // Election join - MUST be BEFORE {election} route
+    Route::get('/elections/join', [VoterElectionController::class, 'showJoinForm'])->name('elections.join');
+    Route::post('/elections/join', [VoterElectionController::class, 'join'])->name('elections.join.submit');
+
+    // Elections list
+    Route::get('/elections', [VoterElectionController::class, 'index'])->name('elections.index');
+
+    // Election show and vote - MUST be AFTER /join routes
+    Route::get('/elections/{election}', [VoterElectionController::class, 'show'])->name('elections.show');
+    Route::post('/elections/{election}/vote', [VoterElectionController::class, 'vote'])->name('elections.vote');
+    Route::get('/elections/{election}/confirmation', [VoterElectionController::class, 'confirmation'])->name('elections.confirmation');
+
+    // Voting history
+    Route::get('/history', [VoterElectionController::class, 'history'])->name('history.index');
+
+    // Voter Profile
+    Route::get('/profile', [VoterElectionController::class, 'profile'])->name('profile.index');
+
+    // Legacy registration route
     Route::get('/registration', function () {
         return view('voter.registration.index');
     })->name('registration.index');
 
-    Route::post('/login', [App\Http\Controllers\Voter\AuthController::class, 'login'])->name('login');
-    Route::post('/register', [App\Http\Controllers\Voter\AuthController::class, 'register'])->name('register');
-
-    Route::get('/elections/join', [VoterElectionController::class, 'showJoinForm'])->name('elections.join');
-    Route::post('/elections/join', [VoterElectionController::class, 'join'])->name('elections.verify');
+    // Voter Authentication
+    Route::post('/login', [VoterAuthController::class, 'login'])->name('login');
+    Route::post('/register', [VoterAuthController::class, 'register'])->name('register.submit');
 });
 
 Route::get('/password/reset', function () {

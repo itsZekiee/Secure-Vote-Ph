@@ -4,48 +4,66 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Election;
-use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $elections = Election::whereNull('deleted_at')
-            ->with(['votes' => function ($query) {
-                $query->select('election_id');
-            }])
+        $elections = Election::where('created_by', auth()->id())
+            ->orWhereHas('subAdmins', function ($query) {
+                $query->where('user_id', auth()->id());
+            })
+            ->with(['organization', 'voters'])
             ->get()
             ->map(function ($election) {
-                $totalVotes = $election->votes->count();
-                $registeredVoters = $election->registered_voters ?? 0;
-                $turnoutRate = $registeredVoters > 0 ? ($totalVotes / $registeredVoters) * 100 : 0;
+                $registeredVoters = $election->voters->count();
+                $totalVotes = $election->voters->whereNotNull('voted_at')->count();
 
                 return [
                     'id' => $election->id,
-                    'name' => $election->election_name ?? $election->title ?? 'Unnamed Election',
-                    'organization' => $election->organization_name ?? $election->organization ?? 'N/A',
-                    'createdDate' => $election->created_at,
-                    'status' => $election->status ?? 'scheduled',
+                    'name' => $election->title,
+                    'organization' => $election->organization?->name ?? 'N/A',
+                    'code' => $election->code ?? 'N/A',
+                    'link' => $election->access_link ?? url("/voter/register/{$election->code}"),
+                    'createdDate' => $election->created_at->toISOString(),
+                    'status' => $this->getElectionStatus($election),
                     'totalVotes' => $totalVotes,
                     'registeredVoters' => $registeredVoters,
-                    'turnoutRate' => round($turnoutRate, 1),
+                    'turnoutRate' => $registeredVoters > 0
+                        ? round(($totalVotes / $registeredVoters) * 100, 1)
+                        : 0,
                     'realtimeMetrics' => [
-                        'votesPerMinute' => array_fill(0, 10, 0),
+                        'votesPerMinute' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                         'avgTimeToVote' => 0,
                         'activeSessions' => 0,
                         'failedLogins' => 0,
                         'suspiciousIPs' => 0,
-                        'verificationSuccessRate' => 0,
-                        'ghostRegistrations' => 0
+                        'verificationSuccessRate' => 100,
+                        'ghostRegistrations' => 0,
                     ],
                     'demographicData' => [
                         'ageGroups' => [],
                         'regions' => [],
-                        'submissionMethods' => []
-                    ]
+                        'submissionMethods' => [],
+                    ],
                 ];
             });
 
         return view('main-admin.dashboard', compact('elections'));
+    }
+
+    private function getElectionStatus(Election $election): string
+    {
+        $now = now();
+
+        if ($election->end_date && $now->gt($election->end_date)) {
+            return 'completed';
+        }
+
+        if ($election->start_date && $now->lt($election->start_date)) {
+            return 'scheduled';
+        }
+
+        return 'active';
     }
 }
