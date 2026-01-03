@@ -7,17 +7,16 @@ use App\Models\Election;
 use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ElectionController extends Controller
 {
-    /**
-     * Helper method to check if user can manage an election
-     */
     private function canUserManageElection(Election $election): bool
     {
-        return $election->created_by === auth()->id() || 
-               $election->subAdmins()->where('user_id', auth()->id())->exists();
+        return $election->created_by === auth()->id() ||
+            $election->subAdmins()->where('user_id', auth()->id())->exists();
     }
+
     public function index()
     {
         $elections = Election::where('created_by', auth()->id())
@@ -46,45 +45,104 @@ class ElectionController extends Controller
         return view('main-admin.elections.edit', compact('election', 'organizations'));
     }
 
-    // Store a newly created election
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'organization_id' => 'required|exists:organizations,id',
-            'start_date' => 'required|date|after:now',
-            'end_date' => 'required|date|after:start_date',
-            'status' => 'required|in:draft,active,completed,cancelled',
-            'sub_admin_ids' => 'nullable|array',
-            'sub_admin_ids.*' => 'exists:users,id'
-        ]);
-
         try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'organization_id' => 'required|exists:organizations,id',
+                'voting_start' => 'required|date',
+                'voting_end' => 'required|date|after:voting_start',
+                'positions' => 'required|array|min:1',
+                'positions.*.name' => 'required|string|max:255',
+                'positions.*.candidates' => 'nullable|array',
+                'enable_geo_location' => 'nullable|boolean',
+                'geo_latitude' => 'nullable|numeric',
+                'geo_longitude' => 'nullable|numeric',
+                'geo_radius' => 'nullable|numeric',
+            ]);
+
             DB::beginTransaction();
 
-            $validated['created_by'] = auth()->id();
-            $election = Election::create($validated);
+            $accessCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-            // Sync sub-admin assignments if provided
-            if (!empty($validated['sub_admin_ids'])) {
-                $election->subAdmins()->sync($validated['sub_admin_ids']);
+            $election = Election::create([
+                'title' => $validated['title'],
+                'description' => $request->description,
+                'organization_id' => $validated['organization_id'],
+                'start_date' => $validated['voting_start'],
+                'end_date' => $validated['voting_end'],
+                'created_by' => auth()->id(),
+                'status' => 'draft',
+                'access_code' => $accessCode,
+                'geo_latitude' => $request->geo_latitude,
+                'geo_longitude' => $request->geo_longitude,
+                'geo_radius_meters' => $request->geo_radius,
+                'require_geo_verification' => $request->boolean('enable_geo_location'),
+            ]);
+
+            // Create positions and candidates
+            foreach ($validated['positions'] as $positionData) {
+                $position = $election->positions()->create([
+                    'name' => $positionData['name']
+                ]);
+
+                if (!empty($positionData['candidates'])) {
+                    foreach ($positionData['candidates'] as $candidateName) {
+                        if (trim($candidateName)) {
+                            $position->candidates()->create([
+                                'name' => trim($candidateName)
+                            ]);
+                        }
+                    }
+                }
             }
 
             DB::commit();
 
+            // Return JSON for AJAX requests
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'election_id' => $election->id,
+                    'election_code' => $election->access_code,
+                    'registration_url' => url('/voter/register/' . $election->access_code),
+                ]);
+            }
+
             return redirect()->route('admin.elections.index')
                 ->with('success', 'Election created successfully.');
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+            throw $e;
+
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Election creation failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create election: ' . $e->getMessage(),
+                ], 500);
+            }
 
             return back()->withErrors(['general' => 'An error occurred while creating the election'])
                 ->withInput();
         }
     }
 
-    // Display the specified election
     public function show(Election $election)
     {
         if (!$this->canUserManageElection($election)) {
@@ -96,7 +154,6 @@ class ElectionController extends Controller
         return view('main-admin.elections.show', compact('election'));
     }
 
-    // Update the specified election
     public function update(Request $request, Election $election)
     {
         if ($election->created_by !== auth()->id()) {
@@ -119,7 +176,6 @@ class ElectionController extends Controller
 
             $election->update($validated);
 
-            // Sync sub-admin assignments if provided
             if (!empty($validated['sub_admin_ids'])) {
                 $election->subAdmins()->sync($validated['sub_admin_ids']);
             } else {
@@ -139,7 +195,6 @@ class ElectionController extends Controller
         }
     }
 
-    //Remove the specified election from storage
     public function destroy(Election $election)
     {
         if ($election->created_by !== auth()->id()) {
@@ -149,7 +204,6 @@ class ElectionController extends Controller
         try {
             DB::beginTransaction();
 
-            // Check if election has votes
             if ($election->votes()->count() > 0) {
                 return back()->withErrors(['general' => 'Cannot delete election with existing votes']);
             }
@@ -168,9 +222,6 @@ class ElectionController extends Controller
         }
     }
 
-    /**
-     * Assign sub-admin to election
-     */
     public function assignSubAdmin(Request $request, Election $election)
     {
         if ($election->created_by !== auth()->id()) {
@@ -189,9 +240,6 @@ class ElectionController extends Controller
         }
     }
 
-    /**
-     * Remove sub-admin from election
-     */
     public function removeSubAdmin(Request $request, Election $election)
     {
         if ($election->created_by !== auth()->id()) {
@@ -209,6 +257,7 @@ class ElectionController extends Controller
             return response()->json(['error' => 'Failed to remove sub-admin'], 422);
         }
     }
+
     public function candidates(Election $election)
     {
         if (!$this->canUserManageElection($election)) {
@@ -220,7 +269,6 @@ class ElectionController extends Controller
         return response()->json(['candidates' => $candidates]);
     }
 
-    // Search Elections
     public function search(Request $request)
     {
         $query = $request->get('q', '');
@@ -248,7 +296,6 @@ class ElectionController extends Controller
         return response()->json(['elections' => $elections]);
     }
 
-    // Export elections data
     public function export(Request $request)
     {
         $format = $request->get('format', 'csv');
@@ -266,7 +313,6 @@ class ElectionController extends Controller
             return response()->json(['elections' => $elections]);
         }
 
-        // CSV export logic
         $filename = 'elections_' . now()->format('Y-m-d_H-i-s') . '.csv';
 
         $headers = [
