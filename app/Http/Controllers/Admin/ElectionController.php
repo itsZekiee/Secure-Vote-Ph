@@ -195,7 +195,7 @@ class ElectionController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'status' => 'required|in:draft,active,completed,cancelled',
-            'registration_deadline' => 'nullable|date|before_or_equal:start_date',
+            'registration_deadline' => 'nullable|date',
             'accepted_domains' => 'nullable|string',
             'max_votes' => 'nullable|integer|min:1',
             'sub_admin_ids' => 'nullable|array',

@@ -145,6 +145,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::post('{voter}/toggle-status', [VoterController::class, 'toggleStatus'])->name('toggle-status');
         Route::post('{voter}/verify', [VoterController::class, 'verify'])->name('verify');
         Route::post('{voter}/unverify', [VoterController::class, 'unverify'])->name('unverify');
+        Route::post('{voter}/approve', [VoterController::class, 'approve'])->name('approve');
+        Route::post('{voter}/decline', [VoterController::class, 'decline'])->name('decline');
         Route::get('{voter}/voting-history', [VoterController::class, 'votingHistory'])->name('voting-history');
         Route::post('bulk-import', [VoterController::class, 'bulkImport'])->name('bulk-import');
         Route::get('template-download', [VoterController::class, 'downloadTemplate'])->name('template-download');

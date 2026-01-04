@@ -25,7 +25,7 @@ class Store extends Controller
                 'organization_id' => 'required|exists:organizations,id',
                 'voting_start' => 'required|date',
                 'voting_end' => 'required|date|after:voting_start',
-                'registration_deadline' => 'nullable|date|before_or_equal:voting_start',
+                'registration_deadline' => 'nullable|date',
                 'accepted_domains' => 'nullable|string',
                 'max_votes' => 'nullable|integer|min:1',
                 'positions' => 'required|array|min:1',
