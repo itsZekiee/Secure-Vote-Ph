@@ -4,7 +4,7 @@
     <script>
         function dashboard() {
             return {
-                collapsed: false,
+                collapsed: window.innerWidth < 1024,
                 isMobile: window.innerWidth < 1024,
                 selectedElection: null,
                 searchQuery: '',

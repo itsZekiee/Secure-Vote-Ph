@@ -30,7 +30,7 @@
     @endphp
 
     <div x-data="{
-        collapsed: false,
+        collapsed: window.innerWidth < 1024,
         isMobile: window.innerWidth < 1024,
         search: '',
         filterBy: 'all',

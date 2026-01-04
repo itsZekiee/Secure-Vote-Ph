@@ -13,7 +13,7 @@
 @section('content')
     <div x-data="{
         isMobile: window.innerWidth < 1024,
-        collapsed: false,
+        collapsed: window.innerWidth < 1024,
         searchQuery: '',
         sortBy: 'created_at_desc',
         filterElection: '',

@@ -9,14 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('elections', function (Blueprint $table) {
-            $table->dateTime('registration_deadline')->nullable()->after('end_date');
+            if (!Schema::hasColumn('elections', 'registration_deadline')) {
+                $table->dateTime('registration_deadline')->nullable()->after('end_date');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('elections', function (Blueprint $table) {
-            $table->dropColumn('registration_deadline');
+            if (Schema::hasColumn('elections', 'registration_deadline')) {
+                $table->dropColumn('registration_deadline');
+            }
         });
     }
 };

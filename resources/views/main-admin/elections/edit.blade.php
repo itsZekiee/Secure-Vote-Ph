@@ -2,7 +2,7 @@
 
 @section('content')
     <div x-data="{
-        collapsed: false,
+        collapsed: window.innerWidth < 1024,
         isMobile: window.innerWidth < 1024,
         isSubmitting: false,
         positions: @js($election->positions->map(fn($p) => [

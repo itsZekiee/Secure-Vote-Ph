@@ -12,15 +12,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('elections', function (Blueprint $table) {
-            $table->text('accepted_domains')->nullable()->after('registration_deadline');
-            $table->integer('max_votes')->default(1)->after('accepted_domains');
+            if (!Schema::hasColumn('elections', 'accepted_domains')) {
+                $table->text('accepted_domains')->nullable()->after('end_date');
+            }
+            if (!Schema::hasColumn('elections', 'max_votes')) {
+                $table->integer('max_votes')->default(1)->after('end_date');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('elections', function (Blueprint $table) {
-            $table->dropColumn(['accepted_domains', 'max_votes']);
+            $columns = [];
+            if (Schema::hasColumn('elections', 'accepted_domains')) {
+                $columns[] = 'accepted_domains';
+            }
+            if (Schema::hasColumn('elections', 'max_votes')) {
+                $columns[] = 'max_votes';
+            }
+            if (!empty($columns)) {
+                $table->dropColumn($columns);
+            }
         });
     }
 };
