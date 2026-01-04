@@ -15,6 +15,7 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Voter\VoterElectionController;
 use App\Http\Controllers\Voter\ElectionAccessController;
 use App\Http\Controllers\Voter\AuthController as VoterAuthController;
+use App\Http\Controllers\Voter\VoterRegistrationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Elections\Store as ElectionStoreController;
 use Illuminate\Support\Facades\Route;
@@ -237,46 +238,76 @@ Route::prefix('api/v1')->name('api.v1.')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('voter')->name('voter.')->group(function () {
-    // Election Welcome page with code - displays election info and countdown
+
+    // ==========================================
+    // PUBLIC ROUTES (No Authentication Required)
+    // ==========================================
+
+    // Step 1: Election Access - Enter code/link
+    Route::get('/access', [VoterElectionController::class, 'access'])->name('elections.access');
+    Route::post('/access/verify', [VoterElectionController::class, 'verify'])->name('elections.verify');
+
+    // Step 2: Voter Registration/Login for specific election
+    Route::get('/registration/{code}', [VoterRegistrationController::class, 'index'])->name('registration.index');
+    Route::post('/registration/{code}', [VoterRegistrationController::class, 'store'])->name('registration.store');
+    Route::post('/registration/{code}/login', [VoterRegistrationController::class, 'login'])->name('registration.login');
+
+    // ==========================================
+    // PROTECTED ROUTES (Voter Session Required)
+    // ==========================================
+    Route::middleware(['voter.auth'])->group(function () {
+
+        // Step 3: Welcome page with countdown
+        Route::get('/elections/{code}/welcome', [VoterElectionController::class, 'welcome'])->name('elections.welcome');
+
+        // Step 4: Voting page
+        Route::get('/elections/{code}/vote', [VoterElectionController::class, 'index'])->name('elections.vote');
+        Route::post('/elections/{code}/submit', [VoterElectionController::class, 'submitVote'])->name('elections.submit');
+
+        // Step 5: Results page
+        Route::get('/elections/{code}/results', [VoterElectionController::class, 'results'])->name('elections.results');
+
+        // Voter Profile & History
+        Route::get('/profile', [VoterElectionController::class, 'profile'])->name('profile.index');
+        Route::get('/history', [VoterElectionController::class, 'history'])->name('history.index');
+
+        // Logout
+        Route::post('/logout', [VoterRegistrationController::class, 'logout'])->name('logout');
+    });
+
+    // ==========================================
+    // LEGACY ROUTES (Redirects for backward compatibility)
+    // ==========================================
+
+    // Legacy election access routes
     Route::get('/election/{code}/welcome', [ElectionAccessController::class, 'welcome'])->name('election.welcome');
-
-    // Election Welcome page after registration (uses session data)
-    Route::get('/elections/welcome', [ElectionAccessController::class, 'welcomeFromSession'])->name('elections.welcome');
-
-    // Voter Welcome page (after registration - legacy)
+    Route::get('/elections/welcome', [ElectionAccessController::class, 'welcomeFromSession'])->name('elections.welcome.session');
     Route::get('/welcome', [VoterAuthController::class, 'welcome'])->name('welcome');
-
-    // Election Access - Code/Link verification
-    Route::get('/access', [ElectionAccessController::class, 'show'])->name('elections.access');
-    Route::post('/access/verify', [ElectionAccessController::class, 'verify'])->name('elections.verify');
-
-    // Voter Registration after code verification
     Route::get('/register/{code}', [ElectionAccessController::class, 'register'])->name('register');
 
-    // Election join - MUST be BEFORE {election} route
-    Route::get('/elections/join', [VoterElectionController::class, 'showJoinForm'])->name('elections.join');
-    Route::post('/elections/join', [VoterElectionController::class, 'join'])->name('elections.join.submit');
+    // Legacy join routes - REDIRECT to access page
+    Route::get('/elections/join', function () {
+        return redirect()->route('voter.elections.access');
+    })->name('elections.join');
 
-    // Elections list
-    Route::get('/elections', [VoterElectionController::class, 'index'])->name('elections.index');
+    Route::post('/elections/join', function () {
+        return redirect()->route('voter.elections.access');
+    })->name('elections.join.submit');
 
-    // Election show and vote - MUST be AFTER /join routes
+    // Legacy elections list
+    Route::get('/elections', [VoterElectionController::class, 'list'])->name('elections.list');
+
+    // Legacy show and vote
     Route::get('/elections/{election}', [VoterElectionController::class, 'show'])->name('elections.show');
-    Route::post('/elections/{election}/vote', [VoterElectionController::class, 'vote'])->name('elections.vote');
+    Route::post('/elections/{election}/vote', [VoterElectionController::class, 'vote'])->name('elections.vote.legacy');
     Route::get('/elections/{election}/confirmation', [VoterElectionController::class, 'confirmation'])->name('elections.confirmation');
 
-    // Voting history
-    Route::get('/history', [VoterElectionController::class, 'history'])->name('history.index');
-
-    // Voter Profile
-    Route::get('/profile', [VoterElectionController::class, 'profile'])->name('profile.index');
-
-    // Legacy registration route
+    // Legacy registration view
     Route::get('/registration', function () {
         return view('voter.registration.index');
-    })->name('registration.index');
+    })->name('registration.legacy');
 
-    // Voter Authentication
+    // Legacy authentication
     Route::post('/login', [VoterAuthController::class, 'login'])->name('login');
     Route::post('/register', [VoterAuthController::class, 'register'])->name('register.submit');
 });

@@ -70,7 +70,7 @@
                                         Start Voting Now
                                         <i class="ri-arrow-right-line ml-2 group-hover:translate-x-1 transition-transform"></i>
                                     </a>
-                                    <button onclick="window.location.href='{{ route('voter.registration.index') }}'" class="bg-white border-2 border-gray-200 hover:border-primary text-gray-700 hover:text-primary px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-lg">
+                                    <button onclick="window.location.href='{{ route('voter.elections.access') }}'" class="bg-white border-2">
                                         Learn More
                                     </button>
                                 </div>
