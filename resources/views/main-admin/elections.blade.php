@@ -964,6 +964,7 @@
         }
 
         // Form submission handler
+        // JavaScript (place in `resources/views/main-admin/elections.blade.php` script section)
         document.getElementById('electionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -973,15 +974,35 @@
 
             try {
                 const formData = new FormData(formEl);
+
+                const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = tokenMeta ? tokenMeta.getAttribute('content') : null;
+                if (!csrfToken) console.warn('CSRF meta tag not found. Add <meta name="csrf-token" content=\"{{ csrf_token() }}\"> to your layout.');
+
                 const response = await fetch(formEl.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
+                        ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {})
+                    },
+                    credentials: 'same-origin' // <--- ensures session cookie is sent to the server
                 });
+
+                if (!response.ok) {
+                    // log full response for debugging (server may return HTML on error)
+                    const text = await response.text().catch(() => '');
+                    console.error('Election create failed', response.status, text);
+                    // try to parse JSON error body
+                    try {
+                        const err = text ? JSON.parse(text) : null;
+                        alpineData.showError(err?.message || 'Server error', err?.errors || []);
+                    } catch (parseErr) {
+                        alpineData.showError('Server error: ' + response.status);
+                    }
+                    return;
+                }
 
                 const data = await response.json();
 
@@ -991,16 +1012,12 @@
                     alpineData.electionCode = data.election.code;
                     alpineData.registrationUrl = data.registration_url;
                     alpineData.activeTab = 'share';
-
-                    // Generate QR code after setting the URL
-                    setTimeout(() => {
-                        alpineData.generateQRCode(alpineData.registrationUrl);
-                    }, 100);
+                    setTimeout(() => alpineData.generateQRCode(alpineData.registrationUrl), 100);
                 } else {
-                    alpineData.showError(data.message, data.errors || []);
+                    alpineData.showError(data.message || 'Failed to create election', data.errors || []);
                 }
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Unexpected error:', error);
                 alpineData.showError('An unexpected error occurred');
             } finally {
                 alpineData.isSubmitting = false;
