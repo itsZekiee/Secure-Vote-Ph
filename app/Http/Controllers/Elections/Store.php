@@ -21,13 +21,21 @@ class Store extends Controller
         try {
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'organization_id' => 'required|exists:organizations,id',
                 'voting_start' => 'required|date',
                 'voting_end' => 'required|date|after:voting_start',
-                'registration_deadline' => 'nullable|date|before:voting_start',
+                'registration_deadline' => 'nullable|date|before_or_equal:voting_start',
+                'accepted_domains' => 'nullable|string',
+                'max_votes' => 'nullable|integer|min:1',
                 'positions' => 'required|array|min:1',
                 'positions.*.name' => 'required|string|max:255',
                 'positions.*.candidates' => 'required|array|min:1',
                 'positions.*.candidates.*' => 'required|string|max:255',
+                'geo_latitude' => 'nullable|numeric',
+                'geo_longitude' => 'nullable|numeric',
+                'geo_radius_meters' => 'nullable|numeric',
+                'enable_geo_location' => 'nullable',
             ]);
 
             DB::beginTransaction();
@@ -36,12 +44,21 @@ class Store extends Controller
 
             $election = Election::create([
                 'title' => $validated['title'],
+                'description' => $validated['description'] ?? null,
+                'organization_id' => $validated['organization_id'],
                 'start_date' => $validated['voting_start'],
                 'end_date' => $validated['voting_end'],
                 'registration_deadline' => $validated['registration_deadline'] ?? $validated['voting_start'],
                 'status' => 'draft',
                 'code' => $code,
+                'access_code' => $code,
                 'created_by' => auth()->id(),
+                'geo_latitude' => $validated['geo_latitude'] ?? null,
+                'geo_longitude' => $validated['geo_longitude'] ?? null,
+                'geo_radius_meters' => $validated['geo_radius_meters'] ?? null,
+                'require_geo_verification' => $request->boolean('enable_geo_location'),
+                'accepted_domains' => $validated['accepted_domains'] ?? null,
+                'max_votes' => $validated['max_votes'] ?? 1,
             ]);
 
             Log::info('Election created successfully', [
@@ -79,6 +96,7 @@ class Store extends Controller
                             'first_name' => $firstName,
                             'middle_name' => $middleName,
                             'last_name' => $lastName,
+                            'name' => trim($candidateName),
                             'election_id' => $election->id,
                             'position_id' => $position->id,
                             'partylist_id' => null,
@@ -102,7 +120,8 @@ class Store extends Controller
                     'election' => [
                         'id' => $election->id,
                         'code' => $code,
-                        'title' => $election->title
+                        'title' => $election->title,
+                        'organization_id' => $election->organization_id,
                     ],
                     'registration_url' => $registrationUrl
                 ]);

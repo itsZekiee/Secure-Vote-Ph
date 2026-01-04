@@ -14,6 +14,7 @@ class Voter extends Model
         'email',
         'phone',
         'voter_id',
+        'student_id',
         'password',
         'election_id',
     ];

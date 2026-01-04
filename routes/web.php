@@ -250,6 +250,12 @@ Route::prefix('voter')->name('voter.')->group(function () {
     Route::get('/access', [VoterElectionController::class, 'access'])->name('elections.access');
     Route::post('/access/verify', [VoterElectionController::class, 'verify'])->name('elections.verify');
 
+    // Dashboard & Elections List Redirects
+    Route::get('/dashboard', [VoterAuthController::class, 'welcome'])->name('dashboard');
+    Route::get('/elections', function () {
+        return redirect()->route('voter.elections.access');
+    })->name('elections.index');
+
     // Step 2: Voter Registration/Login for specific election
     Route::get('/registration/{code}', [VoterRegistrationController::class, 'index'])->name('registration.index');
     Route::post('/registration/{code}', [VoterRegistrationController::class, 'store'])->name('registration.store');
@@ -297,12 +303,7 @@ Route::prefix('voter')->name('voter.')->group(function () {
         return redirect()->route('voter.elections.access');
     })->name('elections.join.submit');
 
-    // Legacy elections list
-    Route::get('/elections', [VoterElectionController::class, 'list'])->name('elections.list');
-
     // Legacy show and vote
-    Route::get('/elections/{election}', [VoterElectionController::class, 'show'])->name('elections.show');
-    Route::post('/elections/{election}/vote', [VoterElectionController::class, 'vote'])->name('elections.vote.legacy');
     Route::get('/elections/{election}/confirmation', [VoterElectionController::class, 'confirmation'])->name('elections.confirmation');
 
     // Legacy registration view

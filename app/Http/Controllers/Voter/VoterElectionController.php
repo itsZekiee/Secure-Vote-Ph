@@ -130,8 +130,15 @@ class VoterElectionController extends Controller
     /**
      * Process the vote submission
      */
-    public function submitVote(Request $request, Election $election)
+    public function submitVote(Request $request, $code)
     {
+        $election = Election::where('code', $code)->first();
+
+        if (!$election) {
+            return redirect()->route('voter.elections.access')
+                ->withErrors(['code' => 'Election not found.']);
+        }
+
         $request->validate([
             'votes' => 'required|array',
             'votes.*' => 'required|exists:candidates,id',
@@ -184,8 +191,15 @@ class VoterElectionController extends Controller
     /**
      * Show real-time election results
      */
-    public function results(Election $election)
+    public function results($code)
     {
+        $election = Election::where('code', $code)->first();
+
+        if (!$election) {
+            return redirect()->route('voter.elections.access')
+                ->withErrors(['code' => 'Election not found.']);
+        }
+
         $voter = session('voter');
 
         if (!$voter) {
@@ -201,9 +215,18 @@ class VoterElectionController extends Controller
             ->orderBy('order')
             ->get();
 
-        return view('voter.elections.results', [
+        $partylists = $election->partylists()
+            ->with(['candidates' => function ($query) use ($election) {
+                $query->withCount(['votes' => function ($q) use ($election) {
+                    $q->where('election_id', $election->id);
+                }])->with('position');
+            }])
+            ->get();
+
+        return view('live.result', [
             'election' => $election,
             'positions' => $positions,
+            'partylists' => $partylists,
             'voter' => $voter
         ]);
     }

@@ -22,6 +22,7 @@ class Election extends Model
         'registration_deadline',
         'status',
         'code',
+        'access_code',
         'access_link',
         'created_by',
         'organization_id',
@@ -29,6 +30,8 @@ class Election extends Model
         'geo_latitude',
         'geo_longitude',
         'geo_radius_meters',
+        'accepted_domains',
+        'max_votes',
     ];
 
     protected $casts = [
@@ -39,6 +42,7 @@ class Election extends Model
         'geo_latitude' => 'decimal:8',
         'geo_longitude' => 'decimal:8',
         'geo_radius_meters' => 'integer',
+        'max_votes' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',

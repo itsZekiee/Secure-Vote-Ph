@@ -153,7 +153,10 @@
                           formData: {
                               title: '',
                               voting_start: '',
-                              voting_end: ''
+                              voting_end: '',
+                              accepted_domains: '',
+                              registration_deadline: '',
+                              max_votes: 1
                           },
                           validateBasicInfo() {
                               if (!this.formData.title.trim()) {
@@ -800,6 +803,47 @@
                                         </div>
                                     </div>
 
+                                    <!-- Additional Configuration Fields -->
+                                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 space-y-8 shadow-sm">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-lg font-bold text-gray-900">Access & Voting Control</h3>
+                                                <p class="text-sm text-gray-600">Fine-tune who can vote and how</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                            <div class="lg:col-span-2">
+                                                <label for="accepted_domains" class="block text-sm font-semibold text-gray-900 mb-3">
+                                                    Accepted Domains (e.g., @iskolarngbayan.edu.ph, @zdeveloper.org)
+                                                </label>
+                                                <input type="text" id="accepted_domains" name="accepted_domains" x-model="formData.accepted_domains"
+                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all"
+                                                       placeholder="Comma separated domains (including @), leave empty for all">
+                                                <p class="mt-2 text-xs text-gray-500">Only users with these email domains will be allowed to register.</p>
+                                            </div>
+
+                                            <div>
+                                                <label for="registration_deadline" class="block text-sm font-semibold text-gray-900 mb-3">Registration Deadline</label>
+                                                <input type="datetime-local" id="registration_deadline" name="registration_deadline" x-model="formData.registration_deadline"
+                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
+                                                <p class="mt-2 text-xs text-gray-500">Voters cannot register after this time.</p>
+                                            </div>
+
+                                            <div>
+                                                <label for="max_votes" class="block text-sm font-semibold text-gray-900 mb-3">Max Number of Votes</label>
+                                                <input type="number" id="max_votes" name="max_votes" x-model="formData.max_votes" min="1"
+                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
+                                                <p class="mt-2 text-xs text-gray-500">Number of times a user can submit a vote.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="flex justify-between pt-10 border-t border-gray-200">
                                         <button type="button" @click="activeTab = 'candidates'"
                                                 class="px-8 py-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-semibold transition-all">
@@ -890,9 +934,8 @@
         </main>
     </div>
 
-    <!-- Leaflet CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
     <!-- QRCode.js -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
@@ -900,35 +943,104 @@
         let map, marker, circle;
 
         function initGeoMap() {
-            map = L.map('geoMap').setView([14.5995, 120.9842], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
+            const defaultPos = { lat: 14.5995, lng: 120.9842 };
+            map = new google.maps.Map(document.getElementById('geoMap'), {
+                zoom: 13,
+                center: defaultPos,
+                styles: [
+                    {
+                        "featureType": "administrative",
+                        "elementType": "geometry",
+                        "stylers": [{ "visibility": "off" }]
+                    },
+                    {
+                        "featureType": "poi",
+                        "stylers": [{ "visibility": "off" }]
+                    },
+                    {
+                        "featureType": "road",
+                        "elementType": "labels.icon",
+                        "stylers": [{ "visibility": "off" }]
+                    },
+                    {
+                        "featureType": "transit",
+                        "stylers": [{ "visibility": "off" }]
+                    }
+                ]
+            });
 
-            map.on('click', function(e) {
-                setLocation(e.latlng.lat, e.latlng.lng);
+            map.addListener('click', function(e) {
+                setLocation(e.latLng.lat(), e.latLng.lng());
+            });
+
+            // Add Autocomplete
+            const input = document.getElementById('locationSearch');
+            const autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.bindTo('bounds', map);
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (!place.geometry || !place.geometry.location) return;
+
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);
+                }
+                setLocation(place.geometry.location.lat(), place.geometry.location.lng());
+            });
+
+            // Use My Location
+            document.getElementById('useMyLocation').addEventListener('click', function() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        const pos = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        map.setCenter(pos);
+                        map.setZoom(17);
+                        setLocation(pos.lat, pos.lng);
+                    }, function() {
+                        alert('Error: The Geolocation service failed.');
+                    });
+                } else {
+                    alert("Error: Your browser doesn't support geolocation.");
+                }
             });
         }
 
         function setLocation(lat, lng) {
-            if (marker) map.removeLayer(marker);
-            if (circle) map.removeLayer(circle);
+            const pos = { lat: lat, lng: lng };
 
-            marker = L.marker([lat, lng]).addTo(map);
+            if (marker) marker.setMap(null);
+            if (circle) circle.setMap(null);
+
+            marker = new google.maps.Marker({
+                position: pos,
+                map: map,
+                animation: google.maps.Animation.DROP
+            });
 
             const radiusInput = document.getElementById('geoRadius');
-            const radiusUnit = document.querySelector('[x-model="radiusUnit"]');
+            const radiusUnitElement = document.querySelector('[x-model="radiusUnit"]');
+            const radiusUnit = radiusUnitElement ? radiusUnitElement.value : 'meters';
+
             let radius = parseFloat(radiusInput.value) || 50;
-            if (radiusUnit && radiusUnit.value === 'kilometers') {
+            if (radiusUnit === 'kilometers') {
                 radius = radius * 1000;
             }
 
-            circle = L.circle([lat, lng], {
-                radius: radius,
-                color: '#4F46E5',
+            circle = new google.maps.Circle({
+                strokeColor: '#4F46E5',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
                 fillColor: '#818CF8',
-                fillOpacity: 0.3
-            }).addTo(map);
+                fillOpacity: 0.35,
+                map: map,
+                center: pos,
+                radius: radius
+            });
 
             document.getElementById('geoLatitude').value = lat;
             document.getElementById('geoLongitude').value = lng;
@@ -946,21 +1058,8 @@
         }
 
         function searchLocation() {
-            const query = document.getElementById('locationSearch').value;
-            if (!query) return;
-
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-                        map.setView([lat, lon], 15);
-                        setLocation(lat, lon);
-                    } else {
-                        alert('Location not found');
-                    }
-                });
+            // This is now handled by Google Places Autocomplete place_changed event
+            // but we keep the function name if it's referenced elsewhere
         }
 
         // Form submission handler
