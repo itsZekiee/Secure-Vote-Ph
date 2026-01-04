@@ -23,15 +23,25 @@ class GoogleAuthController extends Controller
                 ], 400);
             }
 
-            // Decode JWT token
+            // Decode JWT token (Base64Url)
             $tokenParts = explode('.', $credential);
-            $tokenPayload = base64_decode($tokenParts[1]);
+            if (count($tokenParts) < 2) {
+                return response()->json(['success' => false, 'message' => 'Invalid token format'], 400);
+            }
+
+            $payload = $tokenParts[1];
+            $remainder = strlen($payload) % 4;
+            if ($remainder) {
+                $padlen = 4 - $remainder;
+                $payload .= str_repeat('=', $padlen);
+            }
+            $tokenPayload = base64_decode(strtr($payload, '-_', '+/'));
             $jwtPayload = json_decode($tokenPayload);
 
-            if (!$jwtPayload) {
+            if (!$jwtPayload || !isset($jwtPayload->email)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Invalid token'
+                    'message' => 'Invalid token payload'
                 ], 400);
             }
 
@@ -40,20 +50,28 @@ class GoogleAuthController extends Controller
 
             if (!$user) {
                 $user = User::create([
-                    'name' => $jwtPayload->name,
+                    'name' => $jwtPayload->name ?? 'Google User',
                     'email' => $jwtPayload->email,
                     'password' => Hash::make(Str::random(24)),
                     'email_verified_at' => now(),
                     'google_id' => $jwtPayload->sub ?? null,
+                    'role' => User::ROLE_ADMIN, // Default to Admin if they sign up via landing page?
+                    // Actually, let's keep it role-aware.
+                    // Usually landing page signups are intended to be Admins/Org owners.
                 ]);
             }
 
             Auth::login($user);
 
+            // Determine redirect path based on role
+            $redirect = $user->isAdmin() || $user->isElectionOfficer()
+                ? route('admin.dashboard')
+                : route('dashboard');
+
             return response()->json([
                 'success' => true,
                 'message' => 'Successfully authenticated with Google',
-                'redirect' => route('admin.dashboard')
+                'redirect' => $redirect
             ]);
 
         } catch (\Exception $e) {

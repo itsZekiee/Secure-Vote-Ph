@@ -443,7 +443,7 @@
     <script>
         function initializeGoogleSignIn() {
             window.google?.accounts?.id?.initialize({
-                client_id: "22952197713-bnf9d78ndf30r0u3ct3ehk152aljq3ji.apps.googleusercontent.com",
+                client_id: "{{ config('services.google.client_id') }}",
                 callback: handleGoogleCredentialResponse,
                 auto_select: false,
                 cancel_on_tap_outside: false

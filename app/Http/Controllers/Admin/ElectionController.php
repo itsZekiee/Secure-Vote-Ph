@@ -103,12 +103,30 @@ class ElectionController extends Controller
             DB::commit();
 
             if ($request->expectsJson()) {
+                // Ensure relation is loaded so the frontend receives organization data
+                $election->load('organization');
+
+                $org = $election->organization;
+                $orgName = optional($org)->name
+                    ?? optional($org)->title
+                    ?? optional($org)->org_name
+                    ?? null;
+
                 return response()->json([
                     'success' => true,
-                    'election_id' => $election->id,
-                    'election_code' => $election->access_code,
-                    'registration_url' => url('/voter/register/' . $election->access_code),
-                ]);
+                    'message' => 'Election created successfully',
+                    'election' => [
+                        'id' => $election->id,
+                        'access_code' => $election->access_code ?? null,
+                        // provide both keys the frontend may expect
+                        'code' => $election->access_code ?? null,
+                        'title' => $election->title,
+                        'organization' => $org ? ['id' => $org->id, 'name' => $orgName] : null,
+                        'organization_name' => $orgName,
+                        'created_at' => optional($election->created_at)->toIso8601String(),
+                    ],
+                    'registration_url' => url('/voter/register/' . ($election->access_code ?? '')),
+                ], 201);
             }
 
             return redirect()->route('admin.elections.index')
@@ -149,9 +167,19 @@ class ElectionController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $election->load(['organization', 'candidates', 'votes']);
+        $election->load(['organization', 'candidates', 'votes', 'positions' => function($q) {
+            $q->with('candidates.partylist');
+        }]);
 
-        return view('main-admin.elections.show', compact('election'));
+        // Mock voter data for preview
+        $voter = [
+            'name' => 'Admin Preview User',
+            'email' => auth()->user()->email,
+        ];
+
+        $positions = $election->positions;
+
+        return view('main-admin.elections.show', compact('election', 'voter', 'positions'));
     }
 
     public function update(Request $request, Election $election)
@@ -167,19 +195,90 @@ class ElectionController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'status' => 'required|in:draft,active,completed,cancelled',
+            'registration_deadline' => 'nullable|date|before_or_equal:start_date',
+            'accepted_domains' => 'nullable|string',
+            'max_votes' => 'nullable|integer|min:1',
             'sub_admin_ids' => 'nullable|array',
-            'sub_admin_ids.*' => 'exists:users,id'
+            'sub_admin_ids.*' => 'exists:users,id',
+            'positions' => 'nullable|array',
+            'positions.*.id' => 'nullable',
+            'positions.*.name' => 'required|string|max:255',
+            'positions.*.candidates' => 'nullable|array',
+            'positions.*.candidates.*.id' => 'nullable',
+            'positions.*.candidates.*.first_name' => 'required|string|max:255',
+            'positions.*.candidates.*.middle_name' => 'nullable|string|max:255',
+            'positions.*.candidates.*.last_name' => 'required|string|max:255',
         ]);
 
         try {
             DB::beginTransaction();
 
-            $election->update($validated);
+            $election->update([
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'organization_id' => $validated['organization_id'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'status' => $validated['status'],
+                'registration_deadline' => $validated['registration_deadline'] ?? null,
+                'accepted_domains' => $validated['accepted_domains'] ?? null,
+                'max_votes' => $validated['max_votes'] ?? 1,
+            ]);
 
             if (!empty($validated['sub_admin_ids'])) {
                 $election->subAdmins()->sync($validated['sub_admin_ids']);
             } else {
                 $election->subAdmins()->detach();
+            }
+
+            // Handle Positions and Candidates
+            if (isset($validated['positions'])) {
+                $positionIds = collect($validated['positions'])->pluck('id')->filter()->toArray();
+
+                // Delete positions not in the request (only if no votes)
+                $positionsToDelete = $election->positions()->whereNotIn('id', $positionIds)->get();
+                foreach ($positionsToDelete as $pos) {
+                    if ($pos->votes()->count() > 0) {
+                        throw new \Exception("Cannot delete position '{$pos->name}' because it already has votes.");
+                    }
+                    $pos->candidates()->delete();
+                    $pos->delete();
+                }
+
+                foreach ($validated['positions'] as $pIdx => $pData) {
+                    $position = $election->positions()->updateOrCreate(
+                        ['id' => $pData['id'] ?? null],
+                        ['name' => $pData['name'], 'order' => $pIdx + 1, 'title' => $pData['name']]
+                    );
+
+                    if (isset($pData['candidates'])) {
+                        $candidateIds = collect($pData['candidates'])->pluck('id')->filter()->toArray();
+
+                        // Delete candidates not in the request
+                        $candidatesToDelete = $position->candidates()->whereNotIn('id', $candidateIds)->get();
+                        foreach ($candidatesToDelete as $cand) {
+                            if ($cand->votes()->count() > 0) {
+                                throw new \Exception("Cannot delete candidate '{$cand->first_name} {$cand->last_name}' because they already have votes.");
+                            }
+                            $cand->delete();
+                        }
+
+                        foreach ($pData['candidates'] as $cIdx => $cData) {
+                            $fullName = trim($cData['first_name'] . ' ' . ($cData['middle_name'] ? $cData['middle_name'] . ' ' : '') . $cData['last_name']);
+                            $position->candidates()->updateOrCreate(
+                                ['id' => $cData['id'] ?? null],
+                                [
+                                    'election_id' => $election->id,
+                                    'first_name' => $cData['first_name'],
+                                    'middle_name' => $cData['middle_name'],
+                                    'last_name' => $cData['last_name'],
+                                    'name' => $fullName,
+                                    'order' => $cIdx + 1,
+                                ]
+                            );
+                        }
+                    }
+                }
             }
 
             DB::commit();
@@ -189,8 +288,8 @@ class ElectionController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return back()->withErrors(['general' => 'An error occurred while updating the election'])
+            Log::error('Election update failed: ' . $e->getMessage());
+            return back()->withErrors(['general' => $e->getMessage()])
                 ->withInput();
         }
     }

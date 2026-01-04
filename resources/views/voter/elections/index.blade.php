@@ -71,396 +71,311 @@
 @endpush
 
 @section('content')
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 relative overflow-hidden">
-        <!-- Background Pattern -->
-        <div class="absolute inset-0 opacity-30">
-            <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgba(0, 49, 83, 0.08) 1px, transparent 0); background-size: 24px 24px;"></div>
-        </div>
-
-        <!-- Gradient Orbs -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden">
-            <div class="absolute -top-40 -right-40 w-[600px] h-[600px] bg-gradient-to-br from-brand-accent/20 to-transparent rounded-full blur-3xl"></div>
-            <div class="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-gradient-to-tr from-brand-primary/10 to-transparent rounded-full blur-3xl"></div>
-        </div>
+    <div class="min-h-screen bg-[#F5F5F5] relative overflow-hidden">
+        <!-- Background Decoration -->
+        <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-brand-primary/5 to-transparent"></div>
 
         <div class="relative z-10 min-h-screen flex flex-col">
             <!-- Header -->
-            <header class="py-5 px-6 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm">
+            <header class="py-4 px-6 bg-white/90 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-30">
                 <div class="max-w-7xl mx-auto flex items-center justify-between">
-                    <a href="{{ route('home') }}" class="flex items-center gap-3 group">
-                        <div class="w-11 h-11 rounded-xl gradient-brand flex items-center justify-center shadow-lg shadow-brand-primary/20 group-hover:scale-105 transition-transform">
-                            <i class="fas fa-vote-yea text-white text-lg"></i>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center shadow-lg shadow-brand-primary/20">
+                            <i class="fas fa-vote-yea text-white text-base"></i>
                         </div>
-                        <div>
-                            <h1 class="text-lg font-bold text-brand-primary tracking-tight">SecureVote</h1>
-                            <p class="text-xs text-brand-accent">Philippines</p>
+                        <div class="hidden sm:block">
+                            <h1 class="text-base font-black text-brand-primary tracking-tight">SecureVote</h1>
+                            <p class="text-[10px] font-bold text-brand-accent uppercase tracking-widest">Digital Ballot</p>
                         </div>
-                    </a>
-                    <div class="flex items-center gap-6">
-                        <div class="text-right hidden sm:block">
-                            <p class="text-slate-400 text-xs uppercase tracking-wider">Now Voting</p>
-                            <p class="text-brand-primary font-medium">{{ $election->title }}</p>
+                    </div>
+
+                    <div class="flex items-center gap-8">
+                        <div class="hidden lg:flex items-center gap-4">
+                            <div class="text-right">
+                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Active Voter</p>
+                                <p class="text-sm font-bold text-brand-primary">{{ $voter['name'] }}</p>
+                            </div>
+                            <div class="w-px h-8 bg-slate-100"></div>
+                            <div class="text-right">
+                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Election</p>
+                                <p class="text-sm font-bold text-brand-primary truncate max-w-[200px]">{{ $election->title }}</p>
+                            </div>
                         </div>
-                        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg">
-                            <i class="fas fa-user text-brand-accent text-sm"></i>
-                            <span class="text-slate-600 text-sm">{{ $voter['name'] }}</span>
-                        </div>
-                        <a href="{{ route('voter.elections.welcome', $election->code) }}" class="flex items-center gap-2 text-slate-500 hover:text-brand-primary transition-colors text-sm font-medium">
-                            <i class="fas fa-arrow-left"></i>
-                            <span class="hidden sm:inline">Back</span>
+
+                        <a href="{{ route('voter.elections.welcome', $election->code) }}" class="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-500 hover:text-brand-primary hover:bg-white rounded-xl transition-all border border-slate-100 text-sm font-bold">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                            <span>Cancel</span>
                         </a>
                     </div>
                 </div>
             </header>
 
             <!-- Main Content -->
-            <div class="flex-grow px-4 sm:px-6 py-8">
+            <div class="flex-grow px-4 sm:px-6 py-10">
                 <div class="max-w-5xl mx-auto">
-                    <!-- Election Header Card -->
-                    <div class="gradient-brand rounded-2xl p-6 sm:p-8 mb-8 shadow-2xl shadow-brand-primary/20">
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
-                                <i class="fas fa-vote-yea text-white text-2xl sm:text-3xl"></i>
-                            </div>
-                            <div class="flex-grow">
-                                <h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">{{ $election->title }}</h2>
-                                <p class="text-white/80 text-sm sm:text-base">{{ $election->description ?? 'Select your preferred candidates for each position below' }}</p>
-                            </div>
-                            <div class="flex gap-3 w-full sm:w-auto">
-                                <div class="flex-1 sm:flex-none bg-white/20 backdrop-blur rounded-xl px-4 py-3 text-center">
-                                    <p class="text-white/70 text-xs uppercase tracking-wider">Positions</p>
-                                    <p class="text-white text-xl font-bold">{{ $positions->count() }}</p>
+                    <!-- Progress Section -->
+                    <div class="bg-white rounded-[2rem] p-8 mb-10 shadow-xl shadow-slate-200/50 border border-white">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-brand-accent/10 rounded-lg flex items-center justify-center text-brand-accent">
+                                    <i class="fas fa-tasks"></i>
                                 </div>
-                                <div class="flex-1 sm:flex-none bg-white/20 backdrop-blur rounded-xl px-4 py-3 text-center">
-                                    <p class="text-white/70 text-xs uppercase tracking-wider">Candidates</p>
-                                    <p class="text-white text-xl font-bold">{{ $positions->sum(fn($p) => $p->candidates->count()) }}</p>
-                                </div>
+                                <span class="text-sm font-black text-slate-400 uppercase tracking-widest">Ballot Completion</span>
                             </div>
+                            <span class="text-brand-primary font-black text-lg" id="progress-text">0 / {{ $positions->count() }}</span>
+                        </div>
+                        <div class="h-4 bg-slate-50 rounded-full p-1 border border-slate-100">
+                            <div class="h-full progress-bar-fill rounded-full transition-all duration-700 ease-out" id="progress-bar" style="width: 0%"></div>
                         </div>
                     </div>
 
-                    <!-- Error Messages -->
-                    @if($errors->any())
-                        <div class="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl mb-6 flex items-start gap-3 shadow-sm">
-                            <i class="fas fa-exclamation-triangle text-lg mt-0.5"></i>
-                            <div>
-                                @foreach($errors->all() as $error)
-                                    <p>{{ $error }}</p>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-
-                    @if(session('success'))
-                        <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 p-4 rounded-xl mb-6 flex items-center gap-3 shadow-sm">
-                            <i class="fas fa-check-circle text-lg"></i>
-                            <p>{{ session('success') }}</p>
-                        </div>
-                    @endif
-
-                    @if(session('info'))
-                        <div class="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-xl mb-6 flex items-center gap-3 shadow-sm">
-                            <i class="fas fa-info-circle text-lg"></i>
-                            <p>{{ session('info') }}</p>
-                        </div>
-                    @endif
-
+                    <!-- Positions & Candidates -->
                     <form action="{{ route('voter.elections.submit', $election->code) }}" method="POST" id="voting-form">
                         @csrf
-
-                        <!-- Progress Indicator -->
-                        <div class="bg-white rounded-xl p-5 mb-6 border border-slate-200 shadow-sm">
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="text-slate-600 text-sm font-medium">Voting Progress</span>
-                                <span class="text-brand-accent font-semibold text-sm" id="progress-text">0 / {{ $positions->count() }} positions</span>
-                            </div>
-                            <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
-                                <div class="h-full progress-bar-fill rounded-full transition-all duration-500" id="progress-bar" style="width: 0%"></div>
-                            </div>
-                        </div>
-
-                        <!-- Positions and Candidates -->
-                        @foreach($positions as $index => $position)
-                            <div class="bg-white rounded-2xl mb-6 overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow position-card" data-position-id="{{ $position->id }}">
-                                <!-- Position Header -->
-                                <div class="bg-gradient-to-r from-slate-50 to-white px-6 py-5 border-b border-slate-100">
-                                    <div class="flex items-center justify-between flex-wrap gap-3">
-                                        <div class="flex items-center gap-4">
-                                            <div class="w-12 h-12 position-badge rounded-xl flex items-center justify-center">
-                                                <span class="text-brand-primary font-bold text-lg">{{ $index + 1 }}</span>
-                                            </div>
-                                            <div>
-                                                <h3 class="text-lg font-bold text-brand-primary">{{ $position->name }}</h3>
-                                                <p class="text-slate-500 text-sm">
-                                                    Select {{ $position->max_votes ?? 1 }} candidate{{ ($position->max_votes ?? 1) > 1 ? 's' : '' }}
-                                                </p>
-                                            </div>
+                        <div class="space-y-12">
+                            @foreach($positions as $index => $position)
+                                <div class="position-card" data-position-id="{{ $position->id }}">
+                                    <div class="flex items-center gap-4 mb-6">
+                                        <div class="w-14 h-14 bg-brand-primary text-white rounded-2xl flex items-center justify-center font-black text-xl shadow-xl shadow-brand-primary/20">
+                                            {{ $index + 1 }}
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="px-3 py-1.5 bg-brand-accent/10 text-brand-accent text-xs font-semibold rounded-full">
-                                                {{ $position->candidates->count() }} Candidate{{ $position->candidates->count() > 1 ? 's' : '' }}
-                                            </span>
+                                        <div>
+                                            <h2 class="text-2xl font-black text-brand-primary tracking-tight uppercase">{{ $position->name }}</h2>
+                                            <p class="text-slate-400 font-bold text-sm">
+                                                Please select <span class="text-brand-accent">{{ $position->max_votes ?? 1 }}</span> candidate{{ ($position->max_votes ?? 1) > 1 ? 's' : '' }}
+                                            </p>
                                         </div>
                                     </div>
-                                    @if($position->description)
-                                        <p class="mt-3 text-slate-500 text-sm pl-16">{{ $position->description }}</p>
-                                    @endif
-                                </div>
 
-                                <!-- Candidates Grid -->
-                                <div class="p-6 bg-slate-50/50">
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         @foreach($position->candidates as $candidate)
-                                            <label class="candidate-card cursor-pointer block">
+                                            <label class="candidate-card group cursor-pointer block">
                                                 <input type="{{ ($position->max_votes ?? 1) > 1 ? 'checkbox' : 'radio' }}"
                                                        name="votes[{{ $position->id }}]{{ ($position->max_votes ?? 1) > 1 ? '[]' : '' }}"
                                                        value="{{ $candidate->id }}"
                                                        class="vote-input hidden"
-                                                       data-position="{{ $position->id }}"
+                                                       data-position-id="{{ $position->id }}"
+                                                       data-position-name="{{ $position->name }}"
                                                        data-candidate-name="{{ $candidate->name }}"
                                                        data-max-votes="{{ $position->max_votes ?? 1 }}">
-                                                <div class="card-content relative bg-white rounded-xl border-2 border-slate-200 p-4 hover:border-brand-accent/50 transition-all">
-                                                    <!-- Check Icon -->
-                                                    <div class="check-icon hidden absolute top-3 right-3 w-6 h-6 gradient-brand rounded-full items-center justify-center">
-                                                        <i class="fas fa-check text-white text-xs"></i>
+
+                                                <div class="card-content relative bg-white rounded-[2rem] border-2 border-transparent p-6 transition-all duration-300 shadow-sm hover:shadow-xl hover:border-brand-accent/20">
+                                                    <!-- Selection Indicator -->
+                                                    <div class="check-icon hidden absolute -top-3 -right-3 w-8 h-8 bg-brand-accent text-white rounded-full items-center justify-center shadow-lg border-2 border-white z-10">
+                                                        <i class="fas fa-check text-xs"></i>
                                                     </div>
 
-                                                    <!-- Candidate Photo -->
-                                                    <div class="flex items-center gap-4 mb-3">
-                                                        @if($candidate->photo)
-                                                            <img src="{{ asset('storage/' . $candidate->photo) }}"
-                                                                 alt="{{ $candidate->name }}"
-                                                                 class="w-16 h-16 rounded-xl object-cover border-2 border-slate-100">
-                                                        @else
-                                                            <div class="w-16 h-16 rounded-xl gradient-brand flex items-center justify-center">
-                                                                <span class="text-white text-xl font-bold">{{ strtoupper(substr($candidate->name, 0, 1)) }}</span>
-                                                            </div>
-                                                        @endif
-                                                        <div class="flex-grow min-w-0">
-                                                            <h4 class="font-bold text-brand-primary text-sm truncate">{{ $candidate->name }}</h4>
-                                                            @if($candidate->partylist)
-                                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 partylist-badge text-brand-primary text-xs rounded-full mt-1">
-                                                                    <i class="fas fa-flag text-brand-accent"></i>
+                                                    <div class="flex flex-col items-center text-center">
+                                                        <div class="w-24 h-24 rounded-[2rem] mb-4 overflow-hidden border-4 border-slate-50 shadow-inner group-hover:scale-105 transition-transform duration-500">
+                                                            @if($candidate->photo)
+                                                                <img src="{{ asset('storage/' . $candidate->photo) }}" class="w-full h-full object-cover">
+                                                            @else
+                                                                <div class="w-full h-full gradient-brand flex items-center justify-center">
+                                                                    <span class="text-white text-3xl font-black">{{ substr($candidate->name, 0, 1) }}</span>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+
+                                                        <h4 class="font-black text-brand-primary text-lg leading-tight mb-1">{{ $candidate->name }}</h4>
+
+                                                        @if($candidate->partylist)
+                                                            <div class="px-3 py-1 bg-brand-primary/5 rounded-full border border-brand-primary/10">
+                                                                <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">
                                                                     {{ $candidate->partylist->name }}
                                                                 </span>
-                                                            @endif
-                                                        </div>
+                                                            </div>
+                                                        @endif
                                                     </div>
-
-                                                    <!-- Candidate Info -->
-                                                    @if($candidate->motto)
-                                                        <p class="text-slate-500 text-xs line-clamp-2 italic">"{{ $candidate->motto }}"</p>
-                                                    @endif
-
-                                                    @if($candidate->course || $candidate->year_level)
-                                                        <div class="mt-2 flex items-center gap-2 text-xs text-slate-400">
-                                                            @if($candidate->course)
-                                                                <span>{{ $candidate->course }}</span>
-                                                            @endif
-                                                            @if($candidate->year_level)
-                                                                <span>• Year {{ $candidate->year_level }}</span>
-                                                            @endif
-                                                        </div>
-                                                    @endif
                                                 </div>
                                             </label>
                                         @endforeach
                                     </div>
-
-                                    @if($position->candidates->isEmpty())
-                                        <div class="text-center py-8 text-slate-400">
-                                            <i class="fas fa-users text-3xl mb-2"></i>
-                                            <p>No candidates available for this position</p>
-                                        </div>
-                                    @endif
                                 </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
 
-                        <!-- Submit Section -->
-                        <div class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
-                            <!-- Vote Summary -->
-                            <div class="p-6">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <div class="w-10 h-10 gradient-brand rounded-xl flex items-center justify-center">
-                                        <i class="fas fa-clipboard-list text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="font-bold text-brand-primary">Your Vote Summary</h3>
-                                        <p class="text-slate-500 text-xs">Review your selections before submitting</p>
-                                    </div>
-                                </div>
-
-                                <div id="vote-summary" class="text-slate-500 text-sm mb-6 min-h-[60px] p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                    <p class="flex items-center gap-2">
-                                        <i class="fas fa-info-circle text-slate-400"></i>
-                                        Select candidates above to see your choices here.
-                                    </p>
-                                </div>
-
-                                <!-- Confirmation Checkbox -->
-                                <div class="mb-6">
-                                    <label class="flex items-start gap-3 cursor-pointer">
-                                        <input type="checkbox" id="confirm-checkbox" class="mt-1 w-5 h-5 text-brand-accent border-slate-300 rounded focus:ring-brand-accent">
-                                        <span class="text-slate-600 text-sm">
-                                            I confirm that my vote selections are correct. I understand that once submitted, my vote cannot be changed.
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <!-- Submit Button -->
-                                <button type="submit"
-                                        id="submit-btn"
-                                        disabled
-                                        class="w-full py-4 btn-brand text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-3 text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:transform-none disabled:hover:shadow-lg">
-                                    <i class="fas fa-paper-plane"></i>
-                                    <span>Submit My Vote</span>
-                                </button>
-
-                                <p class="text-center text-slate-400 text-xs mt-4">
-                                    <i class="fas fa-lock mr-1"></i>
-                                    Your vote is encrypted and anonymous. No one can trace it back to you.
-                                </p>
-                            </div>
+                        <!-- Final Review Button -->
+                        <div class="mt-20 flex justify-center">
+                            <button type="button" id="review-btn"
+                                    class="group px-12 py-6 bg-brand-primary text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-brand-primary/30 hover:shadow-brand-primary/50 hover:-translate-y-1 transition-all flex items-center gap-4">
+                                <span>REVIEW BALLOT</span>
+                                <i class="fas fa-arrow-right text-brand-accent group-hover:translate-x-1 transition-transform"></i>
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
+        </div>
 
-            <!-- Footer -->
-            <footer class="py-5 px-6 bg-white/80 backdrop-blur border-t border-slate-200/50">
-                <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p class="text-slate-500 text-sm">© {{ date('Y') }} SecureVote Philippines. All rights reserved.</p>
-                    <div class="flex items-center gap-4">
-                        <span class="text-slate-400 text-sm">Election Code: <span class="font-mono font-bold text-brand-primary">{{ $election->code }}</span></span>
+        <!-- Summary Modal -->
+        <div id="summary-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity bg-brand-primary/60 backdrop-blur-md" aria-hidden="true"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div class="inline-block align-bottom bg-white rounded-[3rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                    <div class="bg-white p-8 lg:p-12">
+                        <div class="flex items-center justify-between mb-10">
+                            <div>
+                                <h3 class="text-3xl font-black text-brand-primary uppercase tracking-tight" id="modal-title">Review Your Ballot</h3>
+                                <p class="text-slate-400 font-bold">Please verify your selections before final submission.</p>
+                            </div>
+                            <button type="button" class="close-modal w-12 h-12 flex items-center justify-center bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 transition-colors">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+
+                        <div id="modal-summary-content" class="space-y-6 max-h-[50vh] overflow-y-auto pr-4 custom-scrollbar">
+                            <!-- Dynamic Content -->
+                        </div>
+
+                        <div class="mt-12 space-y-4">
+                            <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                                <label class="flex items-start gap-4 cursor-pointer">
+                                    <div class="relative flex items-center mt-1">
+                                        <input type="checkbox" id="modal-confirm" class="w-6 h-6 text-brand-accent border-slate-300 rounded-lg focus:ring-brand-accent transition-all">
+                                    </div>
+                                    <span class="text-slate-600 font-bold text-sm leading-relaxed">
+                                        I confirm that my selections are final. I understand that I cannot change my vote after this submission.
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <button type="button" class="close-modal py-5 bg-slate-100 text-slate-500 font-black rounded-[2rem] hover:bg-slate-200 transition-all">
+                                    GO BACK
+                                </button>
+                                <button type="button" id="final-submit-btn" disabled
+                                        class="py-5 bg-brand-primary text-white font-black rounded-[2rem] shadow-xl shadow-brand-primary/20 opacity-50 cursor-not-allowed transition-all">
+                                    CONFIRM & SUBMIT
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </footer>
+            </div>
         </div>
     </div>
 @endsection
 
 @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('voting-form');
-            const summary = document.getElementById('vote-summary');
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-            const submitBtn = document.getElementById('submit-btn');
-            const confirmCheckbox = document.getElementById('confirm-checkbox');
-            const totalPositions = {{ $positions->count() }};
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('voting-form');
+        const voteInputs = document.querySelectorAll('.vote-input');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const reviewBtn = document.getElementById('review-btn');
+        const summaryModal = document.getElementById('summary-modal');
+        const closeModalBtns = document.querySelectorAll('.close-modal');
+        const modalSummaryContent = document.getElementById('modal-summary-content');
+        const modalConfirm = document.getElementById('modal-confirm');
+        const finalSubmitBtn = document.getElementById('final-submit-btn');
+        const totalPositions = {{ $positions->count() }};
 
-            // Handle candidate card selection visual feedback
-            document.querySelectorAll('.vote-input').forEach(input => {
-                input.addEventListener('change', function() {
-                    const positionId = this.dataset.position;
-                    const maxVotes = parseInt(this.dataset.maxVotes);
-                    const card = this.closest('.candidate-card');
-
-                    if (maxVotes === 1) {
-                        // Radio button behavior - deselect others in same position
-                        document.querySelectorAll(`.vote-input[data-position="${positionId}"]`).forEach(otherInput => {
-                            const otherCard = otherInput.closest('.candidate-card');
-                            if (otherInput !== this) {
-                                otherCard.querySelector('.card-content').classList.remove('selected');
-                            }
-                        });
-                    } else {
-                        // Checkbox behavior - check max votes limit
-                        const checkedCount = document.querySelectorAll(`.vote-input[data-position="${positionId}"]:checked`).length;
-                        if (checkedCount > maxVotes) {
-                            this.checked = false;
-                            alert(`You can only select up to ${maxVotes} candidate(s) for this position.`);
-                            return;
-                        }
-                    }
-
-                    // Toggle selected class
-                    if (this.checked) {
-                        card.querySelector('.card-content').classList.add('selected');
-                    } else {
-                        card.querySelector('.card-content').classList.remove('selected');
-                    }
-
-                    updateSummary();
-                });
+        function updateProgress() {
+            const selectedPositions = new Set();
+            voteInputs.forEach(input => {
+                if (input.checked) {
+                    selectedPositions.add(input.dataset.positionId);
+                }
             });
 
-            function updateSummary() {
-                const selections = {};
-                const inputs = document.querySelectorAll('.vote-input:checked');
+            const count = selectedPositions.size;
+            const percentage = (count / totalPositions) * 100;
+            progressBar.style.width = percentage + '%';
+            progressText.textContent = count + ' / ' + totalPositions;
+        }
 
-                inputs.forEach(input => {
-                    const positionId = input.dataset.position;
-                    const candidateName = input.dataset.candidateName;
-                    const positionCard = input.closest('.position-card');
-                    const positionName = positionCard.querySelector('h3').textContent;
+        voteInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const positionId = this.dataset.positionId;
+                const maxVotes = parseInt(this.dataset.maxVotes);
+                const card = this.closest('.candidate-card');
 
-                    if (!selections[positionName]) {
-                        selections[positionName] = [];
-                    }
-                    selections[positionName].push(candidateName);
-                });
-
-                const filledPositions = Object.keys(selections).length;
-                const progressPercent = (filledPositions / totalPositions) * 100;
-
-                progressBar.style.width = progressPercent + '%';
-                progressText.textContent = filledPositions + ' / ' + totalPositions + ' positions';
-
-                if (Object.keys(selections).length > 0) {
-                    let html = '<div class="space-y-2">';
-                    for (const [position, candidates] of Object.entries(selections)) {
-                        html += `<div class="flex items-start gap-2">
-                            <i class="fas fa-check-circle text-brand-accent mt-0.5"></i>
-                            <div>
-                                <span class="text-brand-primary font-medium">${position}:</span>
-                                <span class="text-slate-600">${candidates.join(', ')}</span>
-                            </div>
-                        </div>`;
-                    }
-                    html += '</div>';
-                    summary.innerHTML = html;
+                if (this.type === 'radio') {
+                    document.querySelectorAll(`.vote-input[data-position-id="${positionId}"]`).forEach(i => {
+                        i.closest('.candidate-card').querySelector('.card-content').classList.remove('border-brand-accent', 'bg-brand-accent/[0.03]');
+                        i.closest('.candidate-card').querySelector('.check-icon').classList.add('hidden');
+                    });
                 } else {
-                    summary.innerHTML = '<p class="flex items-center gap-2"><i class="fas fa-info-circle text-slate-400"></i>Select candidates above to see your choices here.</p>';
+                    const checkedCount = document.querySelectorAll(`.vote-input[data-position-id="${positionId}"]:checked`).length;
+                    if (checkedCount > maxVotes) {
+                        this.checked = false;
+                        alert(`You can only select up to ${maxVotes} candidates.`);
+                        return;
+                    }
                 }
 
-                updateSubmitButton();
-            }
-
-            function updateSubmitButton() {
-                const checkedInputs = document.querySelectorAll('.vote-input:checked');
-                const hasSelections = checkedInputs.length > 0;
-                const isConfirmed = confirmCheckbox.checked;
-
-                submitBtn.disabled = !(hasSelections && isConfirmed);
-            }
-
-            confirmCheckbox.addEventListener('change', updateSubmitButton);
-
-            form.addEventListener('submit', function(e) {
-                const checkedInputs = document.querySelectorAll('.vote-input:checked');
-
-                if (checkedInputs.length === 0) {
-                    e.preventDefault();
-                    alert('Please select at least one candidate before submitting.');
-                    return;
+                if (this.checked) {
+                    card.querySelector('.card-content').classList.add('border-brand-accent', 'bg-brand-accent/[0.03]');
+                    card.querySelector('.check-icon').classList.remove('hidden');
+                } else {
+                    card.querySelector('.card-content').classList.remove('border-brand-accent', 'bg-brand-accent/[0.03]');
+                    card.querySelector('.check-icon').classList.add('hidden');
                 }
 
-                if (!confirmCheckbox.checked) {
-                    e.preventDefault();
-                    alert('Please confirm your selections before submitting.');
-                    return;
-                }
+                updateProgress();
+            });
+        });
 
-                if (!confirm('Are you sure you want to submit your vote? This action cannot be undone.')) {
-                    e.preventDefault();
+        reviewBtn.addEventListener('click', function() {
+            const selections = {};
+            let hasSelection = false;
+
+            voteInputs.forEach(input => {
+                if (input.checked) {
+                    const posName = input.dataset.positionName;
+                    if (!selections[posName]) selections[posName] = [];
+                    selections[posName].push(input.dataset.candidateName);
+                    hasSelection = true;
                 }
             });
 
-            // Initialize
-            updateSummary();
+            if (!hasSelection) {
+                alert('Please select at least one candidate before reviewing.');
+                return;
+            }
+
+            let html = '';
+            for (const [pos, candidates] of Object.entries(selections)) {
+                html += `
+                    <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 transition-all hover:bg-white hover:shadow-md">
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">${pos}</div>
+                        <div class="text-xl font-black text-brand-primary">${candidates.join(', ')}</div>
+                    </div>
+                `;
+            }
+
+            modalSummaryContent.innerHTML = html;
+            summaryModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         });
-    </script>
+
+        closeModalBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                summaryModal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            });
+        });
+
+        modalConfirm.addEventListener('change', function() {
+            finalSubmitBtn.disabled = !this.checked;
+            finalSubmitBtn.classList.toggle('opacity-50', !this.checked);
+            finalSubmitBtn.classList.toggle('cursor-not-allowed', !this.checked);
+            if (this.checked) {
+                finalSubmitBtn.classList.add('hover:-translate-y-1', 'hover:shadow-brand-primary/40');
+            } else {
+                finalSubmitBtn.classList.remove('hover:-translate-y-1', 'hover:shadow-brand-primary/40');
+            }
+        });
+
+        finalSubmitBtn.addEventListener('click', function() {
+            finalSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SUBMITTING...';
+            finalSubmitBtn.disabled = true;
+            form.submit();
+        });
+    });
+</script>
 @endpush

@@ -24,6 +24,12 @@ class VoterRegistrationController extends Controller
                 ->withErrors(['code' => 'Election not found.']);
         }
 
+        // Registration deadline check
+        if ($election->registration_deadline && now()->gt($election->registration_deadline)) {
+            return redirect()->route('voter.elections.access')
+                ->withErrors(['registration' => 'Registration is over.']);
+        }
+
         return view('voter.registration.index', [
             'election' => $election
         ]);
@@ -39,6 +45,27 @@ class VoterRegistrationController extends Controller
         if (!$election) {
             return redirect()->route('voter.elections.access')
                 ->withErrors(['code' => 'Election not found.']);
+        }
+
+        // Registration deadline check
+        if ($election->registration_deadline && now()->gt($election->registration_deadline)) {
+            return back()->withErrors(['registration' => 'Registration is over.'])->withInput();
+        }
+
+        // Accepted domains validation
+        if ($election->accepted_domains) {
+            $domains = array_map('trim', explode(',', $election->accepted_domains));
+            $email = $request->email;
+            $isValidDomain = false;
+            foreach ($domains as $domain) {
+                if (str_ends_with($email, $domain)) {
+                    $isValidDomain = true;
+                    break;
+                }
+            }
+            if (!$isValidDomain) {
+                return back()->withErrors(['email' => 'Only emails from the following domains are allowed: ' . $election->accepted_domains])->withInput();
+            }
         }
 
         $request->validate([
