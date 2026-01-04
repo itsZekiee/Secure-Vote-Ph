@@ -30,8 +30,6 @@
     @endphp
 
     <div x-data="{
-        collapsed: window.innerWidth < 1024,
-        isMobile: window.innerWidth < 1024,
         search: '',
         filterBy: 'all',
         selectedForm: 'all',
@@ -42,16 +40,23 @@
             }
         }
     }"
-         x-init="window.addEventListener('resize', () => { isMobile = window.innerWidth < 1024 })"
-         class="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+         class="flex-1 flex flex-col">
 
-        <!-- Sidebar -->
-        <x-admin-sidebar />
+        <x-admin-header />
 
         <!-- Main content -->
-        <main class="flex-1 min-h-screen">
-            <!-- Top bar -->
-            <div class="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-40">
+        <main class="flex-1">
+            <!-- Mobile Header (if needed) -->
+            <header class="bg-white/80 backdrop-blur-sm border-b lg:hidden px-6 py-4 flex items-center justify-between">
+                <button @click="collapsed = false" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="ri-menu-line text-lg"></i>
+                </button>
+                <h1 class="text-lg font-bold text-slate-800">Voters</h1>
+                <div class="w-10"></div>
+            </header>
+
+            <!-- Top bar (Desktop) -->
+            <div class="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-40 hidden lg:block">
                 <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 flex items-center justify-center shadow">

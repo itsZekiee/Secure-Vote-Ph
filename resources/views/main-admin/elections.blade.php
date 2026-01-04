@@ -2,16 +2,11 @@
 
 @section('content')
     <div x-data="{
-        collapsed: window.innerWidth < 1024,
-        isMobile: window.innerWidth < 1024,
         showErrorModal: false,
         errorMessage: '',
         errorDetails: []
     }"
-         x-init="window.addEventListener('resize', () => { isMobile = window.innerWidth < 1024 })"
-         class="flex min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-gray-50">
-
-        <x-admin-sidebar />
+         class="flex-1 flex flex-col">
 
         <!-- Error Modal -->
         <div x-show="showErrorModal"
@@ -91,7 +86,17 @@
         <!-- Main Content -->
         <main class="flex-1">
             <!-- Enhanced Page Header -->
-            <header class="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm sticky top-0 z-10">
+            <header class="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm sticky top-0 z-10 lg:hidden">
+                <div class="px-6 py-4 flex items-center justify-between">
+                    <button @click="collapsed = false" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                        <i class="ri-menu-line text-lg"></i>
+                    </button>
+                    <h1 class="text-lg font-bold text-slate-800">Elections</h1>
+                    <div class="w-10"></div>
+                </div>
+            </header>
+
+            <header class="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm hidden lg:block">
                 <div class="px-8 py-6">
                     <div class="flex items-center justify-between gap-6">
                         <div class="flex items-center gap-5">
@@ -581,7 +586,7 @@
                                                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                                         <template x-for="(candidate, cIndex) in position.candidates" :key="cIndex">
                                                             <div class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-700">
-                                                                <span x-text="candidate"></span>
+                                                                <span x-text="typeof candidate === 'object' ? JSON.stringify(candidate) : candidate"></span>
                                                             </div>
                                                         </template>
                                                     </div>

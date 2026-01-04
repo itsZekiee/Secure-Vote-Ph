@@ -1,12 +1,13 @@
-<header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+<header class="bg-white border-b border-slate-200 sticky top-0 z-30 hidden lg:block">
     <div class="flex items-center justify-between px-6 py-4">
         <div class="flex items-center gap-4">
             <button @click="collapsed = !collapsed"
-                    class="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-                <i class="ri-menu-line text-xl"></i>
+                    class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
+                <i class="ri-menu-line text-xl" x-show="collapsed"></i>
+                <i class="ri-menu-fold-line text-xl" x-show="!collapsed"></i>
             </button>
             <div>
-                <h2 class="text-xl font-bold text-slate-800">Dashboard</h2>
+                <h2 class="text-xl font-bold text-slate-800">{{ $title ?? 'Dashboard' }}</h2>
                 <p class="text-sm text-slate-500">Welcome back, {{ auth()->user()->name }}</p>
             </div>
         </div>

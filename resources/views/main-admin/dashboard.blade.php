@@ -4,8 +4,6 @@
     <script>
         function dashboard() {
             return {
-                collapsed: window.innerWidth < 1024,
-                isMobile: window.innerWidth < 1024,
                 selectedElection: null,
                 searchQuery: '',
                 statusFilter: 'all',
@@ -93,21 +91,14 @@
                     };
                 },
                 init() {
-                    this.isMobile = window.innerWidth < 1024;
-                    window.addEventListener('resize', () => {
-                        this.isMobile = window.innerWidth < 1024;
-                    });
+                    // Initialize if needed
                 }
             };
         }
     </script>
 
-    <div x-data="dashboard()" x-init="init()" @election-selected.window="selectedElection = $event.detail.id" class="flex min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-800">
-
-        <x-admin-sidebar />
-
-        <div class="flex-1 flex flex-col min-h-screen">
-            <x-admin-header />
+    <div x-data="dashboard()" @election-selected.window="selectedElection = $event.detail.id" class="flex-1 flex flex-col">
+        <x-admin-header />
 
             <main class="flex-1 p-6 pb-10">
                 <div class="max-w-7xl mx-auto space-y-8">
