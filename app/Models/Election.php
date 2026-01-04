@@ -16,6 +16,7 @@ class Election extends Model
 
     protected $fillable = [
         'title',
+        'description',
         'start_date',
         'end_date',
         'registration_deadline',
@@ -47,14 +48,14 @@ class Election extends Model
     {
         parent::boot();
 
-        static::creating(function ($election) {
+        static::creating(function (Election $election) {
             if (empty($election->code)) {
                 $election->code = self::generateUniqueCode();
             }
             $election->access_link = url("/voter/register/{$election->code}");
         });
 
-        static::updating(function ($election) {
+        static::updating(function (Election $election) {
             if ($election->isDirty('code')) {
                 $election->access_link = url("/voter/register/{$election->code}");
             }

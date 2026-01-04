@@ -9,7 +9,13 @@
                 selectedElection: null,
                 searchQuery: '',
                 statusFilter: 'all',
-                elections: @json($elections ?? []),
+                elections: (() => {
+                    const raw = @json($elections ?? []);
+                    return (raw || []).map(e => ({
+                        ...e,
+                        organization: (e.organization && e.organization.name) ? e.organization.name : (e.organization_name ?? 'N/A')
+                    }));
+                })(),
                 formatDate(dateString) {
                     const date = new Date(dateString);
                     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });

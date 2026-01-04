@@ -103,12 +103,30 @@ class ElectionController extends Controller
             DB::commit();
 
             if ($request->expectsJson()) {
+                // Ensure relation is loaded so the frontend receives organization data
+                $election->load('organization');
+
+                $org = $election->organization;
+                $orgName = optional($org)->name
+                    ?? optional($org)->title
+                    ?? optional($org)->org_name
+                    ?? null;
+
                 return response()->json([
                     'success' => true,
-                    'election_id' => $election->id,
-                    'election_code' => $election->access_code,
-                    'registration_url' => url('/voter/register/' . $election->access_code),
-                ]);
+                    'message' => 'Election created successfully',
+                    'election' => [
+                        'id' => $election->id,
+                        'access_code' => $election->access_code ?? null,
+                        // provide both keys the frontend may expect
+                        'code' => $election->access_code ?? null,
+                        'title' => $election->title,
+                        'organization' => $org ? ['id' => $org->id, 'name' => $orgName] : null,
+                        'organization_name' => $orgName,
+                        'created_at' => optional($election->created_at)->toIso8601String(),
+                    ],
+                    'registration_url' => url('/voter/register/' . ($election->access_code ?? '')),
+                ], 201);
             }
 
             return redirect()->route('admin.elections.index')
