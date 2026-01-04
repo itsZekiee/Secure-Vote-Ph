@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Election;
 use App\Models\Organization;
+use App\Models\Partylist;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -82,7 +84,6 @@ class ElectionController extends Controller
                 'require_geo_verification' => $request->boolean('enable_geo_location'),
             ]);
 
-            // Create positions and candidates
             foreach ($validated['positions'] as $positionData) {
                 $position = $election->positions()->create([
                     'name' => $positionData['name']
@@ -101,7 +102,6 @@ class ElectionController extends Controller
 
             DB::commit();
 
-            // Return JSON for AJAX requests
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
@@ -345,5 +345,46 @@ class ElectionController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Get partylists for an organization (Automation Mode)
+     */
+    public function getOrganizationPartylists(int $organizationId): JsonResponse
+    {
+        $partylists = Partylist::where('organization_id', $organizationId)
+            ->where('status', 'active')
+            ->select('id', 'name')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'partylists' => $partylists
+        ]);
+    }
+
+    /**
+     * Get candidates grouped by position for a partylist (Automation Mode)
+     */
+    public function getPartylistCandidates(int $partylistId): JsonResponse
+    {
+        $partylist = Partylist::with('candidates')->findOrFail($partylistId);
+
+        $groupedCandidates = $partylist->candidates
+            ->groupBy('position')
+            ->map(function ($candidates, $position) {
+                return [
+                    'name' => $position,
+                    'candidates' => $candidates->pluck('name')->toArray()
+                ];
+            })
+            ->values()
+            ->toArray();
+
+        return response()->json([
+            'success' => true,
+            'partylist_name' => $partylist->name,
+            'positions' => $groupedCandidates
+        ]);
     }
 }

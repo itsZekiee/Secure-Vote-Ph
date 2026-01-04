@@ -86,6 +86,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::delete('{organization}/remove-member/{user}', [OrganizationController::class, 'removeMember'])->name('remove-member');
         Route::get('{organization}/statistics', [OrganizationController::class, 'statistics'])->name('statistics');
         Route::post('admin/organizations', [OrganizationController::class, 'store'])->name('admin.organizations.store');
+        // Automation Mode: Get partylists for organization
+        Route::get('{organization}/partylists', [ElectionController::class, 'getOrganizationPartylists'])->name('partylists');
     });
 
     // Election Management Routes
@@ -117,7 +119,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('{partylist}/members', [PartylistController::class, 'members'])->name('members');
         Route::post('{partylist}/add-member', [PartylistController::class, 'addMember'])->name('add-member');
         Route::delete('{partylist}/remove-member/{user}', [PartylistController::class, 'removeMember'])->name('remove-member');
-        Route::get('{partylist}/candidates', [PartylistController::class, 'candidates'])->name('candidates');
+        // Automation Mode: Get candidates for partylist
+        Route::get('{partylist}/candidates', [ElectionController::class, 'getPartylistCandidates'])->name('candidates');
         Route::get('{partylist}/statistics', [PartylistController::class, 'statistics'])->name('statistics');
     });
 

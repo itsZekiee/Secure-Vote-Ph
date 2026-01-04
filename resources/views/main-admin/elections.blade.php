@@ -98,9 +98,7 @@
                             <div class="flex-shrink-0">
                                 <div class="w-14 h-14 bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 ring-4 ring-indigo-50">
                                     <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M15 2v5a1 1 0 001 1h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
                                 </div>
                             </div>
@@ -115,22 +113,23 @@
                             <ol class="flex items-center gap-3">
                                 <li>
                                     <a href="{{ route('admin.elections.index') }}" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all">
-                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2"/>
                                         </svg>
                                         Elections
                                     </a>
                                 </li>
                                 <li>
                                     <svg class="w-4 h-4 text-gray-300" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                        <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                     </svg>
                                 </li>
                                 <li class="flex items-center">
                                     <div class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/30">
-                                        <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                                        Create
+                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        Create New
                                     </div>
                                 </li>
                             </ol>
@@ -150,6 +149,7 @@
                           registrationUrl: null,
                           isSubmitting: false,
                           positions: [{ name: '', candidates: [''] }],
+                          selectedOrganization: '',
                           formData: {
                               title: '',
                               voting_start: '',
@@ -158,6 +158,10 @@
                           validateBasicInfo() {
                               if (!this.formData.title.trim()) {
                                   alert('Election Title is required');
+                                  return false;
+                              }
+                              if (!this.selectedOrganization) {
+                                  alert('Please select an organization');
                                   return false;
                               }
                               if (!this.formData.voting_start) {
@@ -207,64 +211,73 @@
                                 <div class="flex-1 flex items-center gap-8">
                                     <!-- Step 1 -->
                                     <div class="flex items-center gap-4 flex-1">
-                                        <div :class="activeTab === 'basic' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white text-gray-400 border-2 border-gray-200'"
-                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold transition-all duration-300 flex-shrink-0">
-                                            <span class="text-base">1</span>
+                                        <div :class="activeTab === 'basic' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
+                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
+                                            <span x-show="!(activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share')">1</span>
+                                            <svg x-show="activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share'" class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                                                <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
                                         </div>
-                                        <div class="min-w-0">
-                                            <div :class="activeTab === 'basic' ? 'text-indigo-700 font-bold' : 'text-gray-600 font-medium'" class="text-sm">Basic Information</div>
-                                            <div class="text-xs text-gray-500 mt-0.5">Election details</div>
+                                        <div>
+                                            <p :class="activeTab === 'basic' ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors">Basic Info</p>
+                                            <p class="text-xs text-gray-500">Election details</p>
                                         </div>
                                     </div>
 
                                     <div class="flex-1 h-1 bg-gray-200 rounded-full mx-4 relative overflow-hidden">
-                                        <div :class="['candidates', 'settings', 'share'].includes(activeTab) ? 'w-full' : 'w-0'"
-                                             class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500 ease-out rounded-full"></div>
+                                        <div :class="activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share' ? 'w-full' : 'w-0'"
+                                             class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"></div>
                                     </div>
 
                                     <!-- Step 2 -->
                                     <div class="flex items-center gap-4 flex-1">
-                                        <div :class="activeTab === 'candidates' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white text-gray-400 border-2 border-gray-200'"
-                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold transition-all duration-300 flex-shrink-0">
-                                            <span class="text-base">2</span>
+                                        <div :class="activeTab === 'candidates' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'settings' || activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
+                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
+                                            <span x-show="!(activeTab === 'settings' || activeTab === 'share')">2</span>
+                                            <svg x-show="activeTab === 'settings' || activeTab === 'share'" class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                                                <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
                                         </div>
-                                        <div class="min-w-0">
-                                            <div :class="activeTab === 'candidates' ? 'text-indigo-700 font-bold' : 'text-gray-600 font-medium'" class="text-sm">Positions & Candidates</div>
-                                            <div class="text-xs text-gray-500 mt-0.5">Setup voting options</div>
+                                        <div>
+                                            <p :class="activeTab === 'candidates' ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors">Positions</p>
+                                            <p class="text-xs text-gray-500">Add candidates</p>
                                         </div>
                                     </div>
 
                                     <div class="flex-1 h-1 bg-gray-200 rounded-full mx-4 relative overflow-hidden">
-                                        <div :class="['settings', 'share'].includes(activeTab) ? 'w-full' : 'w-0'"
-                                             class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500 ease-out rounded-full"></div>
+                                        <div :class="activeTab === 'settings' || activeTab === 'share' ? 'w-full' : 'w-0'"
+                                             class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"></div>
                                     </div>
 
                                     <!-- Step 3 -->
                                     <div class="flex items-center gap-4 flex-1">
-                                        <div :class="activeTab === 'settings' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white text-gray-400 border-2 border-gray-200'"
-                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold transition-all duration-300 flex-shrink-0">
-                                            <span class="text-base">3</span>
+                                        <div :class="activeTab === 'settings' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
+                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
+                                            <span x-show="activeTab !== 'share'">3</span>
+                                            <svg x-show="activeTab === 'share'" class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                                                <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
                                         </div>
-                                        <div class="min-w-0">
-                                            <div :class="activeTab === 'settings' ? 'text-indigo-700 font-bold' : 'text-gray-600 font-medium'" class="text-sm">Voting Settings</div>
-                                            <div class="text-xs text-gray-500 mt-0.5">Configure restrictions</div>
+                                        <div>
+                                            <p :class="activeTab === 'settings' ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors">Settings</p>
+                                            <p class="text-xs text-gray-500">Configure options</p>
                                         </div>
                                     </div>
 
                                     <div class="flex-1 h-1 bg-gray-200 rounded-full mx-4 relative overflow-hidden">
                                         <div :class="activeTab === 'share' ? 'w-full' : 'w-0'"
-                                             class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500 ease-out rounded-full"></div>
+                                             class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"></div>
                                     </div>
 
                                     <!-- Step 4 -->
                                     <div class="flex items-center gap-4 flex-1">
-                                        <div :class="activeTab === 'share' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-white text-gray-400 border-2 border-gray-200'"
-                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold transition-all duration-300 flex-shrink-0">
-                                            <span class="text-base">4</span>
+                                        <div :class="activeTab === 'share' ? 'bg-gradient-to-br from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/30' : 'bg-gray-200 text-gray-600'"
+                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
+                                            4
                                         </div>
-                                        <div class="min-w-0">
-                                            <div :class="activeTab === 'share' ? 'text-indigo-700 font-bold' : 'text-gray-600 font-medium'" class="text-sm">Share Election</div>
-                                            <div class="text-xs text-gray-500 mt-0.5">QR & Access Codes</div>
+                                        <div>
+                                            <p :class="activeTab === 'share' ? 'text-green-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors">Share</p>
+                                            <p class="text-xs text-gray-500">Distribute link</p>
                                         </div>
                                     </div>
                                 </div>
@@ -285,7 +298,7 @@
                                     <div class="flex items-center gap-3 mb-3">
                                         <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
                                             <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none">
-                                                <path d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
                                         <h2 id="basic-heading" class="text-3xl font-bold text-gray-900">Basic Information</h2>
@@ -296,60 +309,48 @@
                                 <div class="space-y-8">
                                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                         <div class="lg:col-span-2">
-                                            <label for="formTitle" class="block text-sm font-semibold text-gray-900 mb-3">
-                                                Election Title <span class="text-red-500">*</span>
-                                            </label>
-                                            <input type="text" id="formTitle" name="title" required
-                                                   x-model="formData.title"
+                                            <label for="title" class="block text-sm font-semibold text-gray-900 mb-3">Election Title <span class="text-red-500">*</span></label>
+                                            <input type="text" id="title" name="title" x-model="formData.title" required
                                                    class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all"
-                                                   placeholder="e.g., 2025 General Election">
-                                        </div>
-
-                                        <div class="lg:col-span-2">
-                                            <label for="organization" class="block text-sm font-semibold text-gray-900 mb-3">Organization</label>
-                                            <select id="organization" name="organization_id" required
-                                                    class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
-                                                <option value="">Select organization</option>
-                                                @foreach($organizations ?? [] as $org)
-                                                    <option value="{{ $org->id }}">{{ $org->name }}</option>
-                                                @endforeach
-                                            </select>
+                                                   placeholder="e.g., Student Council Election 2025">
                                         </div>
 
                                         <div class="lg:col-span-2">
                                             <label for="description" class="block text-sm font-semibold text-gray-900 mb-3">Description</label>
-                                            <textarea id="description" name="description" rows="5"
-                                                      class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all"
-                                                      placeholder="Describe the scope and purpose of this election"></textarea>
+                                            <textarea id="description" name="description" rows="4"
+                                                      class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all resize-none"
+                                                      placeholder="Provide a brief description of this election..."></textarea>
+                                        </div>
+
+                                        <div class="lg:col-span-2">
+                                            <label for="organization" class="block text-sm font-semibold text-gray-900 mb-3">Organization <span class="text-red-500">*</span></label>
+                                            <select id="organization" name="organization_id" x-model="selectedOrganization" required
+                                                    class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
+                                                <option value="">Select an organization</option>
+                                                @foreach($organizations as $organization)
+                                                    <option value="{{ $organization->id }}">{{ $organization->name }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
 
                                         <div>
-                                            <label for="votingStart" class="block text-sm font-semibold text-gray-900 mb-3">
-                                                Voting Start <span class="text-red-500">*</span>
-                                            </label>
-                                            <input type="datetime-local" id="votingStart" name="voting_start" required
-                                                   x-model="formData.voting_start"
+                                            <label for="voting_start" class="block text-sm font-semibold text-gray-900 mb-3">Voting Start <span class="text-red-500">*</span></label>
+                                            <input type="datetime-local" id="voting_start" name="voting_start" x-model="formData.voting_start" required
                                                    class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
                                         </div>
 
                                         <div>
-                                            <label for="votingEnd" class="block text-sm font-semibold text-gray-900 mb-3">
-                                                Voting End <span class="text-red-500">*</span>
-                                            </label>
-                                            <input type="datetime-local" id="votingEnd" name="voting_end" required
-                                                   x-model="formData.voting_end"
+                                            <label for="voting_end" class="block text-sm font-semibold text-gray-900 mb-3">Voting End <span class="text-red-500">*</span></label>
+                                            <input type="datetime-local" id="voting_end" name="voting_end" x-model="formData.voting_end" required
                                                    class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
                                         </div>
                                     </div>
 
                                     <div class="flex justify-end pt-10 border-t border-gray-200">
                                         <button type="button"
-                                                @click="if (validateBasicInfo()) { activeTab = 'candidates' }"
-                                                class="group px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all font-semibold text-base">
-                                            Continue
-                                            <svg class="w-5 h-5 ml-2 inline-block group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" aria-hidden>
-                                                <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
+                                                @click="if(validateBasicInfo()) activeTab = 'candidates'"
+                                                class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-semibold transition-all">
+                                            Continue →
                                         </button>
                                     </div>
                                 </div>
@@ -360,71 +361,286 @@
                                      x-transition:enter="transition ease-out duration-300"
                                      x-transition:enter-start="opacity-0 transform translate-x-4"
                                      x-transition:enter-end="opacity-100 transform translate-x-0"
+                                     x-data="{
+                                     automationMode: false,
+                                     selectedPartylist: '',
+                                     partylists: [],
+                                     isFetching: false,
+                                     isLoadingPartylists: false,
+                                     isImported: false,
+                                     importedFrom: '',
+                                     get parentData() {
+                                         return Alpine.$data(this.$el.closest('form'));
+                                     },
+                                     get selectedOrg() {
+                                         return this.parentData.selectedOrganization;
+                                     },
+                                     async fetchPartylists() {
+                                         const orgId = this.selectedOrg;
+                                         if (!orgId) {
+                                             this.partylists = [];
+                                             return;
+                                         }
+                                         this.isLoadingPartylists = true;
+                                         try {
+                                             const response = await fetch(`/admin/organizations/${orgId}/partylists`);
+                                             const data = await response.json();
+                                             if (data.success) {
+                                                 this.partylists = data.partylists;
+                                             }
+                                         } catch (error) {
+                                             console.error('Failed to fetch partylists:', error);
+                                         } finally {
+                                             this.isLoadingPartylists = false;
+                                         }
+                                     },
+                                     async fetchCandidates() {
+                                         if (!this.selectedPartylist) {
+                                             alert('Please select a partylist first');
+                                             return;
+                                         }
+                                         this.isFetching = true;
+                                         try {
+                                             const response = await fetch(`/admin/partylists/${this.selectedPartylist}/candidates`);
+                                             const data = await response.json();
+                                             if (data.success && data.positions.length > 0) {
+                                                 this.parentData.positions = data.positions;
+                                                 this.isImported = true;
+                                                 this.importedFrom = data.partylist_name;
+                                             } else {
+                                                 alert('No candidates found for this partylist');
+                                             }
+                                         } catch (error) {
+                                             console.error('Failed to fetch candidates:', error);
+                                             alert('Failed to fetch candidates');
+                                         } finally {
+                                             this.isFetching = false;
+                                         }
+                                     },
+                                     clearImport() {
+                                         this.parentData.positions = [{ name: '', candidates: [''] }];
+                                         this.isImported = false;
+                                         this.importedFrom = '';
+                                         this.selectedPartylist = '';
+                                     }
+                                 }"
+                                     x-init="$watch('automationMode', value => { if(value) fetchPartylists(); })"
                                      aria-labelledby="positions-heading">
+
                                 <div class="mb-10">
-                                    <div class="flex items-center gap-3 mb-3">
-                                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none">
-                                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3 mb-3">
+                                            <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                                                <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
+                                                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h2 id="positions-heading" class="text-2xl font-bold text-gray-900">Positions & Candidates</h2>
+                                                <p class="text-gray-600">Define the positions available for voting and their candidates</p>
+                                            </div>
                                         </div>
-                                        <h2 id="positions-heading" class="text-3xl font-bold text-gray-900">Positions & Candidates</h2>
+
+                                        <!-- Automation Mode Toggle -->
+                                        <div class="flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl px-6 py-4">
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-5 h-5 text-amber-600" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                <span class="font-semibold text-gray-700">Automation Mode</span>
+                                            </div>
+                                            <button type="button"
+                                                    @click="automationMode = !automationMode"
+                                                    :class="automationMode ? 'bg-amber-500' : 'bg-gray-300'"
+                                                    class="relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
+                                                    <span :class="automationMode ? 'translate-x-8' : 'translate-x-1'"
+                                                          class="inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform"></span>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <p class="text-gray-600 text-base">Define the positions available for voting and their candidates</p>
                                 </div>
 
                                 <div class="space-y-6">
-                                    <template x-for="(position, index) in positions" :key="index">
-                                        <div class="border-2 border-gray-200 rounded-2xl p-8 bg-gradient-to-br from-white to-gray-50 hover:border-indigo-300 transition-all duration-300 shadow-sm hover:shadow-lg">
-                                            <div class="flex items-start justify-between gap-4 mb-6">
-                                                <div class="flex-1">
-                                                    <label class="block text-sm font-semibold text-gray-900 mb-3">Position name</label>
-                                                    <input type="text" x-model="position.name" :name="`positions[${index}][name]`"
-                                                           class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all"
-                                                           placeholder="e.g., Mayor">
+                                    <!-- Automation Panel -->
+                                    <div x-show="automationMode"
+                                         x-transition:enter="transition ease-out duration-300"
+                                         x-transition:enter-start="opacity-0 transform -translate-y-4"
+                                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                                         class="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 border-2 border-amber-200 rounded-2xl p-8 shadow-lg">
+
+                                        <div class="flex items-center gap-3 mb-6">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-lg font-bold text-gray-900">Import from Partylist</h3>
+                                                <p class="text-sm text-gray-600">Automatically populate positions and candidates from an existing partylist</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- No Organization Selected Warning -->
+                                        <template x-if="!selectedOrg">
+                                            <div class="bg-yellow-100 border-2 border-yellow-300 rounded-xl p-4 mb-6">
+                                                <div class="flex items-center gap-3">
+                                                    <svg class="w-6 h-6 text-yellow-600" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                    <div>
+                                                        <p class="font-semibold text-yellow-800">No Organization Selected</p>
+                                                        <p class="text-sm text-yellow-700">Please go back to Step 1 and select an organization first.</p>
+                                                    </div>
                                                 </div>
                                             </div>
+                                        </template>
 
+                                        <!-- Partylist Selection -->
+                                        <template x-if="selectedOrg">
                                             <div class="space-y-4">
-                                                <label class="block text-sm font-semibold text-gray-900 mb-3">Candidates</label>
-                                                <template x-for="(c, cidx) in position.candidates" :key="cidx">
-                                                    <div class="flex items-center gap-3">
-                                                        <div class="flex-1">
-                                                            <input type="text" x-model="position.candidates[cidx]" :name="`positions[${index}][candidates][${cidx}]`"
-                                                                   class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-3 text-base transition-all"
-                                                                   placeholder="Candidate name">
-                                                        </div>
-                                                        <button type="button" @click="position.candidates.splice(cidx,1)"
-                                                                class="p-3 rounded-xl text-red-600 hover:bg-red-50 focus:outline-none transition-all" aria-label="Remove candidate">
-                                                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" aria-hidden>
-                                                                <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <label class="block text-sm font-semibold text-gray-900">Select Partylist</label>
+                                                <div class="flex items-center gap-4">
+                                                    <div class="flex-1">
+                                                        <select x-model="selectedPartylist"
+                                                                class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent px-5 py-4 text-base transition-all">
+                                                            <option value="">-- Select a partylist --</option>
+                                                            <template x-for="partylist in partylists" :key="partylist.id">
+                                                                <option :value="partylist.id" x-text="partylist.name"></option>
+                                                            </template>
+                                                        </select>
+                                                        <p x-show="isLoadingPartylists" class="text-sm text-amber-600 mt-2">
+                                                            <svg class="animate-spin inline w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none">
+                                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                             </svg>
-                                                        </button>
+                                                            Loading partylists...
+                                                        </p>
+                                                        <p x-show="!isLoadingPartylists && partylists.length === 0 && selectedOrg" class="text-sm text-gray-500 mt-2">
+                                                            No partylists found for this organization.
+                                                        </p>
                                                     </div>
-                                                </template>
-
-                                                <div class="flex justify-end">
-                                                    <button type="button" @click="position.candidates.push('')"
-                                                            class="px-5 py-2.5 bg-indigo-50 text-indigo-700 border-2 border-indigo-100 rounded-xl hover:bg-indigo-100 font-medium transition-all">
-                                                        + Add Candidate
+                                                    <button type="button"
+                                                            @click="fetchCandidates()"
+                                                            :disabled="!selectedPartylist || isFetching"
+                                                            class="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/30 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 whitespace-nowrap">
+                                                        <svg x-show="isFetching" class="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        <svg x-show="!isFetching" class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                        <span x-text="isFetching ? 'Fetching...' : 'Fetch Candidates'"></span>
                                                     </button>
                                                 </div>
                                             </div>
+                                        </template>
 
-                                            <div class="mt-6 pt-6 border-t border-gray-200 flex justify-end">
-                                                <button type="button" @click="positions.splice(index,1)"
-                                                        class="px-5 py-2.5 bg-red-50 text-red-600 rounded-xl border-2 border-red-100 hover:bg-red-100 focus:outline-none font-medium transition-all" aria-label="Remove position">
-                                                    Remove Position
+                                        <!-- Import Success Banner -->
+                                        <div x-show="isImported"
+                                             x-transition
+                                             class="mt-6 bg-green-100 border-2 border-green-300 rounded-xl p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-3">
+                                                    <svg class="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                    <div>
+                                                        <p class="font-semibold text-green-800">Successfully Imported</p>
+                                                        <p class="text-sm text-green-700">Candidates imported from <span class="font-bold" x-text="importedFrom"></span></p>
+                                                    </div>
+                                                </div>
+                                                <button type="button" @click="clearImport()" class="px-4 py-2 bg-white text-green-700 rounded-lg border border-green-300 hover:bg-green-50 text-sm font-medium transition-all">
+                                                    Clear & Reset
                                                 </button>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    <!-- Imported Data Display (Read-Only Cards) -->
+                                    <template x-if="isImported && automationMode">
+                                        <div class="space-y-6">
+                                            <template x-for="(position, pIndex) in parentData.positions" :key="pIndex">
+                                                <div class="bg-white border-2 border-indigo-200 rounded-2xl p-6 shadow-lg relative">
+                                                    <div class="absolute -top-3 -right-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                                                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none">
+                                                            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                        Imported
+                                                    </div>
+                                                    <div class="flex items-center gap-3 mb-4">
+                                                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold" x-text="pIndex + 1"></div>
+                                                        <h4 class="text-lg font-bold text-gray-900" x-text="position.name"></h4>
+                                                    </div>
+                                                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                                        <template x-for="(candidate, cIndex) in position.candidates" :key="cIndex">
+                                                            <div class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 text-sm text-gray-700">
+                                                                <span x-text="candidate"></span>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                    <input type="hidden" :name="'positions[' + pIndex + '][name]'" :value="position.name">
+                                                    <template x-for="(candidate, cIndex) in position.candidates" :key="'input-' + cIndex">
+                                                        <input type="hidden" :name="'positions[' + pIndex + '][candidates][]'" :value="candidate">
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </template>
 
-                                    <div class="flex justify-center py-4">
-                                        <button type="button" @click="positions.push({ name: '', candidates: [''] })"
-                                                class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-2 border-transparent rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-semibold transition-all">
-                                            <svg class="w-5 h-5 inline-block mr-2" viewBox="0 0 24 24" fill="none" aria-hidden>
-                                                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <!-- Manual Entry Form -->
+                                    <div x-show="!automationMode" class="space-y-6">
+                                        <template x-for="(position, pIndex) in parentData.positions" :key="pIndex">
+                                            <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                                                <div class="flex items-center gap-4 mb-6">
+                                                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg" x-text="pIndex + 1"></div>
+                                                    <div class="flex-1">
+                                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Position name</label>
+                                                        <input type="text" x-model="position.name" :name="'positions[' + pIndex + '][name]'"
+                                                               class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all"
+                                                               placeholder="e.g., President, Vice President, Secretary">
+                                                    </div>
+                                                    <button type="button" @click="parentData.positions.splice(pIndex, 1)" x-show="parentData.positions.length > 1"
+                                                            class="p-3 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-all self-end">
+                                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+
+                                                <div class="space-y-4 pl-16">
+                                                    <label class="block text-sm font-semibold text-gray-700">Candidates</label>
+                                                    <template x-for="(candidate, cIndex) in position.candidates" :key="cIndex">
+                                                        <div class="flex items-center gap-3">
+                                                            <input type="text" x-model="position.candidates[cIndex]" :name="'positions[' + pIndex + '][candidates][]'"
+                                                                   class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-3 text-base transition-all"
+                                                                   placeholder="Candidate name">
+                                                            <button type="button" @click="position.candidates.splice(cIndex, 1)" x-show="position.candidates.length > 1"
+                                                                    class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all">
+                                                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                                                    <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </template>
+                                                    <button type="button" @click="position.candidates.push('')"
+                                                            class="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-semibold text-sm transition-all">
+                                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                                            <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                        Add Candidate
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <button type="button" @click="parentData.positions.push({ name: '', candidates: [''] })"
+                                                class="mt-8 w-full py-4 border-2 border-dashed border-indigo-300 rounded-2xl text-indigo-600 hover:bg-indigo-50 hover:border-indigo-400 font-semibold transition-all flex items-center justify-center gap-2">
+                                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                             Add New Position
                                         </button>
@@ -436,12 +652,13 @@
                                             ← Previous
                                         </button>
                                         <button type="button" @click="activeTab = 'settings'"
-                                                class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-semibold transition-all">
-                                            Continue →
+                                                class="px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-bold transition-all">
+                                            Continue to Settings →
                                         </button>
                                     </div>
                                 </div>
                             </section>
+
 
                             <!-- Panel 3: Voting Settings -->
                             <section x-show="activeTab === 'settings'"
@@ -449,19 +666,19 @@
                                      x-transition:enter-start="opacity-0 transform translate-x-4"
                                      x-transition:enter-end="opacity-100 transform translate-x-0"
                                      x-data="{
-                                                 enableGeo: false,
-                                                 mapInitialized: false,
-                                                 radiusValue: 50,
-                                                 radiusUnit: 'meters'
-                                             }"
+                                         enableGeo: false,
+                                         mapInitialized: false,
+                                         radiusValue: 50,
+                                         radiusUnit: 'meters'
+                                     }"
                                      x-init="$watch('enableGeo', value => { if(value && !mapInitialized){ setTimeout(() => { initGeoMap(); mapInitialized = true }, 200) } })"
                                      aria-labelledby="settings-heading">
                                 <div class="mb-10">
                                     <div class="flex items-center gap-3 mb-3">
                                         <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
                                             <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none">
-                                                <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                                                <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
                                         <h2 id="settings-heading" class="text-3xl font-bold text-gray-900">Voting Settings</h2>
@@ -470,28 +687,32 @@
                                 </div>
 
                                 <div class="space-y-8">
-
                                     <!-- Geographic Restriction Toggle Switch -->
                                     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6">
                                         <label class="flex items-start justify-between cursor-pointer gap-4">
-                                            <div class="flex-1">
-                                                <div class="font-semibold text-gray-900 text-base mb-1">Restrict by geographic location</div>
-                                                <div class="text-sm text-gray-600">Limit voting to voters within a configured geographic region</div>
+                                            <div class="flex items-start gap-4">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-lg font-bold text-gray-900">Geographic Restriction</h3>
+                                                    <p class="text-sm text-gray-600 mt-1">Restrict voting to a specific geographic area. Voters must be within the designated radius to cast their vote.</p>
+                                                </div>
                                             </div>
-
-                                            <!-- Toggle Switch -->
                                             <div class="relative flex-shrink-0">
-                                                <input type="checkbox" name="enable_geo_location" value="1" x-model="enableGeo" class="sr-only peer" id="geoToggle">
-                                                <label for="geoToggle"
-                                                       :class="enableGeo ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gray-300'"
-                                                       class="block w-14 h-8 rounded-full transition-all duration-300 cursor-pointer relative shadow-inner">
+                                                <input type="checkbox" x-model="enableGeo" name="enable_geo_location" class="sr-only peer" id="geoToggle">
+                                                <div :class="enableGeo ? 'bg-gradient-to-r from-blue-500 to-indigo-500' : 'bg-gray-300'"
+                                                     class="block w-14 h-8 rounded-full transition-all duration-300 cursor-pointer relative shadow-inner">
                                                     <div :class="enableGeo ? 'translate-x-7' : 'translate-x-1'"
                                                          class="absolute top-1 left-0 w-6 h-6 bg-white rounded-full shadow-lg transition-transform duration-300 flex items-center justify-center">
-                                                        <svg x-show="enableGeo" class="w-3 h-3 text-indigo-600" viewBox="0 0 24 24" fill="none">
+                                                        <svg x-show="enableGeo" class="w-3 h-3 text-blue-600" viewBox="0 0 24 24" fill="none">
                                                             <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                                         </svg>
                                                     </div>
-                                                </label>
+                                                </div>
                                             </div>
                                         </label>
                                     </div>
@@ -503,107 +724,78 @@
                                          x-transition:enter-end="opacity-100 transform translate-y-0"
                                          class="bg-white border-2 border-gray-200 rounded-2xl p-8 space-y-6 shadow-lg">
                                         <div class="flex items-center gap-3 mb-4">
-                                            <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                                <svg class="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none">
-                                                    <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" stroke="currentColor" stroke-width="2"/>
-                                                    <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2"/>
+                                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                                                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
                                             </div>
-                                            <h3 class="text-xl font-bold text-gray-900">Geographic Configuration</h3>
+                                            <div>
+                                                <h3 class="text-lg font-bold text-gray-900">Location Configuration</h3>
+                                                <p class="text-sm text-gray-600">Set the voting location and radius</p>
+                                            </div>
                                         </div>
 
                                         <!-- Location Search -->
                                         <div class="space-y-4">
                                             <label class="block text-sm font-semibold text-gray-900">Search Location</label>
                                             <div class="flex gap-3">
-                                                <input id="geoSearch"
-                                                       :disabled="!enableGeo"
-                                                       class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                                       placeholder="Search address or place...">
+                                                <input type="text" id="locationSearch" placeholder="Search for a location..."
+                                                       class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent px-5 py-4 text-base transition-all">
                                                 <button type="button" id="useMyLocation"
-                                                        :disabled="!enableGeo"
-                                                        class="px-5 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 transition-all flex items-center gap-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                                                        class="px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:shadow-lg font-semibold transition-all flex items-center gap-2">
                                                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                                                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
-                                                    My Location
+                                                    Use My Location
                                                 </button>
                                             </div>
                                         </div>
 
                                         <!-- Radius Control -->
                                         <div class="space-y-4">
-                                            <label class="block text-sm font-semibold text-gray-900">Allowed Radius</label>
-                                            <div class="flex gap-3">
-                                                <input type="number"
-                                                       id="geoRadius"
-                                                       name="geo_radius"
-                                                       x-model="radiusValue"
-                                                       min="1"
-                                                       :disabled="!enableGeo"
-                                                       class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base disabled:bg-gray-100 disabled:cursor-not-allowed" />
-                                                <select x-model="radiusUnit"
-                                                        :disabled="!enableGeo"
-                                                        class="rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base font-medium disabled:bg-gray-100 disabled:cursor-not-allowed">
-                                                    <option value="meters">Meters</option>
-                                                    <option value="kilometers">Kilometers</option>
-                                                </select>
+                                            <label class="block text-sm font-semibold text-gray-900">Voting Radius</label>
+                                            <div class="flex gap-4">
+                                                <div class="flex-1">
+                                                    <input type="number" id="geoRadius" name="geo_radius" x-model="radiusValue" min="10" max="10000"
+                                                           class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent px-5 py-4 text-base transition-all"
+                                                           placeholder="Enter radius">
+                                                </div>
+                                                <div class="w-40">
+                                                    <select x-model="radiusUnit"
+                                                            class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent px-5 py-4 text-base transition-all">
+                                                        <option value="meters">Meters</option>
+                                                        <option value="kilometers">Kilometers</option>
+                                                    </select>
+                                                </div>
+                                                <button type="button" @click="updateRadius()"
+                                                        class="px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:shadow-lg font-semibold transition-all">
+                                                    Apply
+                                                </button>
+                                                <input type="hidden" id="computedRadius" name="geo_radius_meters">
                                             </div>
-                                            <p class="text-sm text-gray-500">Only voters within this radius can participate</p>
+                                            <p class="text-sm text-gray-500 mt-2">
+                                                <span x-text="radiusUnit === 'kilometers' ? (radiusValue * 1000) + ' meters' : radiusValue + ' meters'"></span> from the center point
+                                            </p>
                                         </div>
 
-                                        <!-- Map Preview -->
+                                        <!-- Interactive Map -->
                                         <div class="space-y-4">
-                                            <label class="block text-sm font-semibold text-gray-900">Map Preview</label>
-                                            <div id="geoMap" class="w-full h-96 rounded-2xl border-2 border-gray-200 overflow-hidden shadow-lg"></div>
-                                            <div class="flex justify-end">
-                                                <select id="mapType"
-                                                        :disabled="!enableGeo"
-                                                        class="rounded-xl border-gray-300 shadow-sm px-4 py-2 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed">
-                                                    <option value="terrain">Terrain</option>
-                                                    <option value="satellite">Satellite</option>
-                                                    <option value="roadmap">Roadmap</option>
-                                                </select>
-                                            </div>
+                                            <label class="block text-sm font-semibold text-gray-900">Set Voting Zone</label>
+                                            <div id="geoMap" class="w-full h-80 rounded-2xl border-2 border-gray-200 overflow-hidden shadow-inner"></div>
+                                            <input type="hidden" id="geoLatitude" name="geo_latitude">
+                                            <input type="hidden" id="geoLongitude" name="geo_longitude">
+                                            <p class="text-sm text-gray-500">Click on the map to set the center of your voting zone</p>
                                         </div>
 
-                                        <!-- Hidden inputs for coordinates -->
-                                        <input type="hidden" id="geoLatitude" name="geo_latitude">
-                                        <input type="hidden" id="geoLongitude" name="geo_longitude">
-                                    </div>
-
-                                    <!-- Additional Settings -->
-                                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 space-y-6">
-                                        <div class="flex items-center gap-3 mb-4">
-                                            <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                                <svg class="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none">
-                                                    <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                </svg>
-                                            </div>
-                                            <h3 class="text-xl font-bold text-gray-900">Access & Registration</h3>
-                                        </div>
-
-                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        <!-- Coordinate Display -->
+                                        <div class="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-xl">
                                             <div>
-                                                <label class="block text-sm font-semibold text-gray-900 mb-3">Allowed email domain</label>
-                                                <input type="text" name="allowed_email_domain" placeholder="example.com, org.edu"
-                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base" />
-                                                <p class="text-xs text-gray-500 mt-2">Comma-separated list of allowed domains</p>
+                                                <span class="text-sm font-medium text-gray-600">Latitude:</span>
+                                                <span id="latDisplay" class="ml-2 text-sm text-gray-900 font-mono">Not set</span>
                                             </div>
-
                                             <div>
-                                                <label class="block text-sm font-semibold text-gray-900 mb-3">Registration deadline</label>
-                                                <input type="datetime-local" name="registration_deadline"
-                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base" />
-                                                <p class="text-xs text-gray-500 mt-2">Last date to register for voting</p>
-                                            </div>
-
-                                            <div class="lg:col-span-2">
-                                                <label class="block text-sm font-semibold text-gray-900 mb-3">Max votes per voter</label>
-                                                <input type="number" name="max_votes_per_voter" min="1" value="1"
-                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base" />
-                                                <p class="text-xs text-gray-500 mt-2">Maximum number of times a voter can vote in this election</p>
+                                                <span class="text-sm font-medium text-gray-600">Longitude:</span>
+                                                <span id="lngDisplay" class="ml-2 text-sm text-gray-900 font-mono">Not set</span>
                                             </div>
                                         </div>
                                     </div>
@@ -615,254 +807,73 @@
                                         </button>
                                         <button type="submit"
                                                 :disabled="isSubmitting"
-                                                :class="isSubmitting ? 'opacity-50 cursor-not-allowed' : ''"
-                                                @click.prevent="
-                                                    if (isSubmitting) return;
-                                                    isSubmitting = true;
-
-                                                    const form = $el.closest('form');
-                                                    const formData = new FormData(form);
-
-                                                    // Remove any existing positions fields
-                                                    for (let key of Array.from(formData.keys())) {
-                                                        if (key.startsWith('positions')) {
-                                                            formData.delete(key);
-                                                        }
-                                                    }
-
-                                                    // Add positions data properly
-                                                    positions.forEach((position, idx) => {
-                                                        formData.append(`positions[${idx}][name]`, position.name);
-                                                        position.candidates.forEach((candidate, cidx) => {
-                                                            if (candidate.trim()) {
-                                                                formData.append(`positions[${idx}][candidates][${cidx}]`, candidate);
-                                                            }
-                                                        });
-                                                    });
-
-                                                    fetch(form.action, {
-                                                        method: 'POST',
-                                                        body: formData,
-                                                        headers: {
-                                                            'X-Requested-With': 'XMLHttpRequest',
-                                                            'Accept': 'application/json',
-                                                            'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value
-                                                        }
-                                                    })
-                                                    .then(res => {
-                                                        if (!res.ok) {
-                                                            return res.json().then(errorData => {
-                                                                throw { status: res.status, data: errorData };
-                                                            }).catch(() => {
-                                                                return res.text().then(text => {
-                                                                    throw { status: res.status, message: text || 'Server error occurred' };
-                                                                });
-                                                            });
-                                                        }
-                                                        return res.json();
-                                                    })
-                                                    .then(data => {
-                                                        if (data.success) {
-                                                            electionCreated = true;
-                                                            electionId = data.election.id;
-                                                            electionCode = data.election.code;
-                                                            registrationUrl = data.registration_url;
-                                                            activeTab = 'share';
-                                                            setTimeout(() => generateQRCode(registrationUrl), 100);
-                                                        } else {
-                                                            let errorDetails = [];
-                                                            if (data.errors) {
-                                                                for (let field in data.errors) {
-                                                                    if (Array.isArray(data.errors[field])) {
-                                                                        errorDetails = errorDetails.concat(data.errors[field]);
-                                                                    } else {
-                                                                        errorDetails.push(data.errors[field]);
-                                                                    }
-                                                                }
-                                                            }
-                                                            showError(data.message || 'Failed to create election', errorDetails);
-                                                        }
-                                                    })
-                                                    .catch(err => {
-                                                        console.error('Fetch error:', err);
-                                                        let errorMessage = 'An unexpected error occurred';
-                                                        let errorDetails = [];
-
-                                                        if (err.data) {
-                                                            errorMessage = err.data.message || 'Failed to create election';
-                                                            if (err.data.errors) {
-                                                                for (let field in err.data.errors) {
-                                                                    if (Array.isArray(err.data.errors[field])) {
-                                                                        errorDetails = errorDetails.concat(err.data.errors[field]);
-                                                                    } else {
-                                                                        errorDetails.push(err.data.errors[field]);
-                                                                    }
-                                                                }
-                                                            }
-                                                        } else if (err.message) {
-                                                            errorMessage = err.message;
-                                                        }
-
-                                                        if (err.status === 422) {
-                                                            errorMessage = 'Validation failed. Please check your input.';
-                                                        } else if (err.status === 500) {
-                                                            errorMessage = 'Server error. Please try again later.';
-                                                        } else if (err.status === 403) {
-                                                            errorMessage = 'You do not have permission to create an election.';
-                                                        }
-
-                                                        showError(errorMessage, errorDetails);
-                                                    })
-                                                    .finally(() => {
-                                                        isSubmitting = false;
-                                                    });
-                                                "
-                                                class="px-10 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-xl hover:shadow-green-500/30 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 font-semibold transition-all flex items-center gap-2">
-                                            <svg x-show="isSubmitting" class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                class="px-10 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-xl hover:shadow-green-500/30 font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3">
+                                            <svg x-show="isSubmitting" class="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            <span x-text="isSubmitting ? 'Creating...' : '🎉 Create Election'"></span>
+                                            <span x-text="isSubmitting ? 'Creating Election...' : 'Create Election'"></span>
                                         </button>
                                     </div>
                                 </div>
                             </section>
 
-                            <!-- Panel 4: Share Election -->
+                            <!-- Panel 4: Share & QR Code (shown after successful creation) -->
                             <section x-show="activeTab === 'share'"
                                      x-transition:enter="transition ease-out duration-300"
                                      x-transition:enter-start="opacity-0 transform translate-x-4"
                                      x-transition:enter-end="opacity-100 transform translate-x-0"
                                      aria-labelledby="share-heading">
-                                <div class="mb-10">
-                                    <div class="flex items-center gap-3 mb-3">
-                                        <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-emerald-600 rounded-xl flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none">
-                                                <path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </div>
-                                        <h2 id="share-heading" class="text-3xl font-bold text-gray-900">Share Election</h2>
+                                <div class="text-center mb-10">
+                                    <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-green-500/30">
+                                        <svg class="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none">
+                                            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
                                     </div>
-                                    <p class="text-gray-600 text-base">Election created successfully! Share with voters using these methods</p>
+                                    <h2 id="share-heading" class="text-3xl font-bold text-gray-900 mb-3">Election Created Successfully!</h2>
+                                    <p class="text-gray-600 text-lg">Share the registration link with your voters</p>
                                 </div>
 
-                                <div class="space-y-8">
-                                    <!-- Success Banner -->
-                                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
-                                        <div class="flex items-center gap-4">
-                                            <div class="flex-shrink-0">
-                                                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                                                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
-                                                        <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    <!-- QR Code Section -->
+                                    <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-8 text-center">
+                                        <h3 class="text-xl font-bold text-gray-900 mb-6">Scan QR Code</h3>
+                                        <div id="qrCodeDisplay" class="flex justify-center mb-6"></div>
+                                        <p class="text-sm text-gray-600">Voters can scan this code to access the registration page</p>
+                                    </div>
+
+                                    <!-- Link Section -->
+                                    <div class="space-y-6">
+                                        <div class="bg-white border-2 border-gray-200 rounded-2xl p-6">
+                                            <h3 class="text-lg font-bold text-gray-900 mb-4">Election Access Code</h3>
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex-1 px-5 py-4 bg-gray-100 rounded-xl font-mono text-2xl font-bold text-indigo-600 tracking-widest text-center" x-text="electionCode"></div>
+                                                <button type="button" @click="copyToClipboard(electionCode)"
+                                                        class="px-4 py-4 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 transition-all">
+                                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
-                                                </div>
-                                            </div>
-                                            <div class="flex-1">
-                                                <h3 class="text-lg font-bold text-green-900">Election Created Successfully!</h3>
-                                                <p class="text-sm text-green-700 mt-1">Your election is now ready. Share it with voters using the options below.</p>
+                                                </button>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- 6-Digit Code Card -->
-                                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg">
-                                        <div class="flex items-center gap-3 mb-6">
-                                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                                                <svg class="w-4 h-4 text-purple-600" viewBox="0 0 24 24" fill="none">
-                                                    <path d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                </svg>
+                                        <div class="bg-white border-2 border-gray-200 rounded-2xl p-6">
+                                            <h3 class="text-lg font-bold text-gray-900 mb-4">Registration Link</h3>
+                                            <div class="flex items-center gap-3">
+                                                <input type="text" readonly :value="registrationUrl"
+                                                       class="flex-1 px-5 py-4 bg-gray-100 rounded-xl text-sm text-gray-700 font-mono">
+                                                <button type="button" @click="copyToClipboard(registrationUrl)"
+                                                        class="px-4 py-4 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 transition-all">
+                                                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
                                             </div>
-                                            <h3 class="text-xl font-bold text-gray-900">6-Digit Access Code</h3>
                                         </div>
-                                        <p class="text-sm text-gray-600 mb-6">Voters can enter this code from the welcome page to access the registration form</p>
 
-                                        <div class="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-xl p-8 text-center">
-                                            <div class="text-sm font-medium text-gray-600 mb-3">Election Code</div>
-                                            <div class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 tracking-widest mb-4" x-text="electionCode || '------'"></div>
-                                            <button type="button"
-                                                    @click="copyToClipboard(electionCode)"
-                                                    class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/30 font-medium transition-all">
-                                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                                                    <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                </svg>
-                                                Copy Code
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Registration Link Card -->
-                                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg">
-                                        <div class="flex items-center gap-3 mb-6">
-                                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                                <svg class="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none">
-                                                    <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                </svg>
-                                            </div>
-                                            <h3 class="text-xl font-bold text-gray-900">Registration Link</h3>
-                                        </div>
-                                        <p class="text-sm text-gray-600 mb-6">Share this direct link for voters to register and cast their vote</p>
-
-                                        <div class="flex gap-3">
-                                            <input type="text"
-                                                   :value="registrationUrl"
-                                                   readonly
-                                                   class="flex-1 rounded-xl border-gray-300 bg-gray-50 px-5 py-4 text-sm font-mono text-gray-700">
-                                            <button type="button"
-                                                    @click="copyToClipboard(registrationUrl)"
-                                                    class="px-6 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:shadow-lg hover:shadow-blue-500/30 font-medium transition-all flex items-center gap-2">
-                                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                                                    <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                </svg>
-                                                Copy Link
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- QR Code Card -->
-                                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg">
-                                        <div class="flex items-center gap-3 mb-6">
-                                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                                                <svg class="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="none">
-                                                    <path d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h2M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                </svg>
-                                            </div>
-                                            <h3 class="text-xl font-bold text-gray-900">QR Code</h3>
-                                        </div>
-                                        <p class="text-sm text-gray-600 mb-6">Voters can scan this QR code to access the registration page</p>
-
-                                        <div class="flex flex-col items-center">
-                                            <div id="qrCodeDisplay" class="bg-white p-6 rounded-2xl border-2 border-gray-200 shadow-inner"></div>
-                                            <button type="button"
-                                                    @click="
-                                                        const canvas = document.querySelector('#qrCodeDisplay canvas');
-                                                        if (canvas) {
-                                                            const link = document.createElement('a');
-                                                            link.download = 'election-qr-' + electionCode + '.png';
-                                                            link.href = canvas.toDataURL('image/png');
-                                                            link.click();
-                                                        }
-                                                    "
-                                                    class="mt-6 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-lg hover:shadow-green-500/30 font-medium transition-all flex items-center gap-2">
-                                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                                                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                </svg>
-                                                Download QR Code
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Action Buttons -->
-                                    <div class="flex justify-between pt-10 border-t border-gray-200">
-                                        <a href="{{ route('admin.elections.index') }}"
-                                           class="px-8 py-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-semibold transition-all">
-                                            ← Back to Elections
-                                        </a>
                                         <a :href="'/admin/elections/' + electionId"
-                                           class="px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-semibold transition-all flex items-center gap-2">
-                                            View Election Details
-                                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                                                <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
+                                           class="block w-full px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-semibold transition-all text-center">
+                                            View Election Dashboard →
                                         </a>
                                     </div>
                                 </div>
@@ -874,88 +885,125 @@
         </main>
     </div>
 
-    <!-- QR Code Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- QRCode.js -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
-    <!-- Google Maps Script -->
     <script>
         let map, marker, circle;
 
         function initGeoMap() {
-            const defaultCenter = { lat: 14.5995, lng: 120.9842 }; // Manila, Philippines
+            map = L.map('geoMap').setView([14.5995, 120.9842], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
 
-            map = new google.maps.Map(document.getElementById('geoMap'), {
-                center: defaultCenter,
-                zoom: 15,
-                mapTypeId: 'terrain',
-                styles: [
-                    { featureType: 'poi', stylers: [{ visibility: 'off' }] }
-                ]
+            map.on('click', function(e) {
+                setLocation(e.latlng.lat, e.latlng.lng);
             });
-
-            marker = new google.maps.Marker({
-                position: defaultCenter,
-                map: map,
-                draggable: true,
-                title: 'Voting Location'
-            });
-
-            circle = new google.maps.Circle({
-                map: map,
-                radius: 50,
-                fillColor: '#4F46E5',
-                fillOpacity: 0.2,
-                strokeColor: '#4F46E5',
-                strokeOpacity: 0.8,
-                strokeWeight: 2
-            });
-
-            circle.bindTo('center', marker, 'position');
-
-            marker.addListener('dragend', function() {
-                updateCoordinates(marker.getPosition());
-            });
-
-            // Map type selector
-            document.getElementById('mapType').addEventListener('change', function() {
-                map.setMapTypeId(this.value);
-            });
-
-            // Use my location button
-            document.getElementById('useMyLocation').addEventListener('click', function() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(position) {
-                        const pos = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        };
-                        map.setCenter(pos);
-                        marker.setPosition(pos);
-                        updateCoordinates(pos);
-                    });
-                }
-            });
-
-            // Radius input listener
-            document.getElementById('geoRadius').addEventListener('input', function() {
-                let radius = parseFloat(this.value) || 50;
-                const unit = document.querySelector('[x-model="radiusUnit"]').value;
-                if (unit === 'kilometers') {
-                    radius = radius * 1000;
-                }
-                circle.setRadius(radius);
-            });
-
-            updateCoordinates(defaultCenter);
         }
 
-        function updateCoordinates(pos) {
-            const lat = typeof pos.lat === 'function' ? pos.lat() : pos.lat;
-            const lng = typeof pos.lng === 'function' ? pos.lng() : pos.lng;
+        function setLocation(lat, lng) {
+            if (marker) map.removeLayer(marker);
+            if (circle) map.removeLayer(circle);
+
+            marker = L.marker([lat, lng]).addTo(map);
+
+            const radiusInput = document.getElementById('geoRadius');
+            const radiusUnit = document.querySelector('[x-model="radiusUnit"]');
+            let radius = parseFloat(radiusInput.value) || 50;
+            if (radiusUnit && radiusUnit.value === 'kilometers') {
+                radius = radius * 1000;
+            }
+
+            circle = L.circle([lat, lng], {
+                radius: radius,
+                color: '#4F46E5',
+                fillColor: '#818CF8',
+                fillOpacity: 0.3
+            }).addTo(map);
+
             document.getElementById('geoLatitude').value = lat;
             document.getElementById('geoLongitude').value = lng;
+            document.getElementById('latDisplay').textContent = lat.toFixed(6);
+            document.getElementById('lngDisplay').textContent = lng.toFixed(6);
+            document.getElementById('computedRadius').value = radius;
         }
-    </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_api_key') }}&callback=initGeoMap"></script>
-@endsection
 
+        function updateRadius() {
+            const lat = parseFloat(document.getElementById('geoLatitude').value);
+            const lng = parseFloat(document.getElementById('geoLongitude').value);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setLocation(lat, lng);
+            }
+        }
+
+        function searchLocation() {
+            const query = document.getElementById('locationSearch').value;
+            if (!query) return;
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+                        map.setView([lat, lon], 15);
+                        setLocation(lat, lon);
+                    } else {
+                        alert('Location not found');
+                    }
+                });
+        }
+
+        // Form submission handler
+        document.getElementById('electionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const alpineData = Alpine.$data(this);
+
+            alpineData.isSubmitting = true;
+
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alpineData.electionCreated = true;
+                    alpineData.electionId = data.election_id;
+                    alpineData.electionCode = data.election_code;
+                    alpineData.registrationUrl = data.registration_url;
+                    alpineData.activeTab = 'share';
+
+                    setTimeout(() => {
+                        alpineData.generateQRCode(data.registration_url);
+                    }, 100);
+                } else {
+                    const errorDetails = [];
+                    if (data.errors) {
+                        Object.keys(data.errors).forEach(key => {
+                            data.errors[key].forEach(msg => errorDetails.push(msg));
+                        });
+                    }
+                    alpineData.showError(data.message || 'Failed to create election', errorDetails);
+                }
+            } catch (error) {
+                alpineData.showError('An unexpected error occurred. Please try again.');
+            } finally {
+                alpineData.isSubmitting = false;
+            }
+        });
+    </script>
+@endsection
