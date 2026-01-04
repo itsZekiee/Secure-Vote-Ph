@@ -164,9 +164,9 @@
         </nav>
 
         <!-- User Profile Footer -->
-        <div class="p-4 border-t border-slate-700 bg-slate-800/50 flex-shrink-0">
+        <div class="p-2 border-t border-slate-700 bg-slate-800/50 flex-shrink-0">
             <div :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3'"
-                 class="flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors cursor-pointer group">
+                 class="flex items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors cursor-pointer group">
                 <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-lg flex-shrink-0">
                     {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
                 </div>

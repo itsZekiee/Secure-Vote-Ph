@@ -141,8 +141,11 @@ class CandidateController extends Controller
             DB::beginTransaction();
 
             // Resolve or create user (only pass columns that exist in your users table)
+            $userNameForCandidate = null;
             if (!empty($validated['user_id'])) {
                 $userId = $validated['user_id'];
+                $user = User::findOrFail($userId);
+                $userNameForCandidate = $user->name;
             } else {
                 $user = User::firstWhere('email', $validated['user_email']);
                 if (!$user) {
@@ -159,6 +162,7 @@ class CandidateController extends Controller
                     }
                 }
                 $userId = $user->id;
+                $userNameForCandidate = $validated['user_name'];
             }
 
             // Handle position
@@ -250,8 +254,27 @@ class CandidateController extends Controller
             }
 
             // Create candidate
+            $nameParts = preg_split('/\s+/', trim($userNameForCandidate));
+            if (count($nameParts) === 1) {
+                $firstName = $nameParts[0];
+                $middleName = null;
+                $lastName = $nameParts[0];
+            } elseif (count($nameParts) === 2) {
+                $firstName = $nameParts[0];
+                $middleName = null;
+                $lastName = $nameParts[1];
+            } else {
+                $firstName = array_shift($nameParts);
+                $lastName = array_pop($nameParts);
+                $middleName = implode(' ', $nameParts);
+            }
+
             $candidateData = [
                 'user_id' => $userId,
+                'first_name' => $firstName,
+                'middle_name' => $middleName,
+                'last_name' => $lastName,
+                'name' => $userNameForCandidate,
                 'organization_id' => $validated['organization_id'],
                 'election_id' => $validated['election_id'] ?? null,
                 'position_id' => $validated['position_id'],

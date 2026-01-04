@@ -75,6 +75,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::get('/settings/backup', [SettingsController::class, 'backup'])->name('settings.backup');
     Route::post('/settings/restore', [SettingsController::class, 'restore'])->name('settings.restore');
 
+    // Profile Management
+    Route::put('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [\App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('profile.password');
+
     // Organization Management Routes
     Route::resource('organizations', OrganizationController::class);
     Route::prefix('organizations')->name('organizations.')->group(function () {

@@ -467,13 +467,15 @@ class ElectionController extends Controller
      */
     public function getPartylistCandidates(int $partylistId): JsonResponse
     {
-        $partylist = Partylist::with('candidates')->findOrFail($partylistId);
+        $partylist = Partylist::with(['candidates.position'])->findOrFail($partylistId);
 
         $groupedCandidates = $partylist->candidates
-            ->groupBy('position')
-            ->map(function ($candidates, $position) {
+            ->groupBy(function($candidate) {
+                return $candidate->position ? $candidate->position->title : 'Unassigned';
+            })
+            ->map(function ($candidates, $positionTitle) {
                 return [
-                    'name' => $position,
+                    'name' => $positionTitle,
                     'candidates' => $candidates->pluck('name')->toArray()
                 ];
             })

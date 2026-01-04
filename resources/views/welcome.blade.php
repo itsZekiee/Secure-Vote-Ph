@@ -1,6 +1,10 @@
-@extends('layouts.app-main-admin')
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<x-default-header title="{{ $title ?? config('app.name', 'SecureVote') }}" />
 
-@section('content')
+@stack('styles')
+
+<body class="font-sans antialiased bg-slate-50 min-h-screen">
     <!-- Global Success/Error Messages (Fixed Position) -->
     @if(session('success'))
         <div class="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-xl shadow-lg transform transition-all duration-300">
@@ -543,4 +547,6 @@
         });
     </script>
 
-@endsection
+    @stack('scripts')
+</body>
+</html>
