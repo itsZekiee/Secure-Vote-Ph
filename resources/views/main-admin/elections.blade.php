@@ -844,12 +844,17 @@
 
                                     <!-- Link Section -->
                                     <div class="space-y-6">
+                                        <!-- Election Access Code -->
                                         <div class="bg-white border-2 border-gray-200 rounded-2xl p-6">
-                                            <h3 class="text-lg font-bold text-gray-900 mb-4">Election Access Code</h3>
+                                            <h4 class="text-lg font-bold text-gray-900 mb-4">Election Access Code</h4>
                                             <div class="flex items-center gap-3">
-                                                <div class="flex-1 px-5 py-4 bg-gray-100 rounded-xl font-mono text-2xl font-bold text-indigo-600 tracking-widest text-center" x-text="electionCode"></div>
-                                                <button type="button" @click="copyToClipboard(electionCode)"
-                                                        class="px-4 py-4 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 transition-all">
+                                                <input type="text"
+                                                       :value="electionCode"
+                                                       readonly
+                                                       class="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-lg font-mono text-gray-900">
+                                                <button type="button"
+                                                        @click="copyToClipboard(electionCode)"
+                                                        class="p-3 bg-indigo-100 text-indigo-600 rounded-xl hover:bg-indigo-200 transition-all">
                                                     <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
                                                         <path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
@@ -962,14 +967,13 @@
         document.getElementById('electionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const formData = new FormData(this);
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const alpineData = Alpine.$data(this);
-
+            const formEl = this;
+            const alpineData = Alpine.$data(formEl);
             alpineData.isSubmitting = true;
 
             try {
-                const response = await fetch(this.action, {
+                const formData = new FormData(formEl);
+                const response = await fetch(formEl.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -982,25 +986,21 @@
 
                 if (data.success) {
                     alpineData.electionCreated = true;
-                    alpineData.electionId = data.election_id;
-                    alpineData.electionCode = data.election_code;
+                    alpineData.electionId = data.election.id;
+                    alpineData.electionCode = data.election.code;
                     alpineData.registrationUrl = data.registration_url;
                     alpineData.activeTab = 'share';
 
+                    // Generate QR code after setting the URL
                     setTimeout(() => {
-                        alpineData.generateQRCode(data.registration_url);
+                        alpineData.generateQRCode(alpineData.registrationUrl);
                     }, 100);
                 } else {
-                    const errorDetails = [];
-                    if (data.errors) {
-                        Object.keys(data.errors).forEach(key => {
-                            data.errors[key].forEach(msg => errorDetails.push(msg));
-                        });
-                    }
-                    alpineData.showError(data.message || 'Failed to create election', errorDetails);
+                    alpineData.showError(data.message, data.errors || []);
                 }
             } catch (error) {
-                alpineData.showError('An unexpected error occurred. Please try again.');
+                console.error('Error:', error);
+                alpineData.showError('An unexpected error occurred');
             } finally {
                 alpineData.isSubmitting = false;
             }
