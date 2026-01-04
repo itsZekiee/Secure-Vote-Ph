@@ -5,189 +5,225 @@ namespace App\Http\Controllers\Voter;
 use App\Http\Controllers\Controller;
 use App\Models\Election;
 use App\Models\Vote;
+use App\Models\Voter;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class VoterElectionController extends Controller
 {
     /**
-     * Display list of elections for voter
+     * Step 1: Show access form (enter election code/link)
      */
-    public function index()
+    public function access()
     {
-        $election = null;
-        $positions = collect();
-
-        if (session('election_id')) {
-            $election = Election::with(['positions.candidates.partylist'])->find(session('election_id'));
-            $positions = $election ? $election->positions : collect();
-        }
-
-        return view('voter.elections.index', compact('election', 'positions'));
+        return view('voter.elections.access');
     }
 
     /**
-     * Show a specific election for voting
+     * Step 1: Verify election code/link
      */
-    public function show(Election $election)
+    public function verify(Request $request)
     {
-        $election->load(['candidates.position', 'candidates.partylist']);
+        $inputType = $request->input('input_type');
 
-        $positions = $election->candidates
-            ->groupBy('position_id')
-            ->map(function ($candidates) {
-                $position = $candidates->first()->position;
-                if ($position) {
-                    $position->candidates = $candidates;
-                }
-                return $position;
-            })
-            ->filter()
-            ->values();
+        if ($inputType === 'code') {
+            $request->validate([
+                'election_code' => 'required|string|size:6'
+            ]);
+            $code = strtoupper($request->election_code);
+        } else {
+            $request->validate([
+                'election_link' => 'required|url'
+            ]);
+            $code = $this->extractCodeFromLink($request->election_link);
+        }
 
-        return view('voter.elections.index', compact('election', 'positions'));
+        $election = Election::where('code', $code)
+            ->where('status', '!=', 'cancelled')
+            ->first();
+
+        if (!$election) {
+            return back()->withErrors(['election_code' => 'Invalid election code or link. Please check and try again.']);
+        }
+
+        // Store election in session and redirect to registration
+        session(['election_id' => $election->id, 'election_code' => $code]);
+
+        return redirect()->route('voter.registration.index', $election->code);
     }
 
+    /**
+     * Step 3: Welcome page with countdown
+     */
+    public function welcome($code)
+    {
+        $election = Election::where('code', $code)->first();
+
+        if (!$election) {
+            return redirect()->route('voter.elections.access')
+                ->withErrors(['code' => 'Election not found.']);
+        }
+
+        $voter = session('voter');
+
+        if (!$voter) {
+            return redirect()->route('voter.registration.index', $election->code);
+        }
+
+        $hasVoted = $this->checkIfVoted($election->id, $voter['id']);
+
+        return view('voter.welcome', [
+            'election' => $election,
+            'voter' => $voter,
+            'hasVoted' => $hasVoted
+        ]);
+    }
+
+
+    /**
+     * Step 4: Display voting page with positions and candidates
+     */
+    public function index($code)
+    {
+        $election = Election::where('code', $code)->first();
+
+        if (!$election) {
+            return redirect()->route('voter.elections.access')
+                ->withErrors(['code' => 'Election not found.']);
+        }
+
+        $voter = session('voter');
+
+        if (!$voter) {
+            return redirect()->route('voter.registration.index', $election->code);
+        }
+
+        // Rest of existing logic...
+        if (Carbon::now()->lt($election->start_date)) {
+            return redirect()->route('voter.elections.welcome', $election->code)
+                ->withErrors(['election' => 'Election has not started yet.']);
+        }
+
+        if (Carbon::now()->gt($election->end_date)) {
+            return redirect()->route('voter.elections.welcome', $election->code)
+                ->withErrors(['election' => 'Election has already ended.']);
+        }
+
+        if ($this->checkIfVoted($election->id, $voter['id'])) {
+            return redirect()->route('voter.elections.welcome', $election->code)
+                ->with('info', 'You have already cast your vote.');
+        }
+
+        $positions = $election->positions()
+            ->with(['candidates.partylist'])
+            ->orderBy('order')
+            ->get();
+
+        return view('voter.elections.index', [
+            'election' => $election,
+            'positions' => $positions,
+            'voter' => $voter
+        ]);
+    }
 
 
     /**
      * Process the vote submission
      */
-    public function vote(Request $request, Election $election)
+    public function submitVote(Request $request, Election $election)
     {
         $request->validate([
             'votes' => 'required|array',
             'votes.*' => 'required|exists:candidates,id',
         ]);
 
-        $voterId = session('voter_id');
+        $voter = session('voter');
 
-        if (!$voterId) {
-            return back()->withErrors(['error' => 'Please register first to vote.']);
+        if (!$voter) {
+            return redirect()->route('voter.registration.index', $election->code)
+                ->withErrors(['error' => 'Please register first to vote.']);
         }
 
         // Check if already voted
-        $existingVote = Vote::where('voter_id', $voterId)
-            ->where('election_id', $election->id)
-            ->first();
-
-        if ($existingVote) {
-            return back()->withErrors(['error' => 'You have already voted in this election.']);
+        if ($this->checkIfVoted($election->id, $voter['id'])) {
+            return redirect()->route('voter.elections.welcome', $election->code)
+                ->withErrors(['error' => 'You have already voted in this election.']);
         }
 
         // Record votes
         foreach ($request->votes as $positionId => $candidateId) {
             Vote::create([
-                'voter_id' => $voterId,
+                'voter_id' => $voter['id'],
                 'election_id' => $election->id,
                 'position_id' => $positionId,
                 'candidate_id' => $candidateId,
             ]);
         }
 
-        return redirect()->route('voter.elections.confirmation', $election->id)
+        return redirect()->route('voter.elections.welcome', $election->code)
             ->with('success', 'Your vote has been recorded successfully!');
     }
 
     /**
-     * Show vote confirmation page
-     */
-    public function confirmation(Election $election)
-    {
-        return view('voter.elections.confirmation', compact('election'));
-    }
-
-    /**
-     * Show voting history
-     */
-    public function history()
-    {
-        $voterId = session('voter_id');
-        $votes = collect();
-
-        if ($voterId) {
-            $votes = Vote::with(['election', 'candidate', 'position'])
-                ->where('voter_id', $voterId)
-                ->latest()
-                ->get()
-                ->groupBy('election_id');
-        }
-
-        return view('voter.history.index', compact('votes'));
-    }
-
-    /**
-     * Show the join election form
+     * Redirect join form to access page
      */
     public function showJoinForm()
     {
-        return view('voter.elections.access');
+        return redirect()->route('voter.elections.access');
     }
 
     /**
-     * Process the election code or link
+     * Redirect join submission to access page
      */
     public function join(Request $request)
     {
-        $inputType = $request->input('input_type');
+        return redirect()->route('voter.elections.access');
+    }
 
-        if ($inputType === 'code') {
-            $request->validate([
-                'election_code' => 'required|string|size:6',
-            ]);
-            $code = strtoupper($request->input('election_code'));
-        } else {
-            $request->validate([
-                'election_link' => 'required|url',
-            ]);
-            $link = $request->input('election_link');
-            // Extract code from link
-            preg_match('/\/register\/([A-Z0-9]{6})/', $link, $matches);
-            $code = $matches[1] ?? null;
+
+    /**
+     * Show real-time election results
+     */
+    public function results(Election $election)
+    {
+        $voter = session('voter');
+
+        if (!$voter) {
+            return redirect()->route('voter.registration.index', $election->code);
         }
 
-        if (!$code) {
-            return back()->withErrors(['election_code' => 'Invalid election code or link.']);
-        }
+        $positions = $election->positions()
+            ->with(['candidates' => function ($query) use ($election) {
+                $query->withCount(['votes' => function ($q) use ($election) {
+                    $q->where('election_id', $election->id);
+                }]);
+            }])
+            ->orderBy('order')
+            ->get();
 
-        $election = Election::where('code', $code)->first();
-
-        if (!$election) {
-            return back()->withErrors(['election_code' => 'Election not found.']);
-        }
-
-        session(['election_id' => $election->id, 'election_code' => $code]);
-
-        return redirect()->route('voter.register', ['code' => $code]);
+        return view('voter.elections.results', [
+            'election' => $election,
+            'positions' => $positions,
+            'voter' => $voter
+        ]);
     }
 
     /**
-     * Register voter for election
+     * Extract election code from URL
      */
-    public function register(string $code)
+    private function extractCodeFromLink($link)
     {
-        $election = Election::where('code', strtoupper($code))->first();
-
-        if (!$election) {
-            return redirect()->route('voter.elections.access')
-                ->withErrors(['election_code' => 'Invalid election code.']);
-        }
-
-        return view('voter.registration.index', compact('election'));
+        preg_match('/\/([A-Z0-9]{6})(?:\/|$)/i', $link, $matches);
+        return strtoupper($matches[1] ?? '');
     }
 
     /**
-     * Show voter profile
+     * Check if voter has already voted
      */
-    public function profile()
+    private function checkIfVoted($electionId, $voterId)
     {
-        $voterId = session('voter_id');
-        $voter = null;
-
-        if ($voterId) {
-            $voter = \App\Models\Voter::find($voterId);
-        }
-
-        return view('voter.profile.index', compact('voter'));
+        return Vote::where('election_id', $electionId)
+            ->where('voter_id', $voterId)
+            ->exists();
     }
-
 }

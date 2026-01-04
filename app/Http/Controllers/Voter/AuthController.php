@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Voter;
 
 use App\Http\Controllers\Controller;
+use App\Models\Election;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,7 +42,10 @@ class AuthController extends Controller
 
         // Redirect to welcome page if election data exists in session
         if (session()->has('election_id')) {
-            return redirect()->route('voter.elections.welcome');
+            $election = Election::find(session('election_id'));
+            if ($election) {
+                return redirect()->route('voter.elections.welcome', $election->code);
+            }
         }
 
         return redirect()->route('voter.dashboard');
@@ -73,7 +77,10 @@ class AuthController extends Controller
 
             // Redirect to welcome page if election data exists in session
             if (session()->has('election_id')) {
-                return redirect()->route('voter.elections.welcome');
+                $election = Election::find(session('election_id'));
+                if ($election) {
+                    return redirect()->route('voter.elections.welcome', $election->code);
+                }
             }
 
             return redirect()->intended(route('voter.dashboard'));
@@ -107,6 +114,15 @@ class AuthController extends Controller
                 ->withErrors(['error' => 'Please enter an election code first.']);
         }
 
-        return view('voter.welcome');
+        $election = Election::find(session('election_id'));
+
+        if (!$election) {
+            session()->forget('election_id');
+            return redirect()->route('voter.elections.access')
+                ->withErrors(['error' => 'Election not found.']);
+        }
+
+        // Redirect to the proper route with election code
+        return redirect()->route('voter.elections.welcome', $election->code);
     }
 }

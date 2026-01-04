@@ -1,6 +1,6 @@
 @extends('voter.layouts.app')
 
-@section('title', 'Voter Registration - SecureVote PH')
+@section('title', 'Voter Registration - ' . ($election->title ?? 'SecureVote PH'))
 
 @push('styles')
     <style>
@@ -84,6 +84,9 @@
         .form-transition {
             transition: all 0.3s ease-in-out;
         }
+        .election-badge {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(0, 49, 83, 0.1) 100%);
+        }
     </style>
 @endpush
 
@@ -113,6 +116,37 @@
                     </a>
                 </div>
             </header>
+
+            <!-- Election Info Banner -->
+            @isset($election)
+                <div class="max-w-7xl mx-auto px-4 lg:px-8 mb-6">
+                    <div class="election-badge rounded-2xl p-4 border border-brand-accent/20">
+                        <div class="flex items-center justify-between flex-wrap gap-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 gradient-brand rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-ballot-check text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-bold text-brand-primary">{{ $election->title }}</h2>
+                                    <p class="text-sm text-slate-500">Election Code: <span class="font-mono font-bold text-brand-accent">{{ $election->code }}</span></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4 text-sm">
+                                <div class="flex items-center gap-2 text-slate-600">
+                                    <i class="fas fa-calendar text-brand-accent"></i>
+                                    <span>{{ $election->start_date->format('M d, Y') }} - {{ $election->end_date->format('M d, Y') }}</span>
+                                </div>
+                                @if($election->organization)
+                                    <div class="flex items-center gap-2 text-slate-600">
+                                        <i class="fas fa-building text-brand-accent"></i>
+                                        <span>{{ $election->organization->name }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endisset
 
             <!-- Main Content -->
             <div class="max-w-7xl mx-auto px-4 lg:px-8 py-8 lg:py-12">
@@ -160,6 +194,15 @@
                                     </div>
                                 @endif
 
+                                @if(session('info'))
+                                    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                                        <div class="flex items-center gap-2 text-blue-600">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>{{ session('info') }}</span>
+                                        </div>
+                                    </div>
+                                @endif
+
                                 <!-- Login Error Message -->
                                 <div id="login-error" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl hidden">
                                     <div class="flex items-center gap-2 text-red-600">
@@ -169,7 +212,7 @@
                                 </div>
 
                                 <!-- Registration Form -->
-                                <form id="register-form" action="{{ route('voter.register.submit') }}" method="POST" class="form-transition">
+                                <form id="register-form" action="{{ route('voter.registration.store', $election->code ?? '') }}" method="POST" class="form-transition">
                                     @csrf
 
                                     <div class="mb-5">
@@ -201,29 +244,41 @@
 
                                     <div class="mb-5">
                                         <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                            <i class="fas fa-id-card text-brand-accent mr-2"></i>Voter ID (Optional)
+                                            <i class="fas fa-id-card text-brand-accent mr-2"></i>Student/Employee ID (Optional)
                                         </label>
-                                        <input type="text" name="voter_id" value="{{ old('voter_id') }}"
+                                        <input type="text" name="student_id" value="{{ old('student_id') }}"
                                                class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700"
-                                               placeholder="Enter your voter ID if available">
+                                               placeholder="Enter your ID if available">
                                     </div>
 
                                     <div class="mb-5">
                                         <label class="block text-sm font-semibold text-slate-700 mb-2">
                                             <i class="fas fa-lock text-brand-accent mr-2"></i>Password
                                         </label>
-                                        <input type="password" name="password" required
-                                               class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700"
-                                               placeholder="Create a secure password">
+                                        <div class="relative">
+                                            <input type="password" name="password" id="register-password" required
+                                                   class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700 pr-12"
+                                                   placeholder="Create a secure password">
+                                            <button type="button" onclick="togglePassword('register-password', 'register-eye')"
+                                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-accent transition-colors">
+                                                <i id="register-eye" class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div class="mb-6">
                                         <label class="block text-sm font-semibold text-slate-700 mb-2">
                                             <i class="fas fa-lock text-brand-accent mr-2"></i>Confirm Password
                                         </label>
-                                        <input type="password" name="password_confirmation" required
-                                               class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700"
-                                               placeholder="Confirm your password">
+                                        <div class="relative">
+                                            <input type="password" name="password_confirmation" id="register-password-confirm" required
+                                                   class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700 pr-12"
+                                                   placeholder="Confirm your password">
+                                            <button type="button" onclick="togglePassword('register-password-confirm', 'register-confirm-eye')"
+                                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-accent transition-colors">
+                                                <i id="register-confirm-eye" class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div class="mb-6">
@@ -240,12 +295,12 @@
 
                                     <button type="submit" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg">
                                         <i class="fas fa-user-plus"></i>
-                                        Create Account
+                                        Register & Continue
                                     </button>
                                 </form>
 
                                 <!-- Sign In Form (Hidden by default) -->
-                                <form id="signin-form" action="{{ route('voter.login') }}" method="POST" class="form-transition hidden">
+                                <form id="signin-form" action="{{ route('voter.registration.login', $election->code ?? '') }}" method="POST" class="form-transition hidden">
                                     @csrf
 
                                     <div class="mb-5">
@@ -261,9 +316,15 @@
                                         <label class="block text-sm font-semibold text-slate-700 mb-2">
                                             <i class="fas fa-lock text-brand-accent mr-2"></i>Password
                                         </label>
-                                        <input type="password" name="password" required
-                                               class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700"
-                                               placeholder="Enter your password">
+                                        <div class="relative">
+                                            <input type="password" name="password" id="signin-password" required
+                                                   class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700 pr-12"
+                                                   placeholder="Enter your password">
+                                            <button type="button" onclick="togglePassword('signin-password', 'signin-eye')"
+                                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-brand-accent transition-colors">
+                                                <i id="signin-eye" class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div class="mb-6 flex items-center justify-between">
@@ -274,12 +335,12 @@
                                             </span>
                                             <span class="text-sm text-slate-600">Remember me</span>
                                         </label>
-                                        <a href="{{ route('password.request') }}" class="text-sm text-brand-accent hover:underline font-semibold">Forgot password?</a>
+                                        <a href="#" class="text-sm text-brand-accent hover:underline font-semibold">Forgot password?</a>
                                     </div>
 
                                     <button type="submit" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg">
                                         <i class="fas fa-sign-in-alt"></i>
-                                        Sign In
+                                        Sign In & Continue
                                     </button>
                                 </form>
 
@@ -296,7 +357,7 @@
                                 <!-- Toggle Button -->
                                 <button id="toggle-form-btn" type="button" class="w-full flex items-center justify-center gap-3 py-4 px-6 bg-slate-100 rounded-2xl text-slate-700 hover:bg-slate-200 transition-all font-semibold hover:shadow-lg">
                                     <i id="toggle-icon" class="fas fa-sign-in-alt"></i>
-                                    <span id="toggle-btn-text">Sign In</span>
+                                    <span id="toggle-btn-text">Sign In Instead</span>
                                 </button>
                             </div>
                         </div>
@@ -364,29 +425,56 @@
                             </div>
                         </div>
 
-                        <div class="mt-8 p-6 bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 rounded-2xl border border-brand-accent/20">
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="flex -space-x-2">
-                                    <div class="w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center text-white text-xs font-bold">JD</div>
-                                    <div class="w-8 h-8 rounded-full bg-brand-accent flex items-center justify-center text-white text-xs font-bold">MR</div>
-                                    <div class="w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center text-white text-xs font-bold">+5K</div>
-                                </div>
-                                <div>
-                                    <p class="text-brand-primary font-semibold text-sm">Trusted by thousands</p>
-                                    <p class="text-slate-500 text-xs">Over 5,000 successful elections conducted</p>
+                        <!-- Election Details Card -->
+                        @isset($election)
+                            <div class="mt-8 p-6 bg-white rounded-2xl shadow-lg border border-slate-100">
+                                <h3 class="font-bold text-brand-primary mb-4 flex items-center gap-2">
+                                    <i class="fas fa-info-circle text-brand-accent"></i>
+                                    Election Details
+                                </h3>
+                                @if($election->description)
+                                    <p class="text-slate-600 text-sm mb-4">{{ $election->description }}</p>
+                                @endif
+                                <div class="space-y-3 text-sm">
+                                    <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                                        <span class="text-slate-500">Start Date</span>
+                                        <span class="font-semibold text-brand-primary">{{ $election->start_date->format('M d, Y h:i A') }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                                        <span class="text-slate-500">End Date</span>
+                                        <span class="font-semibold text-brand-primary">{{ $election->end_date->format('M d, Y h:i A') }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between py-2">
+                                        <span class="text-slate-500">Positions</span>
+                                        <span class="font-semibold text-brand-primary">{{ $election->positions()->count() }}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-4">
-                                <div class="flex items-center gap-1 text-brand-accent">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
+                        @else
+                            <div class="mt-8 p-6 bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 rounded-2xl border border-brand-accent/20">
+                                <div class="flex items-center gap-4 mb-4">
+                                    <div class="flex -space-x-2">
+                                        <div class="w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center text-white text-xs font-bold">JD</div>
+                                        <div class="w-8 h-8 rounded-full bg-brand-accent flex items-center justify-center text-white text-xs font-bold">MR</div>
+                                        <div class="w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center text-white text-xs font-bold">+5K</div>
+                                    </div>
+                                    <div>
+                                        <p class="text-brand-primary font-semibold text-sm">Trusted by thousands</p>
+                                        <p class="text-slate-500 text-xs">Over 5,000 successful elections conducted</p>
+                                    </div>
                                 </div>
-                                <span class="text-slate-500 text-sm">4.9/5 user satisfaction</span>
+                                <div class="flex items-center gap-4">
+                                    <div class="flex items-center gap-1 text-brand-accent">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <span class="text-slate-500 text-sm">4.9/5 user satisfaction</span>
+                                </div>
                             </div>
-                        </div>
+                        @endisset
                     </div>
                 </div>
             </div>
@@ -420,12 +508,12 @@
                     toggleIcon.className = 'fas fa-user-plus';
                     headerIcon.className = 'fas fa-sign-in-alt text-white text-2xl';
                     headerTitle.textContent = 'Welcome Back';
-                    headerSubtitle.textContent = 'Sign in to access your elections';
+                    headerSubtitle.textContent = 'Sign in to access your election';
                 } else {
                     signinForm.classList.add('hidden');
                     registerForm.classList.remove('hidden');
                     toggleText.textContent = 'Already registered?';
-                    toggleBtnText.textContent = 'Sign In';
+                    toggleBtnText.textContent = 'Sign In Instead';
                     toggleIcon.className = 'fas fa-sign-in-alt';
                     headerIcon.className = 'fas fa-user-plus text-white text-2xl';
                     headerTitle.textContent = 'Voter Registration';
@@ -436,16 +524,50 @@
             });
 
             // Phone number formatting
-            document.querySelector('input[name="phone"]')?.addEventListener('input', function(e) {
-                let value = this.value.replace(/\D/g, '');
-                if (value.length > 11) value = value.slice(0, 11);
-                this.value = value;
-            });
+            const phoneInput = document.querySelector('input[name="phone"]');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function(e) {
+                    let value = this.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.slice(0, 11);
+                    this.value = value;
+                });
+            }
 
-            // Voter ID uppercase
-            document.querySelector('input[name="voter_id"]')?.addEventListener('input', function(e) {
-                this.value = this.value.toUpperCase();
-            });
+            // Student ID uppercase
+            const studentIdInput = document.querySelector('input[name="student_id"]');
+            if (studentIdInput) {
+                studentIdInput.addEventListener('input', function(e) {
+                    this.value = this.value.toUpperCase();
+                });
+            }
+
+            // Password validation
+            const passwordInput = document.getElementById('register-password');
+            const confirmInput = document.getElementById('register-password-confirm');
+
+            if (confirmInput) {
+                confirmInput.addEventListener('input', function() {
+                    if (passwordInput.value !== this.value) {
+                        this.setCustomValidity('Passwords do not match');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                });
+            }
         });
+
+        // Toggle password visibility
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
     </script>
 @endpush

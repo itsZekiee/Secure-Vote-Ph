@@ -10,7 +10,6 @@ class Voter extends Model
     protected $table = 'voters';
 
     protected $fillable = [
-        'election_id',
         'name',
         'email',
         'phone',
