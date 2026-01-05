@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <div x-data="{ collapsed: false, isMobile: window.innerWidth < 1024 }"
+    <div x-data="{ collapsed: window.innerWidth < 1024, isMobile: window.innerWidth < 1024 }"
          x-init="window.addEventListener('resize', () => { isMobile = window.innerWidth < 1024 })"
          class="flex min-h-screen bg-slate-50">
 
@@ -125,7 +125,7 @@
                                         <th class="px-4 py-3">Form Title</th>
                                         <th class="px-4 py-3">Organization Name</th>
                                         <th class="px-4 py-3">Date Ended</th>
-                                        <th class="px-4 py-3">Contacted Person</th>
+                                        <th class="px-4 py-3">Candidates</th>
                                         <th class="px-4 py-3">Action</th>
                                     </tr>
                                     </thead>
@@ -133,25 +133,30 @@
                                     @foreach($forms as $form)
                                         <tr class="bg-white">
                                             <td class="px-4 py-3">
-                                                <a href="{{ isset($form->id) ? route('admin.forms.show', $form->id) : '#' }}" class="text-sky-600 hover:underline">
+                                                <a href="{{ route('admin.reports.view', $form->id) }}" class="text-sky-600 hover:underline font-medium">
                                                     {{ $form->title ?? '—' }}
                                                 </a>
                                             </td>
                                             <td class="px-4 py-3">
-                                                {{ optional($form->organization)->name ?? ($form->organization_name ?? '—') }}
+                                                {{ optional($form->organization)->name ?? '—' }}
                                             </td>
                                             <td class="px-4 py-3">
-                                                {{ optional($form->ended_at)->format('Y-m-d') ?? '—' }}
+                                                {{ optional($form->end_date)->format('Y-m-d') ?? '—' }}
+                                            </td>
+                                            <td class="px-4 py-3 text-slate-500">
+                                                {{ $form->candidates_count ?? 0 }} Candidates
                                             </td>
                                             <td class="px-4 py-3">
-                                                {{ $form->contact_person ?? $form->contacted_person ?? '—' }}
-                                            </td>
-                                            <td class="px-4 py-3">
-                                                <a href="{{ route('admin.reports.export', ['form_id' => $form->id, 'format' => 'xlsx']) }}"
-                                                   class="inline-flex items-center px-3 py-1 text-sm bg-white border border-gray-200 rounded hover:bg-gray-50">
-                                                    <i class="ri-download-line mr-2"></i>
-                                                    Download
-                                                </a>
+                                                <div class="flex items-center gap-2">
+                                                    <a href="{{ route('admin.reports.view', $form->id) }}"
+                                                       class="p-2 text-slate-400 hover:text-sky-600 transition-colors" title="View Report">
+                                                        <i class="ri-eye-line text-lg"></i>
+                                                    </a>
+                                                    <a href="{{ route('admin.reports.export', ['form_id' => $form->id, 'format' => 'xlsx']) }}"
+                                                       class="p-2 text-slate-400 hover:text-emerald-600 transition-colors" title="Download Excel">
+                                                        <i class="ri-file-excel-line text-lg"></i>
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach

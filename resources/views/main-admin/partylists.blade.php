@@ -3,7 +3,7 @@
 
 @section('content')
     <div x-data="{
-        collapsed: false,
+        collapsed: window.innerWidth < 1024,
         isMobile: window.innerWidth < 1024,
         selectedPartylist: null,
         showCandidates: false,

@@ -14,6 +14,7 @@ class Vote extends Model
         'election_id',
         'candidate_id',
         'voter_id',
+        'position_id',
     ];
 
     /**

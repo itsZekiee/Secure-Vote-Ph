@@ -90,89 +90,100 @@ class VoterController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::with(['organization'])->withCount(['votes']);
-        $query = $this->applyVoterScope($query);
+        $query = \App\Models\Voter::with(['election']);
 
-        $voters = $query->orderBy('created_at', 'desc')->paginate(15);
+        if ($request->has('q')) {
+            $q = $request->q;
+            $query->where(function($sq) use ($q) {
+                $sq->where('name', 'like', "%$q%")
+                   ->orWhere('email', 'like', "%$q%")
+                   ->orWhere('student_id', 'like', "%$q%");
+            });
+        }
 
-        return view('main-admin.voters', compact('voters'));
+        if ($request->has('election_id') && $request->election_id !== 'all') {
+            $query->where('election_id', $request->election_id);
+        }
+
+        $voters = $query->latest()->paginate(15);
+        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
+
+        return view('main-admin.voters', compact('voters', 'forms'));
     }
-
 
     public function create()
     {
-        // Prefer `status = 'active'`, fall back to `is_active = 1`, otherwise return all
-        if (Schema::hasColumn('organizations', 'status')) {
-            $organizations = Organization::where('status', 'active')->get();
-        } elseif (Schema::hasColumn('organizations', 'is_active')) {
-            $organizations = Organization::where('is_active', 1)->get();
-        } else {
-            $organizations = Organization::all();
-        }
-
-        return view('main-admin.voter.voter-create', compact('organizations'));
+        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
+        return view('main-admin.voter.voter-create', compact('forms'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'student_id' => 'nullable|string|unique:users,student_id',
-            'organization_id' => 'required|exists:organizations,id',
-            'is_active' => 'boolean'
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email',
+            'phone' => 'nullable|string|max:20',
+            'student_id' => 'nullable|string|max:50',
+            'form_id' => 'required|exists:elections,id',
+            'registration_status' => 'required|in:approved,pending,declined'
         ]);
-
-        $validated['password'] = bcrypt('password');
-
-        if (Schema::hasColumn('users', 'role')) {
-            $validated['role'] = 'voter';
-        }
-
-        if (Schema::hasColumn('users', 'is_voter')) {
-            $validated['is_voter'] = true;
-        }
 
         try {
             DB::beginTransaction();
 
-            $voter = User::create($validated);
-
-            $this->assignVoterRole($voter);
+            \App\Models\Voter::create([
+                'name' => $validated['full_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'student_id' => $validated['student_id'],
+                'election_id' => $validated['form_id'],
+                'registration_status' => $validated['registration_status'],
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            ]);
 
             DB::commit();
+
+            if ($request->ajax()) {
+                return response()->json(['success' => true]);
+            }
 
             return redirect()->route('admin.voters.index')
                 ->with('success', 'Voter created successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'errors' => ['general' => [$e->getMessage()]]], 422);
+            }
             return back()->withErrors(['general' => 'An error occurred while creating the voter'])
                 ->withInput();
         }
     }
 
-    public function show(User $voter)
+    public function show($id)
     {
-        $voter->load(['organization', 'votes']);
-        return view('main-admin.voters.show', compact('voter'));
+        $voter = \App\Models\Voter::with(['election'])->findOrFail($id);
+        return view('main-admin.voter.view', compact('voter'));
     }
 
-    public function edit(User $voter)
+    public function edit($id)
     {
-        $organizations = Organization::where('status', 'active')->get();
-        return view('main-admin.voters.edit', compact('voter', 'organizations'));
+        $voter = \App\Models\Voter::with(['election'])->findOrFail($id);
+        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
+        return view('main-admin.voter.edit', compact('voter', 'forms'));
     }
 
-    public function update(Request $request, User $voter)
+    public function update(Request $request, $id)
     {
+        $voter = \App\Models\Voter::findOrFail($id);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $voter->id,
-            'student_id' => 'nullable|string|unique:users,student_id,' . $voter->id,
-            'organization_id' => 'required|exists:organizations,id',
-            'is_active' => 'boolean'
+            'email' => 'required|email|unique:voters,email,' . $id,
+            'student_id' => 'nullable|string|max:50',
+            'phone' => 'nullable|string|max:20',
+            'election_id' => 'required|exists:elections,id',
+            'registration_status' => 'required|in:approved,pending,declined'
         ]);
 
         try {

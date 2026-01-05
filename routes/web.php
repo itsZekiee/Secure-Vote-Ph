@@ -1,6 +1,5 @@
 <?php
 
-// use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ElectionController;
@@ -14,6 +13,11 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Voter\VoterElectionController;
+use App\Http\Controllers\Voter\ElectionAccessController;
+use App\Http\Controllers\Voter\AuthController as VoterAuthController;
+use App\Http\Controllers\Voter\VoterRegistrationController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Elections\Store as ElectionStoreController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,9 +36,17 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('l
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
 
 // Authenticated user dashboard
-Route::get('/dashboard', function () {
-    return view('main-admin.dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| Election Registration Route (Public)
+|--------------------------------------------------------------------------
+*/
+Route::get('/elections/register/{code}', [VoterElectionController::class, 'register'])
+    ->name('elections.register');
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +56,7 @@ Route::get('/dashboard', function () {
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
 
     // Admin Dashboard
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Sub-Admin Dashboard Routes
     Route::prefix('sub-admin')->name('sub-admin.')->group(function () {
@@ -63,18 +75,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::get('/settings/backup', [SettingsController::class, 'backup'])->name('settings.backup');
     Route::post('/settings/restore', [SettingsController::class, 'restore'])->name('settings.restore');
 
-    // Sub-Admin Dashboard Routes
-    Route::prefix('sub-admin')->name('sub-admin.')->group(function () {
-        Route::get('dashboard', [SubAdminDashboardController::class, 'index'])->name('dashboard');
-        Route::get('elections', [SubAdminDashboardController::class, 'getAssignedElections'])->name('elections');
-        Route::get('elections/{election}', [SubAdminDashboardController::class, 'getElectionData'])->name('election-data');
-    });
+    // Profile Management
+    Route::put('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [\App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('profile.password');
 
-    /*
-    |--------------------------------------------------------------------------
-    | Organization Management Routes
-    |--------------------------------------------------------------------------
-    */
+    // Organization Management Routes
     Route::resource('organizations', OrganizationController::class);
     Route::prefix('organizations')->name('organizations.')->group(function () {
         Route::get('search', [OrganizationController::class, 'search'])->name('search');
@@ -85,14 +90,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::delete('{organization}/remove-member/{user}', [OrganizationController::class, 'removeMember'])->name('remove-member');
         Route::get('{organization}/statistics', [OrganizationController::class, 'statistics'])->name('statistics');
         Route::post('admin/organizations', [OrganizationController::class, 'store'])->name('admin.organizations.store');
+        // Automation Mode: Get partylists for organization
+        Route::get('{organization}/partylists', [ElectionController::class, 'getOrganizationPartylists'])->name('partylists');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Election Management Routes
-    |--------------------------------------------------------------------------
-    */
-    Route::resource('elections', ElectionController::class);
+    // Election Management Routes
+    Route::resource('elections', ElectionController::class)->except(['store']);
+    Route::post('elections', ElectionStoreController::class)->name('elections.store');
+
     Route::prefix('elections')->name('elections.')->group(function () {
         Route::get('search', [ElectionController::class, 'search'])->name('search');
         Route::get('export', [ElectionController::class, 'export'])->name('export');
@@ -109,11 +114,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::post('{election}/resume', [ElectionController::class, 'resume'])->name('resume');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Partylist Management Routes
-    |--------------------------------------------------------------------------
-    */
+    // Partylist Management Routes
     Route::resource('partylists', PartylistController::class);
     Route::prefix('partylists')->name('partylists.')->group(function () {
         Route::get('search', [PartylistController::class, 'search'])->name('search');
@@ -122,15 +123,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('{partylist}/members', [PartylistController::class, 'members'])->name('members');
         Route::post('{partylist}/add-member', [PartylistController::class, 'addMember'])->name('add-member');
         Route::delete('{partylist}/remove-member/{user}', [PartylistController::class, 'removeMember'])->name('remove-member');
-        Route::get('{partylist}/candidates', [PartylistController::class, 'candidates'])->name('candidates');
+        // Automation Mode: Get candidates for partylist
+        Route::get('{partylist}/candidates', [ElectionController::class, 'getPartylistCandidates'])->name('candidates');
         Route::get('{partylist}/statistics', [PartylistController::class, 'statistics'])->name('statistics');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Candidate Management Routes
-    |--------------------------------------------------------------------------
-    */
+    // Candidate Management Routes
     Route::resource('candidates', CandidateController::class);
     Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('search', [CandidateController::class, 'search'])->name('search');
@@ -143,11 +141,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::delete('{candidate}/remove-photo', [CandidateController::class, 'removePhoto'])->name('remove-photo');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Voter Management Routes (Resource Routes)
-    |--------------------------------------------------------------------------
-    */
+    // Voter Management Routes
     Route::resource('voters', VoterController::class);
     Route::prefix('voters')->name('voters.')->group(function () {
         Route::get('search', [VoterController::class, 'search'])->name('search');
@@ -155,22 +149,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::post('{voter}/toggle-status', [VoterController::class, 'toggleStatus'])->name('toggle-status');
         Route::post('{voter}/verify', [VoterController::class, 'verify'])->name('verify');
         Route::post('{voter}/unverify', [VoterController::class, 'unverify'])->name('unverify');
+        Route::post('{voter}/approve', [VoterController::class, 'approve'])->name('approve');
+        Route::post('{voter}/decline', [VoterController::class, 'decline'])->name('decline');
         Route::get('{voter}/voting-history', [VoterController::class, 'votingHistory'])->name('voting-history');
         Route::post('bulk-import', [VoterController::class, 'bulkImport'])->name('bulk-import');
         Route::get('template-download', [VoterController::class, 'downloadTemplate'])->name('template-download');
         Route::post('bulk-verify', [VoterController::class, 'bulkVerify'])->name('bulk-verify');
         Route::post('bulk-delete', [VoterController::class, 'bulkDelete'])->name('bulk-delete');
-
-        // Import preview & store routes
         Route::post('import-preview', [VoterController::class, 'importPreview'])->name('import.preview');
         Route::post('import-store', [VoterController::class, 'importStore'])->name('import.store');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | User Management Routes
-    |--------------------------------------------------------------------------
-    */
+    // User Management Routes
     Route::resource('users', UserController::class);
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('search', [UserController::class, 'search'])->name('search');
@@ -184,13 +174,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('template-download', [UserController::class, 'downloadTemplate'])->name('template-download');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Reports & Analytics Routes
-    |--------------------------------------------------------------------------
-    */
+    // Reports & Analytics Routes
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/view/{election}', [ReportController::class, 'viewReport'])->name('view');
         Route::get('dashboard', [ReportController::class, 'dashboard'])->name('dashboard');
         Route::get('elections', [ReportController::class, 'elections'])->name('elections');
         Route::get('elections/{election}', [ReportController::class, 'electionDetail'])->name('elections.detail');
@@ -211,11 +198,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('pdf/{type}', [ReportController::class, 'generatePDF'])->name('pdf');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | System Configuration Routes
-    |--------------------------------------------------------------------------
-    */
+    // System Configuration Routes
     Route::prefix('system')->name('system.')->group(function () {
         Route::get('info', [AdminController::class, 'systemInfo'])->name('info');
         Route::get('logs', [AdminController::class, 'logs'])->name('logs');
@@ -223,11 +206,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::post('maintenance', [AdminController::class, 'toggleMaintenance'])->name('maintenance');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | API Routes for AJAX calls
-    |--------------------------------------------------------------------------
-    */
+    // API Routes for AJAX calls
     Route::prefix('api')->name('api.')->group(function () {
         Route::get('dashboard-stats', [AdminController::class, 'getDashboardStats'])->name('dashboard-stats');
         Route::get('quick-stats', [AdminController::class, 'getQuickStats'])->name('quick-stats');
@@ -237,11 +216,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('suggestions/{type}', [AdminController::class, 'getSuggestions'])->name('suggestions');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Notification Routes
-    |--------------------------------------------------------------------------
-    */
+    // Notification Routes
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [AdminController::class, 'notifications'])->name('index');
         Route::post('{notification}/read', [AdminController::class, 'markAsRead'])->name('read');
@@ -249,11 +224,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::delete('{notification}', [AdminController::class, 'deleteNotification'])->name('delete');
     });
 
-    /*
-    |--------------------------------------------------------------------------
-    | Backup & Restore Routes
-    |--------------------------------------------------------------------------
-    */
+    // Backup & Restore Routes
     Route::prefix('backup')->name('backup.')->group(function () {
         Route::get('/', [AdminController::class, 'backupIndex'])->name('index');
         Route::post('create', [AdminController::class, 'createBackup'])->name('create');
@@ -263,11 +234,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     });
 });
 
-/*
-|--------------------------------------------------------------------------
-| Public API Routes
-|--------------------------------------------------------------------------
-*/
+// Public API Routes
 Route::prefix('api/v1')->name('api.v1.')->group(function () {
     Route::get('elections', [ElectionController::class, 'apiIndex'])->name('elections.index');
     Route::get('elections/{election}', [ElectionController::class, 'apiShow'])->name('elections.show');
@@ -281,16 +248,79 @@ Route::prefix('api/v1')->name('api.v1.')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('voter')->name('voter.')->group(function () {
+
+    // ==========================================
+    // PUBLIC ROUTES (No Authentication Required)
+    // ==========================================
+
+    // Step 1: Election Access - Enter code/link
+    Route::get('/access', [VoterElectionController::class, 'access'])->name('elections.access');
+    Route::post('/access/verify', [VoterElectionController::class, 'verify'])->name('elections.verify');
+
+    // Dashboard & Elections List Redirects
+    Route::get('/dashboard', [VoterAuthController::class, 'welcome'])->name('dashboard');
+    Route::get('/elections', function () {
+        return redirect()->route('voter.elections.access');
+    })->name('elections.index');
+
+    // Step 2: Voter Registration/Login for specific election
+    Route::get('/registration/{code}', [VoterRegistrationController::class, 'index'])->name('registration.index');
+    Route::post('/registration/{code}', [VoterRegistrationController::class, 'store'])->name('registration.store');
+    Route::post('/registration/{code}/login', [VoterRegistrationController::class, 'login'])->name('registration.login');
+
+    // ==========================================
+    // PROTECTED ROUTES (Voter Session Required)
+    // ==========================================
+    Route::middleware(['voter.auth'])->group(function () {
+
+        // Step 3: Welcome page with countdown
+        Route::get('/elections/{code}/welcome', [VoterElectionController::class, 'welcome'])->name('elections.welcome');
+
+        // Step 4: Voting page
+        Route::get('/elections/{code}/vote', [VoterElectionController::class, 'index'])->name('elections.vote');
+        Route::post('/elections/{code}/submit', [VoterElectionController::class, 'submitVote'])->name('elections.submit');
+
+        // Step 5: Results page
+        Route::get('/elections/{code}/results', [VoterElectionController::class, 'results'])->name('elections.results');
+
+        // Voter Profile & History
+        Route::get('/profile', [VoterElectionController::class, 'profile'])->name('profile.index');
+        Route::get('/history', [VoterElectionController::class, 'history'])->name('history.index');
+
+        // Logout
+        Route::post('/logout', [VoterRegistrationController::class, 'logout'])->name('logout');
+    });
+
+    // ==========================================
+    // LEGACY ROUTES (Redirects for backward compatibility)
+    // ==========================================
+
+    // Legacy election access routes
+    Route::get('/election/{code}/welcome', [ElectionAccessController::class, 'welcome'])->name('election.welcome');
+    Route::get('/elections/welcome', [ElectionAccessController::class, 'welcomeFromSession'])->name('elections.welcome.session');
+    Route::get('/welcome', [VoterAuthController::class, 'welcome'])->name('welcome');
+    Route::get('/register/{code}', [ElectionAccessController::class, 'register'])->name('register');
+
+    // Legacy join routes - REDIRECT to access page
+    Route::get('/elections/join', function () {
+        return redirect()->route('voter.elections.access');
+    })->name('elections.join');
+
+    Route::post('/elections/join', function () {
+        return redirect()->route('voter.elections.access');
+    })->name('elections.join.submit');
+
+    // Legacy show and vote
+    Route::get('/elections/{election}/confirmation', [VoterElectionController::class, 'confirmation'])->name('elections.confirmation');
+
+    // Legacy registration view
     Route::get('/registration', function () {
         return view('voter.registration.index');
-    })->name('registration.index');
+    })->name('registration.legacy');
 
-    Route::post('/login', [App\Http\Controllers\Voter\AuthController::class, 'login'])->name('login');
-    Route::post('/register', [App\Http\Controllers\Voter\AuthController::class, 'register'])->name('register');
-
-    // Election Join Routes (for entering election code/link)
-    Route::get('/elections/join', [VoterElectionController::class, 'showJoinForm'])->name('elections.join');
-    Route::post('/elections/join', [VoterElectionController::class, 'join'])->name('elections.verify');
+    // Legacy authentication
+    Route::post('/login', [VoterAuthController::class, 'login'])->name('login');
+    Route::post('/register', [VoterAuthController::class, 'register'])->name('register.submit');
 });
 
 Route::get('/password/reset', function () {

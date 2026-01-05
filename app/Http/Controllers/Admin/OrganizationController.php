@@ -44,6 +44,7 @@ class OrganizationController extends Controller
             'contact_email' => 'required|email|max:255',
             'contact_phone' => 'nullable|string|max:50',
             'status' => 'required|in:active,inactive,pending',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -55,6 +56,12 @@ class OrganizationController extends Controller
 
         $data = $validator->validated();
         $data['created_by'] = auth()->id();
+
+        if ($request->hasFile('logo')) {
+            $logoName = time() . '_' . $request->file('logo')->getClientOriginalName();
+            $request->file('logo')->storeAs('public/organizations', $logoName);
+            $data['logo'] = $logoName;
+        }
 
         $organization = Organization::create($data);
 
@@ -125,11 +132,23 @@ class OrganizationController extends Controller
             'description' => 'nullable|string|max:1000',
             'contact_email' => 'nullable|email|max:255',
             'contact_phone' => 'nullable|string|max:20',
-            'status' => 'required|in:active,inactive'
+            'status' => 'required|in:active,inactive',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         try {
             DB::beginTransaction();
+
+            if ($request->hasFile('logo')) {
+                // Delete old logo if exists
+                if ($organization->logo) {
+                    \Illuminate\Support\Facades\Storage::delete('public/organizations/' . $organization->logo);
+                }
+
+                $logoName = time() . '_' . $request->file('logo')->getClientOriginalName();
+                $request->file('logo')->storeAs('public/organizations', $logoName);
+                $validated['logo'] = $logoName;
+            }
 
             $organization->update($validated);
 

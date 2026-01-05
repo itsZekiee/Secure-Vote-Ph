@@ -5,8 +5,8 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('voter.welcome') }}">
-                        <span class="text-xl font-bold text-indigo-600">Secure Vote PH</span>
+                    <a href="{{ route('voter.elections.access') }}">
+                    <span class="text-xl font-bold text-indigo-600">Secure Vote PH</span>
                     </a>
                 </div>
 

@@ -4,113 +4,16 @@
     <script>
         function dashboard() {
             return {
-                collapsed: false,
-                isMobile: window.innerWidth < 1024,
                 selectedElection: null,
                 searchQuery: '',
                 statusFilter: 'all',
-                elections: [
-                    {
-                        id: 1,
-                        name: 'Presidential Election 2024',
-                        organization: 'National Electoral Commission',
-                        createdDate: '2024-01-15',
-                        status: 'active',
-                        totalVotes: 8542,
-                        registeredVoters: 11800,
-                        turnoutRate: 72.5,
-                        realtimeMetrics: {
-                            votesPerMinute: [12, 15, 18, 14, 22, 19, 25, 21, 18, 16],
-                            avgTimeToVote: 4.2,
-                            activeSessions: 143,
-                            failedLogins: 8,
-                            suspiciousIPs: 2,
-                            verificationSuccessRate: 94.5,
-                            ghostRegistrations: 234
-                        },
-                        demographicData: {
-                            ageGroups: [
-                                { label: '18-25', votes: 2340, total: 3200 },
-                                { label: '26-35', votes: 1890, total: 2450 },
-                                { label: '36-50', votes: 2512, total: 3150 },
-                                { label: '51+', votes: 1800, total: 3000 }
-                            ],
-                            regions: [
-                                { name: 'Region 1', votes: 2145, percent: 25.1 },
-                                { name: 'Region 2', votes: 1834, percent: 21.5 },
-                                { name: 'Region 3', votes: 2980, percent: 34.9 },
-                                { name: 'Region 4', votes: 1583, percent: 18.5 }
-                            ],
-                            submissionMethods: [
-                                { method: 'In-Person', count: 5126, percent: 60 },
-                                { method: 'Online', count: 2558, percent: 30 },
-                                { method: 'Mail-In', count: 858, percent: 10 }
-                            ]
-                        }
-                    },
-                    {
-                        id: 2,
-                        name: 'Barangay Election 2024',
-                        organization: 'Local Government Unit',
-                        createdDate: '2024-02-20',
-                        status: 'scheduled',
-                        totalVotes: 0,
-                        registeredVoters: 5000,
-                        turnoutRate: 0,
-                        realtimeMetrics: {
-                            votesPerMinute: Array(10).fill(0),
-                            avgTimeToVote: 0,
-                            activeSessions: 0,
-                            failedLogins: 0,
-                            suspiciousIPs: 0,
-                            verificationSuccessRate: 0,
-                            ghostRegistrations: 456
-                        },
-                        demographicData: {
-                            ageGroups: [],
-                            regions: [],
-                            submissionMethods: []
-                        }
-                    },
-                    {
-                        id: 3,
-                        name: 'Municipal Election 2023',
-                        organization: 'Municipal Electoral Office',
-                        createdDate: '2023-11-05',
-                        status: 'completed',
-                        totalVotes: 12456,
-                        registeredVoters: 14620,
-                        turnoutRate: 85.2,
-                        realtimeMetrics: {
-                            votesPerMinute: [8,12,10,15,18,20,16,14,12,0],
-                            avgTimeToVote: 5.8,
-                            activeSessions: 0,
-                            failedLogins: 12,
-                            suspiciousIPs: 3,
-                            verificationSuccessRate: 89.2,
-                            ghostRegistrations: 189
-                        },
-                        demographicData: {
-                            ageGroups: [
-                                { label: '18-25', votes: 3120, total: 3800 },
-                                { label: '26-35', votes: 2890, total: 3450 },
-                                { label: '36-50', votes: 3912, total: 4350 },
-                                { label: '51+', votes: 2534, total: 3020 }
-                            ],
-                            regions: [
-                                { name: 'North', votes: 3245, percent: 26.0 },
-                                { name: 'South', votes: 2834, percent: 22.8 },
-                                { name: 'East', votes: 3980, percent: 31.9 },
-                                { name: 'West', votes: 2397, percent: 19.3 }
-                            ],
-                            submissionMethods: [
-                                { method: 'In-Person', count: 7473, percent: 60 },
-                                { method: 'Online', count: 3737, percent: 30 },
-                                { method: 'Mail-In', count: 1246, percent: 10 }
-                            ]
-                        }
-                    }
-                ],
+                elections: (() => {
+                    const raw = @json($elections ?? []);
+                    return (raw || []).map(e => ({
+                        ...e,
+                        organization: (e.organization && e.organization.name) ? e.organization.name : (e.organization_name ?? 'N/A')
+                    }));
+                })(),
                 formatDate(dateString) {
                     const date = new Date(dateString);
                     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -158,9 +61,11 @@
                         return this.currentElection;
                     }
                     return {
-                        totalVotes: this.elections.reduce((sum, e) => sum + e.totalVotes, 0),
-                        registeredVoters: this.elections.reduce((sum, e) => sum + e.registeredVoters, 0),
-                        turnoutRate: (this.elections.reduce((sum, e) => sum + e.turnoutRate, 0) / this.elections.length).toFixed(1)
+                        totalVotes: this.elections.reduce((sum, e) => sum + (e.totalVotes || 0), 0),
+                        registeredVoters: this.elections.reduce((sum, e) => sum + (e.registeredVoters || 0), 0),
+                        turnoutRate: this.elections.length > 0
+                            ? (this.elections.reduce((sum, e) => sum + (e.turnoutRate || 0), 0) / this.elections.length).toFixed(1)
+                            : 0
                     };
                 },
                 get turnoutPercentage() {
@@ -186,21 +91,14 @@
                     };
                 },
                 init() {
-                    this.isMobile = window.innerWidth < 1024;
-                    window.addEventListener('resize', () => {
-                        this.isMobile = window.innerWidth < 1024;
-                    });
+                    // Initialize if needed
                 }
             };
         }
     </script>
 
-    <div x-data="dashboard()" x-init="init()" @election-selected.window="selectedElection = $event.detail.id" class="flex min-h-screen bg-gradient-to-b from-slate-50 to-white text-slate-800">
-
-        <x-admin-sidebar />
-
-        <div class="flex-1 flex flex-col min-h-screen">
-            <x-admin-header />
+    <div x-data="dashboard()" @election-selected.window="selectedElection = $event.detail.id" class="flex-1 flex flex-col">
+        <x-admin-header />
 
             <main class="flex-1 p-6 pb-10">
                 <div class="max-w-7xl mx-auto space-y-8">
@@ -327,6 +225,23 @@
                                         <div>
                                             <div class="text-xs text-slate-500">Turnout Rate</div>
                                             <div class="text-sm font-semibold text-emerald-600" x-text="`${currentElection?.turnoutRate}%`"></div>
+                                        </div>
+                                        <div class="w-px h-8 bg-gray-200"></div>
+                                        <div>
+                                            <div class="text-xs text-slate-500">Election Code</div>
+                                            <div class="text-sm font-mono font-semibold text-indigo-600" x-text="currentElection?.code"></div>
+                                        </div>
+                                        <div class="w-px h-8 bg-gray-200"></div>
+                                        <div>
+                                            <div class="text-xs text-slate-500">Election Link</div>
+                                            <div class="flex items-center gap-2">
+                                                <a :href="currentElection?.link" target="_blank" class="text-sm text-sky-600 hover:underline truncate max-w-xs" x-text="currentElection?.link"></a>
+                                                <button @click="navigator.clipboard.writeText(currentElection?.link)" class="p-1 hover:bg-slate-100 rounded transition-colors" title="Copy link">
+                                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

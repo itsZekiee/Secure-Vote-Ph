@@ -2,8 +2,6 @@
 
 @section('content')
     <div x-data="{
-        collapsed: false,
-        isMobile: window.innerWidth < 1024,
         selectedOrg: null,
         showMembers: false,
         members: [],
@@ -88,7 +86,6 @@
         }
     }"
          x-init="
-        window.addEventListener('resize', () => { isMobile = window.innerWidth < 1024 });
         $watch('searchQuery', () => filterOrganizations());
         $watch('sortBy', () => filterOrganizations());
         $watch('filterStatus', () => filterOrganizations());
@@ -97,13 +94,20 @@
         $watch('filterMembersMin', () => filterOrganizations());
         $watch('filterMembersMax', () => filterOrganizations());
     "
-         class="flex min-h-screen bg-gray-50">
-
-        <x-admin-sidebar />
+         class="flex-1 flex flex-col">
 
         <!-- Header positioned at top edge -->
         <div class="flex-1 flex flex-col">
-            <header class="bg-gradient-to-r from-white via-indigo-50/30 to-white border-b border-gray-200 shadow-sm">
+            <header class="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
+                <button @click="collapsed = false"
+                        class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="ri-menu-line text-lg"></i>
+                </button>
+                <h1 class="text-lg font-semibold text-slate-800">Organizations</h1>
+                <div class="w-10"></div>
+            </header>
+
+            <header class="bg-gradient-to-r from-white via-indigo-50/30 to-white border-b border-gray-200 shadow-sm hidden lg:block">
                 <div class="px-8 py-4">
                     <div class="flex items-center justify-between gap-6">
                         <div class="flex items-center gap-4">

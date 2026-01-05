@@ -30,8 +30,6 @@
     @endphp
 
     <div x-data="{
-        collapsed: false,
-        isMobile: window.innerWidth < 1024,
         search: '',
         filterBy: 'all',
         selectedForm: 'all',
@@ -42,16 +40,23 @@
             }
         }
     }"
-         x-init="window.addEventListener('resize', () => { isMobile = window.innerWidth < 1024 })"
-         class="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+         class="flex-1 flex flex-col">
 
-        <!-- Sidebar -->
-        <x-admin-sidebar />
+        <x-admin-header />
 
         <!-- Main content -->
-        <main class="flex-1 min-h-screen">
-            <!-- Top bar -->
-            <div class="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-40">
+        <main class="flex-1">
+            <!-- Mobile Header (if needed) -->
+            <header class="bg-white/80 backdrop-blur-sm border-b lg:hidden px-6 py-4 flex items-center justify-between">
+                <button @click="collapsed = false" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="ri-menu-line text-lg"></i>
+                </button>
+                <h1 class="text-lg font-bold text-slate-800">Voters</h1>
+                <div class="w-10"></div>
+            </header>
+
+            <!-- Top bar (Desktop) -->
+            <div class="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-40 hidden lg:block">
                 <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 flex items-center justify-center shadow">
@@ -178,10 +183,10 @@
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">DOB</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered Form</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -206,13 +211,13 @@
                                         <div class="text-sm font-medium text-gray-900">{{ $name }}</div>
                                         <div class="text-xs text-gray-500">{{ $student_id }}</div>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                                        {{ $dob && method_exists($dob, 'format') ? $dob->format('Y-m-d') : ($dob ?? '—') }}
-                                    </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $email }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $phone }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                                         {{ $created_at && method_exists($created_at, 'format') ? $created_at->format('Y-m-d') : ($created_at ?? '—') }}
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                                        {{ optional(data_get($voter, 'election'))->title ?? '—' }}
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm">
                                     <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium {{ $badgeClass }}">
@@ -227,9 +232,15 @@
                                                 @csrf
                                                 <button type="button" onclick="if(confirm('Approve this voter?')){ this.form.submit(); }" class="text-green-600 hover:underline">Approve</button>
                                             </form>
+                                        @elseif($status === 'approved')
                                             <form id="decline-form-{{ $id }}" method="POST" action="{{ route('admin.voters.decline', $id) }}" class="inline">
                                                 @csrf
-                                                <button type="button" onclick="if(confirm('Decline this voter?')){ this.form.submit(); }" class="text-red-600 hover:underline ml-2">Decline</button>
+                                                <button type="button" onclick="if(confirm('Decline this voter?')){ this.form.submit(); }" class="text-red-600 hover:underline">Decline</button>
+                                            </form>
+                                        @elseif($status === 'declined')
+                                            <form id="approve-form-{{ $id }}" method="POST" action="{{ route('admin.voters.approve', $id) }}" class="inline">
+                                                @csrf
+                                                <button type="button" onclick="if(confirm('Approve this voter?')){ this.form.submit(); }" class="text-green-600 hover:underline">Approve</button>
                                             </form>
                                         @endif
                                     </td>

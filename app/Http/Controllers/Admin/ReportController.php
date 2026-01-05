@@ -17,7 +17,7 @@ class ReportController extends Controller
     /**
      * Display reports dashboard
      */
-    public function index()
+    public function index(Request $request)
     {
         $stats = [
             'total_elections' => Election::count(),
@@ -28,16 +28,59 @@ class ReportController extends Controller
             'organizations_count' => Organization::count(),
         ];
 
-        $recent_elections = Election::with(['organization'])
-            ->withCount(['candidates', 'votes'])
-            ->latest()
-            ->take(5)
-            ->get();
+        // Fetch "forms" (elections)
+        $query = Election::with(['organization'])
+            ->withCount(['candidates', 'votes']);
+
+        if ($request->has('q')) {
+            $query->where('title', 'like', '%' . $request->q . '%');
+        }
+
+        if ($request->has('organization_id') && !empty($request->organization_id)) {
+            $query->where('organization_id', $request->organization_id);
+        }
+
+        if ($request->has('year') && !empty($request->year)) {
+            $query->whereYear('end_date', $request->year);
+        }
+
+        $forms = $query->latest()->paginate(10);
 
         // Organizations for the dropdown on the reports page
         $organizations = Organization::orderBy('name')->get();
 
-        return view('main-admin.reports', compact('stats', 'recent_elections', 'organizations'));
+        // Years for filter
+        $years = Election::selectRaw('YEAR(end_date) as year')
+            ->whereNotNull('end_date')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        return view('main-admin.reports', compact('stats', 'forms', 'organizations', 'years'));
+    }
+
+    /**
+     * View detailed report for an election
+     */
+    public function viewReport(Election $election)
+    {
+        $election->load(['organization', 'positions.candidates' => function ($query) use ($election) {
+            $query->withCount(['votes' => function ($q) use ($election) {
+                $q->where('election_id', $election->id);
+            }]);
+        }]);
+
+        $totalVotes = Vote::where('election_id', $election->id)->count();
+        // Assuming each voter can vote once (even if they vote for multiple positions,
+        // usually turnout is based on unique voters who participated)
+        $turnoutCount = Vote::where('election_id', $election->id)->distinct('voter_id')->count('voter_id');
+
+        // This project doesn't seem to have a global 'Voter' model that is not election-specific?
+        // Actually, looking at the migrations or models might help.
+        // In this project, Voter belongs to an election.
+        $totalRegistered = \App\Models\Voter::where('election_id', $election->id)->count();
+
+        return view('main-admin.report.reports-view', compact('election', 'totalVotes', 'turnoutCount', 'totalRegistered'));
     }
 
     /**

@@ -126,12 +126,12 @@
                                             <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
                                                 <i class="ri-calendar-event-line text-indigo-600"></i>
                                                 Election
-                                                <span class="text-xs text-gray-500 font-normal">(Optional)</span>
+                                                <span class="text-red-500">*</span>
                                             </label>
                                             <div class="relative">
                                                 <select x-model="formData.election_id"
                                                         class="w-full pl-10 pr-10 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none bg-white">
-                                                    <option value="">No election selected</option>
+                                                    <option value="">Select election</option>
                                                     <template x-for="e in elections" :key="e.id">
                                                         <option :value="e.id" x-text="e.title"></option>
                                                     </template>
@@ -177,7 +177,7 @@
                                                     <option :value="p.id" x-text="p.name"></option>
                                                 </template>
                                             </optgroup>
-                                            <option value="new">✨ Create New Position</option>
+                                            <option value="other">Other</option>
                                             <optgroup label="Common Positions">
                                                 <template x-for="cp in commonPositions" :key="cp">
                                                     <option :value="'preset:' + cp" x-text="cp"></option>
@@ -185,7 +185,7 @@
                                             </optgroup>
                                         </select>
 
-                                        <div x-show="formData.position_id === 'new' || String(formData.position_id).startsWith('preset:')"
+                                        <div x-show="formData.position_id === 'other'"
                                              x-transition
                                              class="mt-3">
                                             <input type="text"
@@ -495,12 +495,11 @@
                     if (!re.test(this.formData.user_email.trim())) this.errors.user_email = ['Enter a valid email'];
                 }
                 if (!this.formData.organization_id) this.errors.organization_id = ['Organization is required'];
+                if (!this.formData.election_id) this.errors.election_id = ['Election is required'];
                 if (!this.formData.position_id) {
                     this.errors.position_id = ['Position is required'];
-                } else if (this.formData.position_id === 'new' && !this.formData.new_position_name.trim()) {
+                } else if (this.formData.position_id === 'other' && !this.formData.new_position_name.trim()) {
                     this.errors.new_position_name = ['Enter position name'];
-                } else if (String(this.formData.position_id).startsWith('preset:') && !this.formData.new_position_name.trim()) {
-                    this.errors.new_position_name = ['Position name required'];
                 }
                 return Object.keys(this.errors).length === 0;
             },
@@ -547,7 +546,10 @@
                 formData.append('organization_id', this.formData.organization_id);
                 formData.append('election_id', this.formData.election_id || '');
 
-                if (String(this.formData.position_id).startsWith('preset:') || this.formData.position_id === 'new') {
+                if (String(this.formData.position_id).startsWith('preset:')) {
+                    formData.append('position_id', '');
+                    formData.append('new_position_name', this.formData.position_id.replace('preset:', ''));
+                } else if (this.formData.position_id === 'other') {
                     formData.append('position_id', '');
                     formData.append('new_position_name', this.formData.new_position_name.trim());
                 } else {

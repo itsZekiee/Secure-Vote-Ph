@@ -7,7 +7,7 @@
        x-transition:leave-start="translate-x-0"
        x-transition:leave-end="-translate-x-full"
        :class="collapsed && !isMobile ? 'w-20' : 'w-72'"
-       class="fixed lg:static inset-y-0 left-0 z-40 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-r border-slate-700 shadow-xl lg:shadow-sm transition-all duration-300 flex flex-col">
+       class="fixed inset-y-0 left-0 z-40 bg-slate-900 shadow-xl transition-all duration-300 flex flex-col">
 
     <!-- Mobile Overlay -->
     <div x-show="!collapsed && isMobile"
@@ -19,11 +19,11 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          @click="collapsed = true"
-         class="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-30"></div>
+         class="fixed inset-0 bg-black/50 z-30 lg:hidden"></div>
 
     <div class="flex flex-col h-full min-h-0">
         <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-5 border-b border-slate-700 bg-slate-800/50 flex-shrink-0">
+        <div class="flex items-center justify-between px-6 py-5 bg-slate-800/50 flex-shrink-0">
             <div x-show="!collapsed || isMobile"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 scale-95"
@@ -164,9 +164,9 @@
         </nav>
 
         <!-- User Profile Footer -->
-        <div class="p-4 border-t border-slate-700 bg-slate-800/50 flex-shrink-0">
+        <div class="p-2 border-t border-slate-700 bg-slate-800/50 flex-shrink-0">
             <div :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3'"
-                 class="flex items-center p-3 rounded-lg hover:bg-slate-700/50 transition-colors cursor-pointer group">
+                 class="flex items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors cursor-pointer group">
                 <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-lg flex-shrink-0">
                     {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
                 </div>

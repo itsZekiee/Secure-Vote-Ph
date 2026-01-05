@@ -13,10 +13,9 @@
         formData: {
             voter_code: '',
             full_name: '',
-            dob: '',
             email: '',
             phone: '',
-            form_id: 'all',
+            form_id: '',
             registration_status: 'approved',
         },
         errors: {},
@@ -31,8 +30,8 @@
         validate() {
             this.errors = {};
             if (!this.formData.full_name) this.errors.full_name = ['Name is required'];
-            if (!this.formData.dob) this.errors.dob = ['Date of birth is required'];
             if (!this.formData.email) this.errors.email = ['Email is required'];
+            if (!this.formData.form_id) this.errors.form_id = ['Election selection is required'];
             return Object.keys(this.errors).length === 0;
         },
 
@@ -42,7 +41,6 @@
             const payload = new FormData();
             payload.append('voter_code', this.formData.voter_code);
             payload.append('full_name', this.formData.full_name);
-            payload.append('dob', this.formData.dob);
             payload.append('email', this.formData.email);
             payload.append('phone', this.formData.phone);
             payload.append('form_id', this.formData.form_id);
@@ -136,16 +134,7 @@
                                         <div x-show="errors.full_name" class="text-red-500 text-sm mt-1" x-text="errors.full_name?.[0]"></div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <!-- DOB -->
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth <span class="text-red-500">*</span></label>
-                                            <input type="date" x-model="formData.dob"
-                                                   :class="errors.dob ? 'border-red-300 bg-red-50' : 'border-gray-200'"
-                                                   class="w-full px-3 py-3 rounded-lg border focus:ring-2 focus:ring-indigo-500">
-                                            <div x-show="errors.dob" class="text-red-500 text-sm mt-1" x-text="errors.dob?.[0]"></div>
-                                        </div>
-
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <!-- Email -->
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
@@ -158,20 +147,23 @@
                                         <!-- Phone -->
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                                            <input type="tel" x-model="formData.phone" placeholder="+1 (555) 123-4567"
+                                            <input type="tel" x-model="formData.phone" placeholder="09XXXXXXXXX"
                                                    class="w-full px-3 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-indigo-500">
                                         </div>
                                     </div>
 
                                     <!-- Registered Form -->
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Registered In Form</label>
-                                        <select x-model="formData.form_id" class="w-full px-4 py-3 border rounded-lg border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500">
-                                            <option value="all">All / Not assigned</option>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Registered In Form <span class="text-red-500">*</span></label>
+                                        <select id="form-select" x-model="formData.form_id"
+                                                :class="errors.form_id ? 'border-red-300 bg-red-50' : 'border-gray-200'"
+                                                class="w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-indigo-500">
+                                            <option value="">Select an election form</option>
                                             @foreach($forms as $form)
                                                 <option value="{{ $form->id }}">{{ $form->title ?? $form->name ?? 'Form #' . $form->id }}</option>
                                             @endforeach
                                         </select>
+                                        <div x-show="errors.form_id" class="text-red-500 text-sm mt-1" x-text="errors.form_id?.[0]"></div>
                                     </div>
 
                                     <!-- Extra notes -->
@@ -222,7 +214,7 @@
                                     <li class="flex justify-between"><span class="text-gray-500">Email</span><span x-text="formData.email || '-'"></span></li>
                                     <li class="flex justify-between"><span class="text-gray-500">Phone</span><span x-text="formData.phone || '-'"></span></li>
                                     <li class="flex justify-between"><span class="text-gray-500">Form</span>
-                                        <span class="font-medium" x-text="(function(){ const id = formData.form_id; return id === 'all' ? 'All / Not assigned' : (document.querySelector('#form-select option[value=\"'+id+'\"]')?.textContent || id) })()"></span>
+                                        <span class="font-medium" x-text="formData.form_id ? (document.querySelector('#form-select option[value=\'' + formData.form_id + '\']')?.textContent || formData.form_id) : '-'"></span>
                                     </li>
                                 </ul>
                             </div>

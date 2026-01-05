@@ -1,6 +1,10 @@
-@extends('layouts.app-main-admin')
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<x-default-header title="{{ $title ?? config('app.name', 'SecureVote') }}" />
 
-@section('content')
+@stack('styles')
+
+<body class="font-sans antialiased bg-slate-50 min-h-screen">
     <!-- Global Success/Error Messages (Fixed Position) -->
     @if(session('success'))
         <div class="fixed top-4 right-4 z-50 bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-xl shadow-lg transform transition-all duration-300">
@@ -70,7 +74,7 @@
                                         Start Voting Now
                                         <i class="ri-arrow-right-line ml-2 group-hover:translate-x-1 transition-transform"></i>
                                     </a>
-                                    <button onclick="window.location.href='{{ route('voter.registration.index') }}'" class="bg-white border-2 border-gray-200 hover:border-primary text-gray-700 hover:text-primary px-8 py-4 rounded-2xl font-semibold transition-all duration-300 hover:shadow-lg">
+                                    <button onclick="window.location.href='{{ route('voter.elections.access') }}'" class="bg-white border-2">
                                         Learn More
                                     </button>
                                 </div>
@@ -443,7 +447,7 @@
     <script>
         function initializeGoogleSignIn() {
             window.google?.accounts?.id?.initialize({
-                client_id: "22952197713-bnf9d78ndf30r0u3ct3ehk152aljq3ji.apps.googleusercontent.com",
+                client_id: "{{ config('services.google.client_id') }}",
                 callback: handleGoogleCredentialResponse,
                 auto_select: false,
                 cancel_on_tap_outside: false
@@ -543,4 +547,6 @@
         });
     </script>
 
-@endsection
+    @stack('scripts')
+</body>
+</html>
