@@ -412,7 +412,28 @@
                                              const response = await fetch(`/admin/partylists/${this.selectedPartylist}/candidates`);
                                              const data = await response.json();
                                              if (data.success && data.positions.length > 0) {
-                                                 this.parentData.positions = data.positions;
+                                                 // Merge positions instead of replacing
+                                                 data.positions.forEach(newPos => {
+                                                     const existingPos = this.parentData.positions.find(p => p.name === newPos.name);
+                                                     if (existingPos) {
+                                                         // Append candidates to existing position, avoid duplicates
+                                                         newPos.candidates.forEach(newCand => {
+                                                             if (!existingPos.candidates.includes(newCand)) {
+                                                                 existingPos.candidates.push(newCand);
+                                                             }
+                                                         });
+                                                     } else {
+                                                         // If position doesn't exist, check if first position is empty
+                                                         if (this.parentData.positions.length === 1 &&
+                                                             this.parentData.positions[0].name === '' &&
+                                                             (this.parentData.positions[0].candidates.length === 0 ||
+                                                              (this.parentData.positions[0].candidates.length === 1 && this.parentData.positions[0].candidates[0] === ''))) {
+                                                             this.parentData.positions = [newPos];
+                                                         } else {
+                                                             this.parentData.positions.push(newPos);
+                                                         }
+                                                     }
+                                                 });
                                                  this.isImported = true;
                                                  this.importedFrom = data.partylist_name;
                                              } else {

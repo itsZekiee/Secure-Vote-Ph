@@ -126,7 +126,7 @@ class CandidateController extends Controller
             'user_name' => 'required_without:user_id|string|max:255',
             'user_email' => 'required_without:user_id|email|max:255',
             'organization_id' => 'required|exists:organizations,id',
-            'election_id' => 'required|exists:elections,id',
+            'election_id' => 'nullable|exists:elections,id',
             'position_id' => 'nullable|exists:positions,id',
             'new_position_name' => 'nullable|string|max:255',
             'partylist_id' => 'nullable|exists:partylists,id',

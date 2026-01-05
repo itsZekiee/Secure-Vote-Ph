@@ -1,6 +1,15 @@
 @extends('layouts.app-main-admin')
 
 @section('content')
+    <x-admin-header title="Reports & Tally">
+        <x-slot name="breadcrumbs">
+            <nav class="hidden sm:flex items-center text-sm text-slate-500 space-x-2 mr-4">
+                <span class="text-slate-400">Admin</span>
+                <i class="ri-arrow-right-s-line text-slate-300"></i>
+                <span class="text-slate-700 font-medium">Reports</span>
+            </nav>
+        </x-slot>
+    </x-admin-header>
 
     <div x-data="{ collapsed: window.innerWidth < 1024, isMobile: window.innerWidth < 1024 }"
          x-init="window.addEventListener('resize', () => { isMobile = window.innerWidth < 1024 })"
@@ -34,12 +43,6 @@
                                 <p class="text-sm text-slate-500 mt-1">View completed forms, final tallies and election statistics</p>
                             </div>
                         </div>
-
-                        <nav class="hidden sm:flex items-center text-sm text-slate-500 space-x-2">
-                            <span class="text-slate-400">Admin</span>
-                            <i class="ri-arrow-right-s-line text-slate-300"></i>
-                            <span class="text-slate-700 font-medium">Reports</span>
-                        </nav>
                     </div>
 
                     <!-- Form selector & actions + Forms table -->

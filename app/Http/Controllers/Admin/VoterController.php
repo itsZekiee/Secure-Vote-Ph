@@ -331,23 +331,27 @@ class VoterController extends Controller
         $rows = $sheets->first() ?? collect();
 
         $voters = $rows->map(function ($row) {
+            $studentId = $row['id'] ?? ($row['student_id'] ?? ($row['id_number'] ?? ($row['employee_id'] ?? null)));
             return (object) [
-                'name' => $row['name'] ?? ($row['full_name'] ?? null),
+                'name' => $row['full_name'] ?? ($row['name'] ?? null),
                 'email' => $row['email'] ?? null,
-                'student_id' => $row['student_id'] ?? ($row['id_number'] ?? null),
-                'date_of_birth' => $row['date_of_birth'] ?? ($row['dob'] ?? null),
+                'student_id' => $studentId,
                 'phone' => $row['phone'] ?? ($row['phone_number'] ?? null),
-                'registration_status' => strtolower($row['registration_status'] ?? 'pending'),
-                'created_at' => $row['date_registered'] ?? ($row['created_at'] ?? null),
+                'registration_status' => 'approved',
+                'created_at' => now(),
             ];
         });
 
         $storedPath = $file->store('imports');
 
+        // Fetch forms/elections for selection
+        $forms = \App\Models\Election::where('status', '!=', 'archived')->get();
+
         // return view; the blade will handle collection vs paginator
         return view('main-admin.voters', [
             'voters' => $voters,
             'importPath' => $storedPath,
+            'forms' => $forms
         ]);
     }
 
@@ -358,9 +362,11 @@ class VoterController extends Controller
     {
         $request->validate([
             'import_path' => 'required|string',
+            'election_id' => 'required|exists:elections,id',
         ]);
 
         $path = $request->input('import_path');
+        $electionId = $request->input('election_id');
         $fullPath = storage_path('app/' . ltrim($path, '/'));
 
         if (!file_exists($fullPath)) {
@@ -379,18 +385,23 @@ class VoterController extends Controller
                     continue;
                 }
 
+                $studentId = $row['id'] ?? ($row['student_id'] ?? ($row['id_number'] ?? ($row['employee_id'] ?? null)));
+
+                // Validate Student ID format (xxxx-xxxxxx-xx-x)
+                if ($studentId && !preg_match('/^\d{4}-\d{6}-\d{2}-\d{1}$/', (string)$studentId)) {
+                    // Log or handle invalid format if needed
+                }
+
                 $data = [
-                    'name' => $row['name'] ?? ($row['full_name'] ?? 'Unnamed'),
+                    'name' => $row['full_name'] ?? ($row['name'] ?? 'Unnamed'),
                     'email' => $email,
-                    'student_id' => $row['student_id'] ?? null,
-                    'phone' => $row['phone'] ?? null,
+                    'student_id' => $studentId,
+                    'phone' => $row['phone'] ?? ($row['phone_number'] ?? null),
                     'is_active' => true,
                     'password' => bcrypt(Str::random(12)),
+                    'election_id' => $electionId,
+                    'registration_status' => 'approved',
                 ];
-
-                if (!empty($row['date_registered'] ?? $row['created_at'] ?? null)) {
-                    $data['created_at'] = $row['date_registered'] ?? $row['created_at'];
-                }
 
                 if (Schema::hasColumn('users', 'role')) {
                     $data['role'] = 'voter';
