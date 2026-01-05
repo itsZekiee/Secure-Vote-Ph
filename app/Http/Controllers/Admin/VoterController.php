@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Imports\VoterImport;
 use App\Models\User;
-use App\Models\Organization;
+use App\Models\Voter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -229,18 +229,18 @@ class VoterController extends Controller
 
     public function approve($id)
     {
-        $user = User::findOrFail($id);
-        $user->registration_status = 'approved';
-        $user->save();
+        $voter = Voter::findOrFail($id);
+        $voter->registration_status = 'approved';
+        $voter->save();
 
         return back()->with('success', 'Voter approved.');
     }
 
     public function decline($id)
     {
-        $user = User::findOrFail($id);
-        $user->registration_status = 'declined';
-        $user->save();
+        $voter = Voter::findOrFail($id);
+        $voter->registration_status = 'declined';
+        $voter->save();
 
         return back()->with('success', 'Voter declined.');
     }
@@ -248,11 +248,9 @@ class VoterController extends Controller
     public function search(Request $request)
     {
         $queryTerm = $request->get('q', '');
-        $organization_id = $request->get('organization_id', '');
-        $is_active = $request->get('is_active', '');
+        $election_id = $request->get('election_id', '');
 
-        $query = User::with(['organization'])->withCount(['votes']);
-        $query = $this->applyVoterScope($query);
+        $query = Voter::with(['election']);
 
         $query->when($queryTerm, function ($q) use ($queryTerm) {
             return $q->where(function ($subQuery) use ($queryTerm) {
@@ -261,28 +259,25 @@ class VoterController extends Controller
                     ->orWhere('student_id', 'like', "%{$queryTerm}%");
             });
         })
-            ->when($organization_id, function ($q) use ($organization_id) {
-                return $q->where('organization_id', $organization_id);
-            })
-            ->when($is_active !== '', function ($q) use ($is_active) {
-                return $q->where('is_active', $is_active);
+            ->when($election_id && $election_id !== 'all', function ($q) use ($election_id) {
+                return $q->where('election_id', $election_id);
             });
 
         $voters = $query->orderBy('created_at', 'desc')->paginate(15);
+        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
 
         if ($request->wantsJson()) {
             return response()->json(['voters' => $voters]);
         }
 
-        return view('main-admin.voters', compact('voters'));
+        return view('main-admin.voters', compact('voters', 'forms'));
     }
 
     public function export(Request $request)
     {
         $format = $request->get('format', 'csv');
 
-        $query = User::with(['organization'])->withCount(['votes']);
-        $query = $this->applyVoterScope($query);
+        $query = Voter::with(['election']);
         $voters = $query->orderBy('created_at', 'desc')->get();
 
         if ($format === 'json') {
@@ -299,7 +294,7 @@ class VoterController extends Controller
             $file = fopen('php://output', 'w');
 
             fputcsv($file, [
-                'ID', 'Name', 'Email', 'Student ID', 'Organization', 'Status', 'Votes Cast', 'Created At'
+                'ID', 'Name', 'Email', 'Student ID', 'Election', 'Status', 'Created At'
             ]);
 
             foreach ($voters as $voter) {
@@ -308,9 +303,8 @@ class VoterController extends Controller
                     $voter->name,
                     $voter->email,
                     $voter->student_id,
-                    $voter->organization->name ?? 'N/A',
-                    $voter->is_active ? 'Active' : 'Inactive',
-                    $voter->votes_count ?? 0,
+                    $voter->election->title ?? 'N/A',
+                    $voter->registration_status,
                     $voter->created_at ? $voter->created_at->format('Y-m-d H:i:s') : ''
                 ]);
             }

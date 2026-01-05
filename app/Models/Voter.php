@@ -17,6 +17,7 @@ class Voter extends Model
         'student_id',
         'password',
         'election_id',
+        'registration_status',
     ];
 
     protected $hidden = [
