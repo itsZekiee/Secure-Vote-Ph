@@ -71,7 +71,26 @@ class VoterRegistrationController extends Controller
             'email' => 'required|email|unique:voters,email,NULL,id,election_id,' . $election->id,
             'student_id' => 'nullable|string|max:50',
             'password' => 'required|string|min:6|confirmed',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
+
+        if ($election->require_geo_verification) {
+            if (!$request->latitude || !$request->longitude) {
+                return back()->withErrors(['registration' => 'Location access is required to register for this election. Please enable GPS.'])->withInput();
+            }
+
+            $distance = $this->calculateDistance(
+                $election->geo_latitude,
+                $election->geo_longitude,
+                $request->latitude,
+                $request->longitude
+            );
+
+            if ($distance > $election->geo_radius_meters) {
+                return back()->withErrors(['registration' => 'You must be within the designated voting area to register.'])->withInput();
+            }
+        }
 
         $voter = Voter::create([
             'election_id' => $election->id,
@@ -139,5 +158,24 @@ class VoterRegistrationController extends Controller
 
         return redirect()->route('voter.elections.access')
             ->with('success', 'You have been logged out.');
+    }
+
+    /**
+     * Calculate distance between two points in meters using Haversine formula
+     */
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371000; // meters
+
+        $latDelta = deg2rad($lat2 - $lat1);
+        $lonDelta = deg2rad($lon2 - $lon1);
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2) +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($lonDelta / 2) * sin($lonDelta / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
     }
 }
