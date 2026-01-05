@@ -4,31 +4,52 @@
 
 @push('styles')
     <style>
-        .gradient-brand { background: linear-gradient(135deg, #003153 0%, #00D4AA 100%); }
-        .text-brand-primary { color: #003153; }
-        .text-brand-accent { color: #00D4AA; }
+        :root {
+            --brand-primary: #003153;
+            --brand-accent: #00D4AA;
+            --brand-secondary: #008080;
+        }
+        .gradient-brand { background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%); }
+        .text-brand-primary { color: var(--brand-primary); }
+        .text-brand-accent { color: var(--brand-accent); }
         .btn-brand {
-            background: linear-gradient(135deg, #003153 0%, #00D4AA 100%);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         .btn-brand:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 40px -10px rgba(0, 212, 170, 0.5);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgba(0, 212, 170, 0.5);
         }
-        .btn-brand:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .countdown-box {
-            background: linear-gradient(135deg, rgba(0, 49, 83, 0.05) 0%, rgba(0, 212, 170, 0.05) 100%);
+        .countdown-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .countdown-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
         }
         @keyframes pulse-ring {
             0% { transform: scale(.95); box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 212, 170, 0); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(0, 212, 170, 0); }
             100% { transform: scale(.95); box-shadow: 0 0 0 0 rgba(0, 212, 170, 0); }
         }
         .btn-active-pulse {
             animation: pulse-ring 2s infinite;
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-8px);
+            background: white !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
         }
     </style>
 @endpush
@@ -108,19 +129,19 @@
 
                             <div id="countdown" class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
                                 <div class="relative group">
-                                    <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 lg:p-8 border border-white/10 transition-transform hover:scale-105">
+                                    <div class="countdown-item rounded-3xl p-6 lg:p-8 transition-transform hover:scale-105">
                                         <div id="days" class="text-4xl lg:text-6xl font-black mb-1">00</div>
                                         <div class="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white/50">Days</div>
                                     </div>
                                 </div>
                                 <div class="relative group">
-                                    <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 lg:p-8 border border-white/10 transition-transform hover:scale-105">
+                                    <div class="countdown-item rounded-3xl p-6 lg:p-8 transition-transform hover:scale-105">
                                         <div id="hours" class="text-4xl lg:text-6xl font-black mb-1">00</div>
                                         <div class="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white/50">Hours</div>
                                     </div>
                                 </div>
                                 <div class="relative group">
-                                    <div class="bg-white/10 backdrop-blur-md rounded-3xl p-6 lg:p-8 border border-white/10 transition-transform hover:scale-105">
+                                    <div class="countdown-item rounded-3xl p-6 lg:p-8 transition-transform hover:scale-105">
                                         <div id="minutes" class="text-4xl lg:text-6xl font-black mb-1">00</div>
                                         <div class="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white/50">Mins</div>
                                     </div>
@@ -145,7 +166,7 @@
                         @else
                             <a href="{{ route('voter.elections.vote', $election->code) }}"
                                id="voteBtn"
-                               class="flex-1 py-6 bg-brand-primary text-white font-black rounded-3xl text-center shadow-xl shadow-brand-primary/20 hover:shadow-brand-primary/40 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 pointer-events-none opacity-50 cursor-not-allowed">
+                               class="flex-1 py-6 bg-brand-primary text-white font-black rounded-3xl text-center shadow-xl shadow-brand-primary/20 hover:shadow-brand-primary/40 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 {{ (now() >= $election->start_date && now() <= $election->end_date) ? '' : 'pointer-events-none opacity-50 cursor-not-allowed' }}">
                                 <i class="fas fa-vote-yea text-xl"></i>
                                 <span id="voteBtnText">
                                     @if(now()->lt($election->start_date))
@@ -170,7 +191,7 @@
 
             <!-- Stats -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12 mb-12">
-                <div class="bg-white/60 backdrop-blur rounded-[2rem] p-8 border border-white shadow-sm text-center transition-all hover:bg-white hover:shadow-md">
+                <div class="stat-card bg-white/60 backdrop-blur rounded-[2rem] p-8 border border-white shadow-sm text-center transition-all">
                     <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-500">
                         <i class="fas fa-calendar-alt text-xl"></i>
                     </div>
@@ -178,7 +199,7 @@
                     <p class="font-bold text-brand-primary">{{ $election->start_date->format('M d, Y') }}</p>
                     <p class="text-xs text-slate-500">{{ $election->start_date->format('h:i A') }}</p>
                 </div>
-                <div class="bg-white/60 backdrop-blur rounded-[2rem] p-8 border border-white shadow-sm text-center transition-all hover:bg-white hover:shadow-md">
+                <div class="stat-card bg-white/60 backdrop-blur rounded-[2rem] p-8 border border-white shadow-sm text-center transition-all">
                     <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-orange-500">
                         <i class="fas fa-calendar-check text-xl"></i>
                     </div>
@@ -186,7 +207,7 @@
                     <p class="font-bold text-brand-primary">{{ $election->end_date->format('M d, Y') }}</p>
                     <p class="text-xs text-slate-500">{{ $election->end_date->format('h:i A') }}</p>
                 </div>
-                <div class="bg-white/60 backdrop-blur rounded-[2rem] p-8 border border-white shadow-sm text-center transition-all hover:bg-white hover:shadow-md">
+                <div class="stat-card bg-white/60 backdrop-blur rounded-[2rem] p-8 border border-white shadow-sm text-center transition-all">
                     <div class="w-12 h-12 bg-brand-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-brand-accent">
                         <i class="fas fa-list-ul text-xl"></i>
                     </div>
@@ -208,12 +229,17 @@
 
 @push('scripts')
     <script>
+        // Synchronize server time
+        const serverTime = {{ now()->timestamp * 1000 }};
+        const localTimeAtServerTime = new Date().getTime();
+        const timeOffset = serverTime - localTimeAtServerTime;
+
         const startDate = {{ $election->start_date->timestamp * 1000 }};
         const endDate = {{ $election->end_date->timestamp * 1000 }};
         const hasVoted = {{ $hasVoted ? 'true' : 'false' }};
 
         function updateCountdown() {
-            const now = new Date().getTime();
+            const now = new Date().getTime() + timeOffset;
             let targetDate, label, isBeforeStart, isEnded;
 
             if (now < startDate) {
