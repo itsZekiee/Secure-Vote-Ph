@@ -38,7 +38,7 @@ class ElectionController extends Controller
     public function create()
     {
         $organizations = Organization::where('created_by', auth()->id())->get();
-        return view('main-admin.elections', compact('organizations'));
+        return view('main-admin.elections', compact('organizations'));
     }
 
     public function edit(Election $election)
