@@ -79,18 +79,11 @@ class VoterRegistrationController extends Controller
             'email' => $request->email,
             'student_id' => $request->student_id,
             'password' => Hash::make($request->password),
+            'registration_status' => 'pending',
         ]);
 
-        // Store voter in session
-        session(['voter' => [
-            'id' => $voter->id,
-            'name' => $voter->name,
-            'email' => $voter->email,
-            'election_id' => $election->id
-        ]]);
-
-        return redirect()->route('voter.elections.welcome', $election->code)
-            ->with('success', 'Registration successful!');
+        return redirect()->route('voter.registration.index', $election->code)
+            ->with('success', 'Registration submitted! Please wait 1 to 24 hours for admin approval of your registration before you can Sign In.');
     }
 
     /**
@@ -116,6 +109,14 @@ class VoterRegistrationController extends Controller
 
         if (!$voter || !Hash::check($request->password, $voter->password)) {
             return back()->withErrors(['login' => 'Invalid email or password.']);
+        }
+
+        if ($voter->registration_status === 'pending') {
+            return back()->withErrors(['login' => 'Your registration is still pending approval. Please wait 1 to 24 hours.']);
+        }
+
+        if ($voter->registration_status === 'declined') {
+            return back()->withErrors(['login' => 'Your registration has been declined. You cannot sign in.']);
         }
 
         // Store voter in session

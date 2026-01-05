@@ -363,7 +363,7 @@ class CandidateController extends Controller
             $positions = Position::all();
         }
 
-        return view('main-admin.candidates.edit', compact('candidate', 'users', 'elections', 'partylists', 'positions'));
+        return view('main-admin.candidate.edit', compact('candidate', 'users', 'elections', 'partylists', 'positions'));
     }
 
     /**

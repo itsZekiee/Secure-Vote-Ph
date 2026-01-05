@@ -260,38 +260,17 @@
         <div class="px-8 py-8">
             <div class="max-w-7xl mx-auto">
                 <div class="flex items-start justify-between mb-8">
-                    <div class="flex items-start space-x-6">
+                    <div class="flex items-center space-x-6">
                         <!-- Organization Icon -->
                         <div class="flex-shrink-0">
-                            <div class="w-16 h-16 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-lg shadow-blue-500/25">
-                                <i class="ri-building-line text-white text-2xl"></i>
+                            <div class="w-20 h-20 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/25 transform hover:scale-105 transition-transform duration-300">
+                                <i class="ri-building-line text-white text-3xl"></i>
                             </div>
                         </div>
 
                         <div>
-                            <h1 class="text-4xl font-bold text-gray-900 mb-2">Edit Organization</h1>
-                            <p class="text-lg text-gray-600 mb-4">Update organization information and settings. Changes are tracked and audited.</p>
-
-                            <!-- Status Indicator -->
-                            <div class="flex items-center space-x-4">
-                                <div class="flex items-center space-x-2">
-                                    @if($organizationStatus === 'active')
-                                        <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                                        <span class="text-sm font-medium text-emerald-700">Active</span>
-                                    @elseif($organizationStatus === 'inactive')
-                                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                                        <span class="text-sm font-medium text-red-700">Inactive</span>
-                                    @else
-                                        <div class="w-3 h-3 bg-gray-500 rounded-full"></div>
-                                        <span class="text-sm font-medium text-gray-700">{{ ucfirst($organizationStatus) }}</span>
-                                    @endif
-                                </div>
-
-                                <div x-show="hasChanges" class="flex items-center space-x-2">
-                                    <div class="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></div>
-                                    <span class="text-sm font-medium text-amber-700">Unsaved Changes</span>
-                                </div>
-                            </div>
+                            <h1 class="text-4xl font-black text-gray-900 mb-2 tracking-tight">Edit Organization</h1>
+                            <p class="text-lg text-gray-500 font-medium">Refine your organization's identity and core settings.</p>
                         </div>
                     </div>
                 </div>
@@ -304,21 +283,22 @@
                     <!-- Main Form Content -->
                     <div class="lg:col-span-3 space-y-8">
                         <!-- Basic Information Card -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                            <div class="px-8 py-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200/60">
-                                <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                                    <i class="ri-building-line text-blue-600 mr-2"></i>
+                        <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/50 border border-white overflow-hidden">
+                            <div class="px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-600">
+                                <h2 class="text-xl font-bold text-white flex items-center">
+                                    <i class="ri-building-line mr-3"></i>
                                     Basic Information
                                 </h2>
+                                <p class="text-blue-100 text-sm mt-1">Configure the primary identity of your organization</p>
                             </div>
 
-                            <div class="p-8">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-8 space-y-8">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <!-- Organization Name -->
-                                    <div>
-                                        <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Organization Name <span class="text-red-500">*</span></label>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <div class="space-y-2">
+                                        <label for="name" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Organization Name <span class="text-red-500">*</span></label>
+                                        <div class="relative group">
+                                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-600">
                                                 <i class="ri-building-4-line text-gray-400"></i>
                                             </div>
                                             <input type="text"
@@ -326,45 +306,45 @@
                                                    name="name"
                                                    x-model="formData.name"
                                                    @input="generateSlug()"
-                                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('name') border-red-500 @enderror"
+                                                   class="block w-full pl-12 pr-4 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-300 font-medium text-gray-900 @error('name') ring-red-500 @enderror"
                                                    placeholder="Enter organization name"
                                                    required>
                                         </div>
                                         @error('name')
-                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <!-- Organization Slug -->
-                                    <div>
-                                        <label for="slug" class="block text-sm font-semibold text-gray-700 mb-2">Organization Slug</label>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <div class="space-y-2">
+                                        <label for="slug" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Organization Slug</label>
+                                        <div class="relative group">
+                                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-600">
                                                 <i class="ri-link text-gray-400"></i>
                                             </div>
                                             <input type="text"
                                                    id="slug"
                                                    name="slug"
                                                    x-model="formData.slug"
-                                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('slug') border-red-500 @enderror"
+                                                   class="block w-full pl-12 pr-4 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-300 font-medium text-gray-900 @error('slug') ring-red-500 @enderror"
                                                    placeholder="auto-generated-slug">
                                         </div>
                                         @error('slug')
-                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <!-- Description -->
-                                    <div class="md:col-span-2">
-                                        <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                                    <div class="md:col-span-2 space-y-2">
+                                        <label for="description" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">About Organization</label>
                                         <textarea id="description"
                                                   name="description"
                                                   x-model="formData.description"
-                                                  rows="4"
-                                                  class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('description') border-red-500 @enderror"
-                                                  placeholder="Brief description of the organization..."></textarea>
+                                                  rows="5"
+                                                  class="block w-full px-5 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-300 font-medium text-gray-900 @error('description') ring-red-500 @enderror"
+                                                  placeholder="Tell us about your organization's mission and goals..."></textarea>
                                         @error('description')
-                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
                                 </div>
@@ -372,70 +352,71 @@
                         </div>
 
                         <!-- Contact Information Card -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                            <div class="px-8 py-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200/60">
-                                <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                                    <i class="ri-contacts-line text-emerald-600 mr-2"></i>
-                                    Contact Information
+                        <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/50 border border-white overflow-hidden">
+                            <div class="px-8 py-6 bg-gradient-to-r from-emerald-600 to-teal-600">
+                                <h2 class="text-xl font-bold text-white flex items-center">
+                                    <i class="ri-contacts-line mr-3"></i>
+                                    Communication Hub
                                 </h2>
+                                <p class="text-emerald-100 text-sm mt-1">Keep your contact details up to date</p>
                             </div>
 
-                            <div class="p-8">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-8 space-y-8">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <!-- Email -->
-                                    <div>
-                                        <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Contact Email</label>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <div class="space-y-2">
+                                        <label for="email" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Official Email</label>
+                                        <div class="relative group">
+                                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-emerald-600">
                                                 <i class="ri-mail-line text-gray-400"></i>
                                             </div>
                                             <input type="email"
                                                    id="email"
                                                    name="email"
                                                    x-model="formData.email"
-                                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent @error('email') border-red-500 @enderror"
-                                                   placeholder="contact@organization.com">
+                                                   class="block w-full pl-12 pr-4 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all duration-300 font-medium text-gray-900 @error('email') ring-red-500 @enderror"
+                                                   placeholder="hello@org.com">
                                         </div>
                                         @error('email')
-                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <!-- Phone -->
-                                    <div>
-                                        <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Contact Phone</label>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <div class="space-y-2">
+                                        <label for="phone" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Phone Number</label>
+                                        <div class="relative group">
+                                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-emerald-600">
                                                 <i class="ri-phone-line text-gray-400"></i>
                                             </div>
                                             <input type="tel"
                                                    id="phone"
                                                    name="phone"
                                                    x-model="formData.phone"
-                                                   class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent @error('phone') border-red-500 @enderror"
-                                                   placeholder="+1 (555) 123-4567">
+                                                   class="block w-full pl-12 pr-4 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all duration-300 font-medium text-gray-900 @error('phone') ring-red-500 @enderror"
+                                                   placeholder="+63 900 000 0000">
                                         </div>
                                         @error('phone')
-                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <!-- Address -->
-                                    <div class="md:col-span-2">
-                                        <label for="address" class="block text-sm font-semibold text-gray-700 mb-2">Address</label>
-                                        <div class="relative">
-                                            <div class="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
+                                    <div class="md:col-span-2 space-y-2">
+                                        <label for="address" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Physical Address</label>
+                                        <div class="relative group">
+                                            <div class="absolute top-4 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-emerald-600">
                                                 <i class="ri-map-pin-line text-gray-400"></i>
                                             </div>
                                             <textarea id="address"
                                                       name="address"
                                                       x-model="formData.address"
                                                       rows="3"
-                                                      class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent @error('address') border-red-500 @enderror"
-                                                      placeholder="Full organization address..."></textarea>
+                                                      class="block w-full pl-12 pr-4 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all duration-300 font-medium text-gray-900 @error('address') ring-red-500 @enderror"
+                                                      placeholder="Enter full business address..."></textarea>
                                         </div>
                                         @error('address')
-                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
                                 </div>
@@ -443,74 +424,72 @@
                         </div>
 
                         <!-- Settings Card -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                            <div class="px-8 py-6 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200/60">
-                                <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                                    <i class="ri-settings-3-line text-purple-600 mr-2"></i>
-                                    Organization Settings
+                        <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/50 border border-white overflow-hidden">
+                            <div class="px-8 py-6 bg-gradient-to-r from-purple-600 to-indigo-600">
+                                <h2 class="text-xl font-bold text-white flex items-center">
+                                    <i class="ri-settings-3-line mr-3"></i>
+                                    Operational Status
                                 </h2>
+                                <p class="text-purple-100 text-sm mt-1">Manage the organization's current activity level</p>
                             </div>
 
                             <div class="p-8">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <!-- Status -->
-                                    <div>
-                                        <label for="status" class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                                        <div class="relative">
-                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <div class="space-y-2">
+                                        <label for="status" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Activity Status</label>
+                                        <div class="relative group">
+                                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-purple-600">
                                                 <i class="ri-toggle-line text-gray-400"></i>
                                             </div>
                                             <select id="status"
                                                     name="status"
                                                     x-model="formData.status"
-                                                    class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent @error('status') border-red-500 @enderror">
-                                                <option value="active">Active</option>
-                                                <option value="inactive">Inactive</option>
-                                                <option value="pending">Pending</option>
+                                                    class="block w-full pl-12 pr-10 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all duration-300 font-bold text-gray-900 appearance-none @error('status') ring-red-500 @enderror">
+                                                <option value="active">Active & Operational</option>
+                                                <option value="inactive">Inactive / Archived</option>
+                                                <option value="pending">Awaiting Verification</option>
                                                 <option value="suspended">Suspended</option>
                                             </select>
+                                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                                <i class="ri-arrow-down-s-line text-gray-400"></i>
+                                            </div>
                                         </div>
                                         @error('status')
-                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                            <div class="p-8">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center space-x-4">
-                                        <button type="button"
-                                                @click="confirmDelete()"
-                                                class="inline-flex items-center px-6 py-3 border border-red-300 rounded-lg text-red-700 bg-red-50 hover:bg-red-100 hover:border-red-400 transition-all duration-200 font-semibold">
-                                            <i class="ri-delete-bin-line mr-2"></i>
-                                            Delete Organization
-                                        </button>
+                        <!-- Sticky Bottom Action Bar -->
+                        <div class="bg-white/90 backdrop-blur-xl border border-white rounded-3xl p-6 shadow-2xl sticky bottom-8 z-30 flex flex-wrap items-center justify-between gap-6">
+                            <div class="flex items-center space-x-4">
+                                <button type="button"
+                                        @click="confirmDelete()"
+                                        class="inline-flex items-center px-6 py-3.5 bg-rose-50 text-rose-600 rounded-2xl font-bold hover:bg-rose-100 transition-all duration-200 border border-rose-100">
+                                    <i class="ri-delete-bin-line mr-2"></i>
+                                    Delete
+                                </button>
+                                <button type="button"
+                                        @click="saveDraft()"
+                                        class="inline-flex items-center px-6 py-3.5 bg-blue-50 text-blue-600 rounded-2xl font-bold hover:bg-blue-100 transition-all duration-200 border border-blue-100">
+                                    <i class="ri-save-line mr-2"></i>
+                                    Save Draft
+                                </button>
+                            </div>
 
-                                        <button type="button"
-                                                @click="saveDraft()"
-                                                class="inline-flex items-center px-6 py-3 border border-blue-300 rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 hover:border-blue-400 transition-all duration-200 font-semibold">
-                                            <i class="ri-save-line mr-2"></i>
-                                            Save Draft
-                                        </button>
-                                    </div>
-
-                                    <div class="flex items-center space-x-4">
-                                        <a href="{{ $indexUrl }}"
-                                           class="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-semibold">
-                                            Cancel
-                                        </a>
-
-                                        <button type="submit"
-                                                class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg shadow-blue-500/25 font-semibold">
-                                            <i class="ri-check-line mr-2"></i>
-                                            Update Organization
-                                        </button>
-                                    </div>
-                                </div>
+                            <div class="flex items-center space-x-4">
+                                <a href="{{ $indexUrl }}"
+                                   class="px-8 py-3.5 text-gray-600 font-bold hover:text-gray-900 transition-colors">
+                                    Cancel
+                                </a>
+                                <button type="submit"
+                                        class="inline-flex items-center px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                                    <i class="ri-check-line mr-2 text-xl"></i>
+                                    Save Changes
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -34,6 +34,7 @@
         platform: '{{ old('platform', $party->platform ?? '') }}',
         color: '{{ old('color', $party->color ?? '#3b82f6') }}',
         organization_id: '{{ old('organization_id', $party->organization_id ?? '') }}',
+        election_id: '{{ old('election_id', $party->election_id ?? '') }}',
         status: '{{ old('status', $party->status ?? 'active') }}',
         logo: null,
         logoName: ''
@@ -374,18 +375,33 @@
                                 </div>
                             </div>
 
-                            <!-- Organization -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-semibold text-gray-700">Organization *</label>
-                                <select x-model="formData.organization_id"
-                                        class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all text-gray-900">
-                                    <option value="">Select Organization</option>
-                                    @foreach($organizations ?? [] as $org)
-                                        <option value="{{ $org->id }}">{{ $org->name }}</option>
-                                    @endforeach
-                                </select>
-                                <div x-show="errors.organization_id" x-transition class="text-red-500 text-sm">
-                                    <span x-text="errors.organization_id ? errors.organization_id[0] : ''"></span>
+                            <!-- Organization & Election -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-semibold text-gray-700">Organization *</label>
+                                    <select x-model="formData.organization_id"
+                                            class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all text-gray-900">
+                                        <option value="">Select Organization</option>
+                                        @foreach($organizations ?? [] as $org)
+                                            <option value="{{ $org->id }}">{{ $org->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div x-show="errors.organization_id" x-transition class="text-red-500 text-sm">
+                                        <span x-text="errors.organization_id ? errors.organization_id[0] : ''"></span>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-sm font-semibold text-gray-700">Election</label>
+                                    <select x-model="formData.election_id"
+                                            class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all text-gray-900">
+                                        <option value="">Select Election</option>
+                                        @foreach($elections ?? [] as $election)
+                                            <option value="{{ $election->id }}">{{ $election->title }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div x-show="errors.election_id" x-transition class="text-red-500 text-sm">
+                                        <span x-text="errors.election_id ? errors.election_id[0] : ''"></span>
+                                    </div>
                                 </div>
                             </div>
 

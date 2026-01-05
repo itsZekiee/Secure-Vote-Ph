@@ -42,421 +42,253 @@
             this.partyToDelete = { id: partyId, name: partyName };
             this.showPartyDeleteModal = true;
         }
-    }" class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/30">
+    }" class="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/30 to-blue-50/20 pb-12">
 
-        <!-- Delete Organization Modal -->
-        <div x-show="showDeleteModal"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <!-- Enhanced Delete Organization Modal -->
+        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 bg-gray-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
             <div x-show="showDeleteModal"
                  x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 transform translate-y-4 sm:translate-y-0 sm:scale-95"
-                 x-transition:enter-end="opacity-100 transform translate-y-0 sm:scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 transform translate-y-0 sm:scale-100"
-                 x-transition:leave-end="opacity-0 transform translate-y-4 sm:translate-y-0 sm:scale-95"
-                 class="bg-white rounded-2xl shadow-2xl max-w-md mx-4 overflow-hidden">
-                <div class="p-8 text-center">
-                    <div class="w-20 h-20 bg-gradient-to-br from-red-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="ri-delete-bin-line text-white text-3xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Delete Organization</h3>
-                    <p class="text-gray-600 mb-6">Are you sure you want to delete "{{ $organization->name }}"? This action cannot be undone and will remove all associated data.</p>
-                    <div class="flex space-x-4">
-                        <button @click="showDeleteModal = false"
-                                class="flex-1 px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-all duration-200 font-semibold">
-                            Cancel
-                        </button>
-                        <form action="{{ $destroyAction }}" method="POST" class="flex-1">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                    class="w-full px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl hover:from-red-700 hover:to-rose-700 transition-all duration-200 font-semibold">
-                                Delete
-                            </button>
-                        </form>
-                    </div>
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-white">
+                <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="ri-delete-bin-line text-rose-600 text-3xl"></i>
                 </div>
-            </div>
-        </div>
-
-        <!-- Delete Partylist Modal -->
-        <div x-show="showPartyDeleteModal"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div x-show="showPartyDeleteModal"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 transform translate-y-4 sm:translate-y-0 sm:scale-95"
-                 x-transition:enter-end="opacity-100 transform translate-y-0 sm:scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 transform translate-y-0 sm:scale-100"
-                 x-transition:leave-end="opacity-0 transform translate-y-4 sm:translate-y-0 sm:scale-95"
-                 class="bg-white rounded-2xl shadow-2xl max-w-md mx-4 overflow-hidden">
-                <div class="p-8 text-center">
-                    <div class="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="ri-delete-bin-line text-white text-3xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Delete Partylist</h3>
-                    <p class="text-gray-600 mb-6">Are you sure you want to delete "<span x-text="partyToDelete?.name"></span>"? This action cannot be undone.</p>
-                    <div class="flex space-x-4">
-                        <button @click="showPartyDeleteModal = false; partyToDelete = null"
-                                class="flex-1 px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-all duration-200 font-semibold">
-                            Cancel
-                        </button>
-                        <button @click="if(partyToDelete) { document.getElementById('delete-party-' + partyToDelete.id).submit(); }"
-                                class="flex-1 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-200 font-semibold">
-                            Delete
-                        </button>
-                    </div>
+                <h3 class="text-2xl font-black text-gray-900 text-center mb-2 tracking-tight">Delete Organization</h3>
+                <p class="text-gray-500 text-center mb-8 font-medium italic">"{{ $organization->name }}" will be permanently removed. This action is irreversible.</p>
+                <div class="flex gap-4">
+                    <button @click="showDeleteModal = false" class="flex-1 px-6 py-3.5 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition-colors">Cancel</button>
+                    <form action="{{ $destroyAction }}" method="POST" class="flex-1">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="w-full px-6 py-3.5 bg-rose-600 text-white rounded-2xl font-bold hover:bg-rose-700 shadow-lg shadow-rose-200 transition-all">Delete Org</button>
+                    </form>
                 </div>
             </div>
         </div>
 
         <!-- Enhanced Navigation Bar -->
-        <div class="bg-gradient-to-r from-white/95 via-blue-50/30 to-white/95 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-40 shadow-sm">
-            <div class="px-8 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ $indexUrl }}"
-                           class="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all duration-200 border border-gray-200 hover:border-gray-300">
-                            <i class="ri-arrow-left-line text-gray-600"></i>
-                        </a>
+        <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-6">
+                    <a href="{{ $indexUrl }}" class="p-2.5 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all border border-gray-100">
+                        <i class="ri-arrow-left-line text-xl"></i>
+                    </a>
+                    <nav class="hidden md:flex items-center space-x-3">
+                        <a href="{{ route('admin.dashboard') }}" class="text-sm font-bold text-gray-400 hover:text-gray-900 transition-colors">DASHBOARD</a>
+                        <i class="ri-arrow-right-s-line text-gray-300"></i>
+                        <a href="{{ $indexUrl }}" class="text-sm font-bold text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-widest">ORGANIZATIONS</a>
+                        <i class="ri-arrow-right-s-line text-gray-300"></i>
+                        <span class="text-sm font-black text-blue-600 tracking-wider uppercase">{{ Str::limit($organization->name, 25) }}</span>
+                    </nav>
+                </div>
 
-                        <div class="h-6 w-px bg-gray-300"></div>
-
-                        <nav class="flex items-center space-x-2" aria-label="Breadcrumb">
-                            <ol class="flex items-center space-x-2">
-                                <li>
-                                    <a href="{{ route('admin.dashboard') }}"
-                                       class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors duration-200">
-                                        Dashboard
-                                    </a>
-                                </li>
-                                <li>
-                                    <i class="ri-arrow-right-s-line text-gray-400 text-xs"></i>
-                                </li>
-                                <li>
-                                    <a href="{{ $indexUrl }}"
-                                       class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors duration-200">
-                                        Organizations
-                                    </a>
-                                </li>
-                                <li>
-                                    <i class="ri-arrow-right-s-line text-gray-400 text-xs"></i>
-                                </li>
-                                <li class="flex items-center">
-                                    <span class="text-sm font-semibold text-indigo-700">{{ Str::limit($organization->name, 20) }}</span>
-                                </li>
-                            </ol>
-                        </nav>
-                    </div>
-
-                    <div class="flex items-center space-x-3">
-                        <a href="{{ $editUrl }}"
-                           class="inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-all duration-200">
-                            <i class="ri-edit-line text-sm mr-2"></i>
-                            Edit
-                        </a>
-
-                        <button @click="confirmDelete()"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 border border-red-600 rounded-lg hover:bg-red-700 transition-all duration-200">
-                            <i class="ri-delete-bin-line text-sm mr-2"></i>
-                            Delete
-                        </button>
-                    </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{{ $editUrl }}" class="inline-flex items-center px-6 py-2.5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all transform hover:scale-105">
+                        <i class="ri-edit-line mr-2"></i>Edit Settings
+                    </a>
+                    <button @click="confirmDelete()" class="inline-flex items-center px-6 py-2.5 bg-rose-50 text-rose-600 rounded-2xl font-bold hover:bg-rose-100 transition-all border border-rose-100">
+                        <i class="ri-delete-bin-line mr-2"></i>Delete
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="px-8 py-8">
-            <!-- Enhanced Header Section -->
-            <div class="max-w-7xl mx-auto mb-8">
-                <div class="bg-white rounded-3xl shadow-sm border border-gray-200/60 overflow-hidden">
-                    <div class="p-8">
-                        <div class="flex items-start space-x-6">
-                            <!-- Organization Logo -->
-                            <div class="flex-shrink-0">
-                                <div class="w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl border-2 border-gray-200/50 flex items-center justify-center overflow-hidden">
-                                    @if(!empty($organization->logo_url))
-                                        <img src="{{ $organization->logo_url }}" alt="{{ $organization->name }}" class="object-cover w-full h-full"/>
-                                    @else
-                                        <i class="ri-building-2-line text-3xl text-indigo-600"></i>
-                                    @endif
-                                </div>
-                            </div>
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-8 py-10">
+            <!-- Professional Header Card -->
+            <div class="bg-white/90 backdrop-blur-xl rounded-[40px] shadow-2xl shadow-indigo-200/40 border border-white overflow-hidden mb-12">
+                <div class="h-48 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 relative">
+                    <div class="absolute inset-0 bg-black/10"></div>
+                    <!-- Decor -->
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl"></div>
 
-                            <!-- Organization Info -->
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between">
-                                    <div>
-                                        <div class="flex items-center space-x-3 mb-2">
-                                            <h1 class="text-3xl font-bold text-gray-900">{{ $organization->name }}</h1>
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ ($organization->status ?? 'inactive') === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700' }}">
-                                                {{ ucfirst($organization->status ?? 'inactive') }}
-                                            </span>
-                                        </div>
-                                        <p class="text-lg text-gray-600 mb-4 max-w-3xl">{{ $organization->description ?? 'No description provided.' }}</p>
-
-                                        <!-- Quick Stats Bar -->
-                                        <div class="flex items-center space-x-8">
-                                            <div class="flex items-center space-x-2">
-                                                <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                                <span class="text-sm text-gray-600">{{ $votersCount }} {{ Str::plural('Member', $votersCount) }}</span>
-                                            </div>
-                                            <div class="flex items-center space-x-2">
-                                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                <span class="text-sm text-gray-600">{{ $electionsCount }} {{ Str::plural('Election', $electionsCount) }}</span>
-                                            </div>
-                                            <div class="flex items-center space-x-2">
-                                                <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                                <span class="text-sm text-gray-600">{{ $partylistsCount }} {{ Str::plural('Partylist', $partylistsCount) }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Content Grid -->
-            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-8">
-                <!-- Primary Content -->
-                <div class="lg:col-span-3 space-y-8">
-                    <!-- Organization Details Card -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                        <div class="px-8 py-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200/60">
-                            <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                                <i class="ri-information-line text-blue-600 mr-3"></i>
-                                Organization Details
-                            </h2>
-                        </div>
-
-                        <div class="p-8">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-4">
-                                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-200/60">
-                                        <div class="text-sm font-medium text-gray-500 mb-1">Organization Slug</div>
-                                        <div class="text-lg font-semibold text-gray-900">{{ $organization->slug ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-200/60">
-                                        <div class="text-sm font-medium text-gray-500 mb-1">Contact Email</div>
-                                        <div class="text-lg font-semibold text-gray-900">{{ $organization->contact_email ?? $organization->email ?? '-' }}</div>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-4">
-                                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-200/60">
-                                        <div class="text-sm font-medium text-gray-500 mb-1">Contact Phone</div>
-                                        <div class="text-lg font-semibold text-gray-900">{{ $organization->contact_phone ?? $organization->phone ?? '-' }}</div>
-                                    </div>
-
-                                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-200/60">
-                                        <div class="text-sm font-medium text-gray-500 mb-1">Created Date</div>
-                                        <div class="text-lg font-semibold text-gray-900">{{ optional($organization->created_at)->format('M d, Y') ?? '-' }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Partylists Section -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                        <div class="px-8 py-6 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200/60">
-                            <div class="flex items-center justify-between">
-                                <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                                    <i class="ri-team-line text-purple-600 mr-3"></i>
-                                    Partylists ({{ $partylistsCount }})
-                                </h2>
-
-                                @php
-                                    $partyCreateUrl = Route::has('admin.partylists.create') ? route('admin.partylists.create', ['organization' => $id]) :
-                                                     (Route::has('partylists.create') ? route('partylists.create', ['organization' => $id]) : url('/admin/partylists/create?organization='.$id));
-                                @endphp
-
-                                <a href="{{ $partyCreateUrl }}"
-                                   class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg text-sm hover:from-purple-700 hover:to-indigo-700 transition-all duration-200">
-                                    <i class="ri-add-line mr-2"></i>
-                                    New Partylist
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="p-8">
-                            @if($partylists->count() > 0)
-                                <div class="space-y-4">
-                                    @foreach($partylists as $party)
-                                        @php
-                                            $partyId = $party->id ?? 0;
-                                            $partyShow = Route::has('admin.partylists.show') ? route('admin.partylists.show', $partyId) :
-                                                         (Route::has('partylists.show') ? route('partylists.show', $partyId) : url('/admin/partylists/'.$partyId));
-
-                                            $partyEdit = Route::has('admin.partylists.edit') ? route('admin.partylists.edit', $partyId) :
-                                                         (Route::has('partylists.edit') ? route('partylists.edit', $partyId) : url('/admin/partylists/'.$partyId.'/edit'));
-
-                                            $partyDestroy = Route::has('admin.partylists.destroy') ? route('admin.partylists.destroy', $partyId) :
-                                                            (Route::has('partylists.destroy') ? route('partylists.destroy', $partyId) : url('/admin/partylists/'.$partyId));
-                                        @endphp
-
-                                        <div class="p-6 border border-gray-200/60 rounded-xl hover:shadow-md transition-all duration-200 bg-gradient-to-r from-gray-50/50 to-white">
-                                            <div class="flex items-center justify-between">
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="flex items-start space-x-4">
-                                                        <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-lg flex items-center justify-center">
-                                                            <i class="ri-flag-line text-purple-600 text-xl"></i>
-                                                        </div>
-                                                        <div class="flex-1">
-                                                            <div class="flex items-center space-x-3 mb-2">
-                                                                <h3 class="text-lg font-semibold text-gray-900">{{ $party->name }}</h3>
-                                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ ($party->status ?? '') === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700' }}">
-                                                                    {{ ucfirst($party->status ?? 'inactive') }}
-                                                                </span>
-                                                            </div>
-
-                                                            @if($party->description)
-                                                                <p class="text-sm text-gray-600 mb-3 max-w-2xl">{{ Str::limit($party->description, 120) }}</p>
-                                                            @endif
-
-                                                            <div class="flex items-center space-x-6 text-sm text-gray-500">
-                                                                @if($party->acronym)
-                                                                    <span class="flex items-center space-x-1">
-                                                                        <i class="ri-price-tag-3-line"></i>
-                                                                        <span>{{ $party->acronym }}</span>
-                                                                    </span>
-                                                                @endif
-                                                                <span class="flex items-center space-x-1">
-                                                                    <i class="ri-user-line"></i>
-                                                                    <span>{{ $party->seats ?? 0 }} seats</span>
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="flex items-center space-x-2 ml-4">
-                                                    <a href="{{ $partyShow }}"
-                                                       class="inline-flex items-center px-3 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-all duration-200">
-                                                        <i class="ri-eye-line text-xs mr-1"></i>
-                                                        View
-                                                    </a>
-                                                    <a href="{{ $partyEdit }}"
-                                                       class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-all duration-200">
-                                                        <i class="ri-edit-line text-xs mr-1"></i>
-                                                        Edit
-                                                    </a>
-
-                                                    <form action="{{ $partyDestroy }}" method="POST" class="inline" id="delete-party-{{ $partyId }}">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                    </form>
-
-                                                    <button @click="confirmPartyDelete({{ $partyId }}, '{{ addslashes($party->name) }}')"
-                                                            class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-all duration-200">
-                                                        <i class="ri-delete-bin-line text-xs mr-1"></i>
-                                                        Delete
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
+                    <div class="absolute -bottom-16 left-12">
+                        <div class="w-40 h-40 bg-white rounded-[32px] shadow-2xl border-8 border-white flex items-center justify-center overflow-hidden transform hover:rotate-3 transition-transform duration-500">
+                            @if(!empty($organization->logo_url))
+                                <img src="{{ $organization->logo_url }}" alt="{{ $organization->name }}" class="object-cover w-full h-full"/>
                             @else
-                                <div class="text-center py-12">
-                                    <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                        <i class="ri-team-line text-2xl text-gray-400"></i>
-                                    </div>
-                                    <h3 class="text-lg font-medium text-gray-900 mb-2">No Partylists</h3>
-                                    <p class="text-gray-600 mb-6">This organization doesn't have any partylists yet.</p>
-                                    <a href="{{ $partyCreateUrl }}"
-                                       class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg text-sm hover:from-purple-700 hover:to-indigo-700 transition-all duration-200">
-                                        <i class="ri-add-line mr-2"></i>
-                                        Create First Partylist
-                                    </a>
+                                <div class="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+                                    <i class="ri-building-2-line text-6xl text-blue-600"></i>
                                 </div>
                             @endif
                         </div>
                     </div>
                 </div>
 
-                <!-- Enhanced Sidebar -->
-                <div class="space-y-6">
-                    <!-- Quick Stats -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                        <div class="px-6 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200/60">
-                            <h3 class="text-lg font-bold text-gray-900 flex items-center">
-                                <i class="ri-bar-chart-line text-emerald-600 mr-2"></i>
-                                Statistics
-                            </h3>
+                <div class="pt-24 pb-12 px-12">
+                    <div class="flex flex-wrap items-start justify-between gap-10">
+                        <div class="flex-1 min-w-[320px]">
+                            <div class="flex flex-wrap items-center gap-4 mb-4">
+                                <h1 class="text-5xl font-black text-gray-900 tracking-tight">{{ $organization->name }}</h1>
+                                <span class="px-5 py-1.5 rounded-full text-xs font-black tracking-widest uppercase border {{ ($organization->status ?? 'inactive') === 'active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100' }}">
+                                    {{ $organization->status ?? 'inactive' }}
+                                </span>
+                            </div>
+                            <p class="text-xl text-gray-500 font-medium leading-relaxed max-w-4xl italic">
+                                {{ $organization->description ?? 'Empowering democracy through structured organizational excellence.' }}
+                            </p>
                         </div>
 
-                        <div class="p-6 space-y-6">
-                            <div class="text-center">
-                                <div class="text-3xl font-bold text-indigo-600 mb-1">{{ $votersCount }}</div>
-                                <div class="text-sm text-gray-600 font-medium">Total Members</div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 bg-gray-50/50 p-6 rounded-[32px] border border-gray-100">
+                            <div class="text-center px-4">
+                                <div class="text-3xl font-black text-blue-600">{{ number_format($votersCount) }}</div>
+                                <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Members</div>
                             </div>
-
-                            <div class="text-center">
-                                <div class="text-3xl font-bold text-emerald-600 mb-1">{{ $electionsCount }}</div>
-                                <div class="text-sm text-gray-600 font-medium">Elections Held</div>
+                            <div class="w-px h-10 bg-gray-200 my-auto hidden sm:block"></div>
+                            <div class="text-center px-4">
+                                <div class="text-3xl font-black text-emerald-600">{{ number_format($electionsCount) }}</div>
+                                <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Elections</div>
                             </div>
-
-                            <div class="text-center">
-                                <div class="text-3xl font-bold text-purple-600 mb-1">{{ $partylistsCount }}</div>
-                                <div class="text-sm text-gray-600 font-medium">Registered Partylists</div>
-                            </div>
-
-                            <div class="pt-4 border-t border-gray-200">
-                                <a href="{{ $membersUrl }}"
-                                   class="w-full inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200">
-                                    <i class="ri-user-settings-line mr-2"></i>
-                                    Manage Members
-                                </a>
+                            <div class="w-px h-10 bg-gray-200 my-auto hidden sm:block"></div>
+                            <div class="text-center px-4">
+                                <div class="text-3xl font-black text-indigo-600">{{ number_format($partylistsCount) }}</div>
+                                <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Partylists</div>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Quick Info -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                        <div class="px-6 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-gray-200/60">
-                            <h3 class="text-lg font-bold text-gray-900 flex items-center">
-                                <i class="ri-information-line text-amber-600 mr-2"></i>
-                                Quick Info
-                            </h3>
+            <!-- Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-10">
+                <!-- Info Section -->
+                <div class="lg:col-span-1 space-y-8">
+                    <div class="bg-white rounded-[32px] shadow-xl shadow-gray-200/50 border border-gray-100 p-8">
+                        <h3 class="text-lg font-black text-gray-900 mb-8 flex items-center">
+                            <i class="ri-information-line mr-3 text-blue-600"></i>
+                            CORE DETAILS
+                        </h3>
+
+                        <div class="space-y-8">
+                            <div class="group">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 block">Organization Slug</label>
+                                <div class="text-gray-900 font-bold bg-gray-50 px-4 py-2 rounded-xl group-hover:bg-blue-50 transition-colors">
+                                    /{{ $organization->slug ?? '-' }}
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 block">Official Contact</label>
+                                <div class="text-gray-900 font-bold flex items-center">
+                                    <i class="ri-mail-line text-blue-600 mr-2"></i>
+                                    {{ $organization->contact_email ?? $organization->email ?? 'no-email@org.com' }}
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 block">Hotline</label>
+                                <div class="text-gray-900 font-bold flex items-center">
+                                    <i class="ri-phone-line text-emerald-600 mr-2"></i>
+                                    {{ $organization->contact_phone ?? $organization->phone ?? 'N/A' }}
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 block">Established</label>
+                                <div class="text-gray-900 font-bold flex items-center">
+                                    <i class="ri-calendar-line text-indigo-600 mr-2"></i>
+                                    {{ optional($organization->created_at)->format('F d, Y') ?? 'Unknown' }}
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="p-6 space-y-4">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-600">Status</span>
-                                <span class="text-sm font-semibold {{ ($organization->status ?? 'inactive') === 'active' ? 'text-green-600' : 'text-gray-600' }}">
-                                    {{ ucfirst($organization->status ?? 'inactive') }}
-                                </span>
+                        <div class="mt-10 pt-8 border-t border-gray-100 space-y-4">
+                            <a href="{{ $membersUrl }}" class="w-full flex items-center justify-center px-6 py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black shadow-xl shadow-gray-200 transition-all group">
+                                <i class="ri-user-settings-line mr-2 group-hover:scale-110 transition-transform"></i>
+                                Member Directory
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Primary Content Area -->
+                <div class="lg:col-span-3 space-y-10">
+                    <!-- Partylists Modern Section -->
+                    <div class="bg-white rounded-[40px] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
+                        <div class="px-10 py-8 border-b border-gray-50 flex flex-wrap items-center justify-between gap-6">
+                            <div>
+                                <h2 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
+                                    <i class="ri-flag-2-line mr-3 text-indigo-600 text-3xl"></i>
+                                    Registered Partylists
+                                </h2>
+                                <p class="text-gray-400 font-medium mt-1 uppercase text-[10px] tracking-widest">Active political entities in this organization</p>
                             </div>
 
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-600">Created</span>
-                                <span class="text-sm font-semibold text-gray-900">
-                                    {{ optional($membershipDate)->diffForHumans() ?? 'Unknown' }}
-                                </span>
-                            </div>
+                            <a href="{{ $partyCreateUrl }}" class="inline-flex items-center px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold shadow-xl shadow-blue-200 hover:shadow-blue-400/50 transform hover:-translate-y-1 transition-all duration-300">
+                                <i class="ri-add-circle-line mr-2 text-xl"></i>
+                                Register New Party
+                            </a>
+                        </div>
 
-                            @if($organization->contact_email ?? $organization->email)
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">Contact</span>
-                                    <a href="mailto:{{ $organization->contact_email ?? $organization->email }}"
-                                       class="text-sm font-semibold text-blue-600 hover:text-blue-800">
-                                        Email
+                        <div class="p-10">
+                            @if($partylists->count() > 0)
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    @foreach($partylists as $party)
+                                        @php
+                                            $partyId = $party->id ?? 0;
+                                            $partyShow = Route::has('admin.partylists.show') ? route('admin.partylists.show', $partyId) : url('/admin/partylists/'.$partyId);
+                                            $partyEdit = Route::has('admin.partylists.edit') ? route('admin.partylists.edit', $partyId) : url('/admin/partylists/'.$partyId.'/edit');
+                                            $partyDestroy = Route::has('admin.partylists.destroy') ? route('admin.partylists.destroy', $partyId) : url('/admin/partylists/'.$partyId);
+                                        @endphp
+
+                                        <div class="bg-white border border-gray-100 rounded-[32px] p-6 hover:border-indigo-200 hover:shadow-2xl hover:shadow-indigo-100/40 transition-all duration-500 group relative overflow-hidden">
+                                            <!-- Brand Accent -->
+                                            <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-[100px] -mr-8 -mt-8 transition-all group-hover:bg-indigo-600 group-hover:w-full group-hover:h-full group-hover:rounded-none group-hover:mr-0 group-hover:mt-0 duration-700 opacity-20 group-hover:opacity-5"></div>
+
+                                            <div class="relative z-10">
+                                                <div class="flex items-center justify-between mb-6">
+                                                    <div class="w-16 h-16 bg-white rounded-2xl shadow-lg border border-gray-50 flex items-center justify-center text-3xl overflow-hidden">
+                                                        @if(!empty($party->logo))
+                                                            <img src="{{ asset('storage/partylists/' . $party->logo) }}" class="w-full h-full object-cover">
+                                                        @else
+                                                            <i class="ri-flag-line text-indigo-600"></i>
+                                                        @endif
+                                                    </div>
+                                                    <span class="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase {{ ($party->status ?? '') === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-600' }}">
+                                                        {{ $party->status ?? 'inactive' }}
+                                                    </span>
+                                                </div>
+
+                                                <h3 class="text-xl font-black text-gray-900 mb-2 group-hover:text-indigo-700 transition-colors">{{ $party->name }}</h3>
+                                                <div class="flex items-center text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">
+                                                    <i class="ri-price-tag-3-line mr-2"></i>
+                                                    {{ $party->acronym ?? 'N/A' }}
+                                                </div>
+
+                                                <p class="text-gray-500 text-sm leading-relaxed mb-8 line-clamp-2 h-10 font-medium">
+                                                    {{ $party->description ?? 'No specific party agenda or description has been provided yet.' }}
+                                                </p>
+
+                                                <div class="flex items-center justify-between pt-6 border-t border-gray-50">
+                                                    <div class="flex items-center space-x-4">
+                                                        <a href="{{ $partyShow }}" class="text-indigo-600 font-bold text-sm hover:underline">Overview</a>
+                                                        <a href="{{ $partyEdit }}" class="text-gray-400 font-bold text-sm hover:text-gray-900">Settings</a>
+                                                    </div>
+                                                    <button @click="confirmPartyDelete({{ $partyId }}, '{{ addslashes($party->name) }}')" class="w-10 h-10 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all">
+                                                        <i class="ri-delete-bin-line"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <form action="{{ $partyDestroy }}" method="POST" class="hidden" id="delete-party-{{ $partyId }}">
+                                                @csrf
+                                                @method('DELETE')
+                                            </form>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="text-center py-24 bg-gray-50/50 rounded-[40px] border-4 border-dashed border-gray-100">
+                                    <div class="w-24 h-24 bg-white rounded-[32px] shadow-xl flex items-center justify-center mx-auto mb-8">
+                                        <i class="ri-flag-line text-4xl text-gray-200"></i>
+                                    </div>
+                                    <h3 class="text-2xl font-black text-gray-900 mb-2">Initialize Partylists</h3>
+                                    <p class="text-gray-400 font-medium max-w-xs mx-auto mb-10 italic">This organization currently has no registered partylists. Start building your political structure today.</p>
+                                    <a href="{{ $partyCreateUrl }}" class="inline-flex items-center px-10 py-4 bg-indigo-600 text-white rounded-[20px] font-black shadow-2xl shadow-indigo-200 hover:bg-indigo-700 transition-all">
+                                        <i class="ri-add-line mr-2"></i>
+                                        Register First Party
                                     </a>
                                 </div>
                             @endif

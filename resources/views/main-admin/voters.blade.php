@@ -42,8 +42,6 @@
     }"
          class="flex-1 flex flex-col">
 
-        <x-admin-header />
-
         <!-- Main content -->
         <main class="flex-1">
             <!-- Mobile Header (if needed) -->

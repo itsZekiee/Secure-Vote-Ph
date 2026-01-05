@@ -126,7 +126,7 @@
                                             <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
                                                 <i class="ri-calendar-event-line text-indigo-600"></i>
                                                 Election
-                                                <span class="text-red-500">*</span>
+                                                <span class="text-xs text-gray-500 font-normal">(Optional)</span>
                                             </label>
                                             <div class="relative">
                                                 <select x-model="formData.election_id"
@@ -495,7 +495,6 @@
                     if (!re.test(this.formData.user_email.trim())) this.errors.user_email = ['Enter a valid email'];
                 }
                 if (!this.formData.organization_id) this.errors.organization_id = ['Organization is required'];
-                if (!this.formData.election_id) this.errors.election_id = ['Election is required'];
                 if (!this.formData.position_id) {
                     this.errors.position_id = ['Position is required'];
                 } else if (this.formData.position_id === 'other' && !this.formData.new_position_name.trim()) {
