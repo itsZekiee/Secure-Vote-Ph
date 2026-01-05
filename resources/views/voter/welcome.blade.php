@@ -22,6 +22,14 @@
         .countdown-box {
             background: linear-gradient(135deg, rgba(0, 49, 83, 0.05) 0%, rgba(0, 212, 170, 0.05) 100%);
         }
+        @keyframes pulse-ring {
+            0% { transform: scale(.95); box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 212, 170, 0); }
+            100% { transform: scale(.95); box-shadow: 0 0 0 0 rgba(0, 212, 170, 0); }
+        }
+        .btn-active-pulse {
+            animation: pulse-ring 2s infinite;
+        }
     </style>
 @endpush
 
@@ -67,6 +75,17 @@
                             <p class="text-slate-600 text-lg leading-relaxed">{{ $election->description }}</p>
                         </div>
                     @endif
+
+                    <!-- Progress Bar -->
+                    <div class="mb-10">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Election Progress</span>
+                            <span id="progress-text" class="text-xs font-bold text-brand-primary">0%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200 p-0.5">
+                            <div id="progress-bar" class="h-full bg-gradient-to-r from-brand-primary to-brand-accent rounded-full transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                    </div>
 
                     <!-- Prominent Countdown Section -->
                     <div class="bg-brand-primary rounded-[2.5rem] p-10 lg:p-14 text-white shadow-2xl shadow-brand-primary/30 mb-12 relative overflow-hidden">
@@ -227,6 +246,20 @@
             document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
             document.getElementById('countdown-label').textContent = label;
 
+            // Update Progress Bar
+            const totalDuration = endDate - startDate;
+            const elapsed = now - startDate;
+            let progress = 0;
+            if (now >= startDate && now < endDate) {
+                progress = (elapsed / totalDuration) * 100;
+            } else if (now >= endDate) {
+                progress = 100;
+            }
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            if (progressBar) progressBar.style.width = progress + '%';
+            if (progressText) progressText.textContent = Math.round(progress) + '%';
+
             // Update button status
             if (!hasVoted) {
                 const voteBtn = document.getElementById('voteBtn');
@@ -240,6 +273,7 @@
                     voteBtnText.textContent = 'ELECTION CLOSED';
                 } else {
                     voteBtn.classList.remove('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+                    voteBtn.classList.add('btn-active-pulse');
                     voteBtnText.textContent = 'START VOTING NOW';
                 }
             }

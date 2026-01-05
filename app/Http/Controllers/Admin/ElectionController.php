@@ -215,7 +215,7 @@ class ElectionController extends Controller
 
             $election->update([
                 'title' => $validated['title'],
-                'description' => $validated['description'],
+                'description' => $validated['description'] ?? $election->description,
                 'organization_id' => $validated['organization_id'],
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
@@ -471,11 +471,16 @@ class ElectionController extends Controller
 
         $groupedCandidates = $partylist->candidates
             ->groupBy(function($candidate) {
-                return $candidate->position ? $candidate->position->title : 'Unassigned';
+                return $candidate->position_id ?? 0;
             })
-            ->map(function ($candidates, $positionTitle) {
+            ->map(function ($candidates) {
+                $firstCandidate = $candidates->first();
+                $positionName = ($firstCandidate && $firstCandidate->position)
+                    ? $firstCandidate->position->title
+                    : 'Unassigned';
+
                 return [
-                    'name' => $positionTitle,
+                    'name' => (string) $positionName,
                     'candidates' => $candidates->pluck('name')->toArray()
                 ];
             })

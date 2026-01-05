@@ -211,8 +211,20 @@
                                     </div>
                                 </div>
 
+                                @if($registrationOver)
+                                    <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                                        <div class="flex items-start gap-3 text-amber-700">
+                                            <i class="fas fa-info-circle mt-1"></i>
+                                            <div>
+                                                <p class="font-bold">Registration is closed</p>
+                                                <p class="text-sm">The deadline for registration has passed. If you have already registered, please sign in to cast your vote.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
                                 <!-- Registration Form -->
-                                <form id="register-form" action="{{ route('voter.registration.store', $election->code ?? '') }}" method="POST" class="form-transition">
+                                <form id="register-form" action="{{ route('voter.registration.store', $election->code ?? '') }}" method="POST" class="form-transition {{ $registrationOver ? 'hidden' : '' }}">
                                     @csrf
 
                                     <div class="mb-5">
@@ -300,7 +312,7 @@
                                 </form>
 
                                 <!-- Sign In Form (Hidden by default) -->
-                                <form id="signin-form" action="{{ route('voter.registration.login', $election->code ?? '') }}" method="POST" class="form-transition hidden">
+                                <form id="signin-form" action="{{ route('voter.registration.login', $election->code ?? '') }}" method="POST" class="form-transition {{ $registrationOver ? '' : 'hidden' }}">
                                     @csrf
 
                                     <div class="mb-5">
@@ -345,7 +357,7 @@
                                 </form>
 
                                 <!-- Divider -->
-                                <div class="relative my-8">
+                                <div class="relative my-8 {{ $registrationOver ? 'hidden' : '' }}">
                                     <div class="absolute inset-0 flex items-center">
                                         <div class="w-full border-t border-slate-200"></div>
                                     </div>
@@ -355,7 +367,7 @@
                                 </div>
 
                                 <!-- Toggle Button -->
-                                <button id="toggle-form-btn" type="button" class="w-full flex items-center justify-center gap-3 py-4 px-6 bg-slate-100 rounded-2xl text-slate-700 hover:bg-slate-200 transition-all font-semibold hover:shadow-lg">
+                                <button id="toggle-form-btn" type="button" class="w-full flex items-center justify-center gap-3 py-4 px-6 bg-slate-100 rounded-2xl text-slate-700 hover:bg-slate-200 transition-all font-semibold hover:shadow-lg {{ $registrationOver ? 'hidden' : '' }}">
                                     <i id="toggle-icon" class="fas fa-sign-in-alt"></i>
                                     <span id="toggle-btn-text">Sign In Instead</span>
                                 </button>
@@ -495,7 +507,13 @@
             const headerTitle = document.getElementById('form-header-title');
             const headerSubtitle = document.getElementById('form-header-subtitle');
 
-            let isSignInMode = false;
+            let isSignInMode = {{ $registrationOver ? 'true' : 'false' }};
+
+            if (isSignInMode) {
+                headerIcon.className = 'fas fa-sign-in-alt text-white text-2xl';
+                headerTitle.textContent = 'Welcome Back';
+                headerSubtitle.textContent = 'Sign in to access your election';
+            }
 
             toggleBtn.addEventListener('click', function() {
                 isSignInMode = !isSignInMode;

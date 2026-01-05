@@ -177,6 +177,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     // Reports & Analytics Routes
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/view/{election}', [ReportController::class, 'viewReport'])->name('view');
         Route::get('dashboard', [ReportController::class, 'dashboard'])->name('dashboard');
         Route::get('elections', [ReportController::class, 'elections'])->name('elections');
         Route::get('elections/{election}', [ReportController::class, 'electionDetail'])->name('elections.detail');

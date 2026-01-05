@@ -158,13 +158,20 @@ class VoterElectionController extends Controller
         }
 
         // Record votes
-        foreach ($request->votes as $positionId => $candidateId) {
-            Vote::create([
-                'voter_id' => $voter['id'],
-                'election_id' => $election->id,
-                'position_id' => $positionId,
-                'candidate_id' => $candidateId,
-            ]);
+        foreach ($request->votes as $positionId => $candidateIds) {
+            // Handle both single candidate ID (string/int) and multiple IDs (array)
+            $ids = is_array($candidateIds) ? $candidateIds : [$candidateIds];
+
+            foreach ($ids as $candidateId) {
+                if (!empty($candidateId)) {
+                    Vote::create([
+                        'voter_id' => $voter['id'],
+                        'election_id' => $election->id,
+                        'position_id' => $positionId,
+                        'candidate_id' => $candidateId,
+                    ]);
+                }
+            }
         }
 
         return redirect()->route('voter.elections.welcome', $election->code)

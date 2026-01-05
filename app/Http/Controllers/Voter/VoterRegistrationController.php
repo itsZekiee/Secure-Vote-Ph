@@ -25,13 +25,11 @@ class VoterRegistrationController extends Controller
         }
 
         // Registration deadline check
-        if ($election->registration_deadline && now()->gt($election->registration_deadline)) {
-            return redirect()->route('voter.elections.access')
-                ->withErrors(['registration' => 'Registration is over.']);
-        }
+        $registrationOver = $election->registration_deadline && now()->gt($election->registration_deadline);
 
         return view('voter.registration.index', [
-            'election' => $election
+            'election' => $election,
+            'registrationOver' => $registrationOver
         ]);
     }
 

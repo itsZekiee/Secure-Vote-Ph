@@ -183,10 +183,10 @@
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">DOB</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered Form</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
@@ -211,13 +211,13 @@
                                         <div class="text-sm font-medium text-gray-900">{{ $name }}</div>
                                         <div class="text-xs text-gray-500">{{ $student_id }}</div>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                                        {{ $dob && method_exists($dob, 'format') ? $dob->format('Y-m-d') : ($dob ?? '—') }}
-                                    </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $email }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $phone }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                                         {{ $created_at && method_exists($created_at, 'format') ? $created_at->format('Y-m-d') : ($created_at ?? '—') }}
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+                                        {{ optional(data_get($voter, 'election'))->title ?? '—' }}
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm">
                                     <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium {{ $badgeClass }}">
@@ -232,9 +232,15 @@
                                                 @csrf
                                                 <button type="button" onclick="if(confirm('Approve this voter?')){ this.form.submit(); }" class="text-green-600 hover:underline">Approve</button>
                                             </form>
+                                        @elseif($status === 'approved')
                                             <form id="decline-form-{{ $id }}" method="POST" action="{{ route('admin.voters.decline', $id) }}" class="inline">
                                                 @csrf
-                                                <button type="button" onclick="if(confirm('Decline this voter?')){ this.form.submit(); }" class="text-red-600 hover:underline ml-2">Decline</button>
+                                                <button type="button" onclick="if(confirm('Decline this voter?')){ this.form.submit(); }" class="text-red-600 hover:underline">Decline</button>
+                                            </form>
+                                        @elseif($status === 'declined')
+                                            <form id="approve-form-{{ $id }}" method="POST" action="{{ route('admin.voters.approve', $id) }}" class="inline">
+                                                @csrf
+                                                <button type="button" onclick="if(confirm('Approve this voter?')){ this.form.submit(); }" class="text-green-600 hover:underline">Approve</button>
                                             </form>
                                         @endif
                                     </td>
