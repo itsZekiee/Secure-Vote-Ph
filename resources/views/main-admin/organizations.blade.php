@@ -101,7 +101,7 @@
             <header class="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
                 <button @click="collapsed = false"
                         class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                    <i class="ri-menu-line text-lg"></i>
+                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
                 </button>
                 <h1 class="text-lg font-semibold text-slate-800">Organizations</h1>
                 <div class="w-10"></div>
@@ -297,7 +297,7 @@
 
                 <!-- Organizations Table -->
                 <div class="mt-6">
-                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm responsive-table-container">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                             <tr>

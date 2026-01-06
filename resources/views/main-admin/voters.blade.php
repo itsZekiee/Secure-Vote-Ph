@@ -47,7 +47,7 @@
             <!-- Mobile Header (if needed) -->
             <header class="bg-white/80 backdrop-blur-sm border-b lg:hidden px-6 py-4 flex items-center justify-between">
                 <button @click="collapsed = false" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                    <i class="ri-menu-line text-lg"></i>
+                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
                 </button>
                 <h1 class="text-lg font-bold text-slate-800">Voters</h1>
                 <div class="w-10"></div>
@@ -100,26 +100,51 @@
                                     </button>
                                 </form>
 
-                                <form method="POST" action="{{ route('admin.voters.import.preview') }}" enctype="multipart/form-data" class="inline-flex items-center gap-2 bg-white border rounded-lg px-3 py-2">
+                                <form method="POST" action="{{ route('admin.voters.import.preview') }}" enctype="multipart/form-data" class="inline-flex items-center gap-2 bg-white border rounded-lg px-3 py-2" id="importForm">
                                     @csrf
                                     <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
                                         <i class="ri-upload-cloud-line text-lg text-indigo-600"></i>
                                         <span class="hidden sm:inline">Import Excel</span>
-                                        <input type="file" name="file" accept=".xlsx,.xls,.csv" required class="sr-only" />
+                                        <input type="file" name="file" accept=".xlsx,.xls" required class="sr-only" onchange="checkFile(this)" />
                                     </label>
                                     <button type="submit" class="ml-2 inline-flex items-center gap-2 px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">
                                         Upload & Preview
                                     </button>
                                 </form>
 
+                                <script>
+                                    function checkFile(input) {
+                                        const file = input.files[0];
+                                        if (file) {
+                                            const extension = file.name.split('.').pop().toLowerCase();
+                                            if (extension !== 'xlsx' && extension !== 'xls') {
+                                                alert('Invalid file type! Please upload an Excel file (.xlsx or .xls).');
+                                                input.value = '';
+                                            }
+                                        }
+                                    }
+                                </script>
+
                                 @if (isset($importPath) && $importPath)
-                                    <form method="POST" action="{{ route('admin.voters.import.store') }}">
+                                    <form method="POST" action="{{ route('admin.voters.import.store') }}" class="flex items-center gap-3">
                                         @csrf
                                         <input type="hidden" name="import_path" value="{{ $importPath }}" />
-                                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">
+
+                                        <div class="flex items-center gap-2">
+                                            <label for="election_id" class="text-sm font-medium text-gray-700">Select Form:</label>
+                                            <select name="election_id" id="election_id" required class="text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                                <option value="">-- Choose Form --</option>
+                                                @foreach($forms ?? [] as $form)
+                                                    <option value="{{ $form->id }}">{{ $form->title }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 shadow-sm transition-colors">
                                             <i class="ri-check-line"></i>
-                                            Import All
+                                            Save & Approve All
                                         </button>
+                                        <a href="{{ route('admin.voters.index') }}" class="text-sm text-gray-500 hover:text-gray-700 ml-2">Cancel</a>
                                     </form>
                                 @endif
                             </div>
@@ -175,7 +200,7 @@
 
                 <!-- Table -->
                 <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
+                    <div class="responsive-table-container">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                             <tr>

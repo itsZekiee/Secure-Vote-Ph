@@ -83,13 +83,90 @@
             </div>
         </div>
 
+{{-- Insert this block after your header and before your main form content (e.g., inside .max-w-5xl container) --}}
+
+<div x-data="multiStepper()" class="max-w-5xl mx-auto mb-10 px-4 sm:px-6">
+    <div class="flex items-center gap-4">
+        <template x-for="(position, index) in positions" :key="position.id">
+            <div class="flex items-center flex-1">
+                <div
+                    @click="toggleStep(index)"
+                    :class="selectedSteps.includes(index) ?
+                        'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' :
+                        'bg-gray-200 text-gray-600'"
+                    class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300 cursor-pointer select-none"
+                    x-tooltip="position.name"
+                    role="checkbox"
+                    :aria-checked="selectedSteps.includes(index)"
+                    tabindex="0"
+                    @keydown.enter.prevent="toggleStep(index)"
+                    @keydown.space.prevent="toggleStep(index)"
+                >
+                    <template x-if="selectedSteps.includes(index)">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </template>
+                    <template x-if="!selectedSteps.includes(index)">
+                        <span x-text="index + 1"></span>
+                    </template>
+                </div>
+                <div class="ml-4">
+                    <p :class="selectedSteps.includes(index) ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors" x-text="position.name"></p>
+                    <p class="text-xs text-gray-500" x-text="position.max_votes > 1 ? `Select up to ${position.max_votes} candidates` : `Select 1 candidate`"></p>
+                </div>
+
+                <template x-if="index < positions.length - 1">
+                    <div class="flex-1 h-1 bg-gray-200 rounded-full mx-4 relative overflow-hidden">
+                        <div
+                            :class="selectedSteps.includes(index) && selectedSteps.includes(index + 1) ? 'w-full' : 'w-0'"
+                            class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"
+                        ></div>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
+</div>
+
+<script>
+    function multiStepper() {
+        return {
+            selectedSteps: [],
+            positions: @json($positions->map(function($pos) {
+                return [
+                    'id' => $pos->id,
+                    'name' => $pos->name,
+                    'max_votes' => $pos->max_votes ?? 1
+                ];
+            })),
+            toggleStep(index) {
+                if (this.selectedSteps.includes(index)) {
+                    this.selectedSteps = this.selectedSteps.filter(i => i !== index);
+                } else {
+                    this.selectedSteps.push(index);
+                }
+            }
+        }
+    }
+</script>
+
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.directive('tooltip', (el, { expression }) => {
+    el.setAttribute('title', expression);
+  });
+});
+</script>
+
+
         <!-- Main Content -->
         <main class="flex-1">
             <!-- Enhanced Page Header -->
             <header class="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm sticky top-0 z-10 lg:hidden">
                 <div class="px-6 py-4 flex items-center justify-between">
                     <button @click="collapsed = false" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                        <i class="ri-menu-line text-lg"></i>
+                        <i class="ri-menu-fold-line text-lg rotate-180"></i>
                     </button>
                     <h1 class="text-lg font-bold text-slate-800">Elections</h1>
                     <div class="w-10"></div>
@@ -144,7 +221,7 @@
             </header>
 
             <!-- Content Container -->
-            <div class="p-8">
+            <div class="p-4 sm:p-8">
                 <form id="electionForm" action="{{ route('admin.elections.store') }}" method="POST"
                       x-data="{
                           activeTab: 'basic',
@@ -161,15 +238,12 @@
                               voting_end: '',
                               accepted_domains: '',
                               registration_deadline: '',
-                              max_votes: 1
+                              max_votes: 1,
+                              enable_geo_registration: false
                           },
                           validateBasicInfo() {
                               if (!this.formData.title.trim()) {
                                   alert('Election Title is required');
-                                  return false;
-                              }
-                              if (!this.selectedOrganization) {
-                                  alert('Please select an organization');
                                   return false;
                               }
                               if (!this.formData.voting_start) {
@@ -183,6 +257,27 @@
                               if (new Date(this.formData.voting_start) >= new Date(this.formData.voting_end)) {
                                   alert('Voting End must be after Voting Start');
                                   return false;
+                              }
+                              return true;
+                          },
+                          validatePositions() {
+                              if (this.positions.length === 0) {
+                                  alert('At least one position is required');
+                                  return false;
+                              }
+                              for (let i = 0; i < this.positions.length; i++) {
+                                  if (!this.positions[i].name.trim()) {
+                                      alert(`Position ${i + 1} name is required`);
+                                      return false;
+                                  }
+                                  const validCandidates = this.positions[i].candidates.filter(c =>
+                                      (typeof c === 'string' && c.trim() !== '') ||
+                                      (typeof c === 'object' && c !== null && (c.name || c.first_name))
+                                  );
+                                  if (validCandidates.length === 0) {
+                                      alert('Position ' + this.positions[i].name + ' requires at least one candidate');
+                                      return false;
+                                  }
                               }
                               return true;
                           },
@@ -213,12 +308,12 @@
                     @csrf
 
                     <!-- Enhanced Progress Stepper -->
-                    <div class="mb-10">
-                        <div class="bg-white/80 backdrop-blur-sm p-8 border border-gray-200/50 rounded-2xl shadow-xl shadow-gray-200/50">
+                    <div class="mb-10 overflow-x-auto no-scrollbar">
+                        <div class="bg-white/80 backdrop-blur-sm p-4 sm:p-8 border border-gray-200/50 rounded-2xl shadow-xl shadow-gray-200/50 min-w-[800px] lg:min-w-0">
                             <div class="flex items-center justify-between">
                                 <div class="flex-1 flex items-center gap-8">
                                     <!-- Step 1 -->
-                                    <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="activeTab = 'basic'">
                                         <div :class="activeTab === 'basic' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
                                              class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
                                             <span x-show="!(activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share')">1</span>
@@ -238,7 +333,7 @@
                                     </div>
 
                                     <!-- Step 2 -->
-                                    <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="if(validateBasicInfo()) activeTab = 'candidates'">
                                         <div :class="activeTab === 'candidates' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'settings' || activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
                                              class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
                                             <span x-show="!(activeTab === 'settings' || activeTab === 'share')">2</span>
@@ -258,7 +353,7 @@
                                     </div>
 
                                     <!-- Step 3 -->
-                                    <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="if(validateBasicInfo() && validatePositions()) activeTab = 'settings'">
                                         <div :class="activeTab === 'settings' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
                                              class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
                                             <span x-show="activeTab !== 'share'">3</span>
@@ -278,7 +373,7 @@
                                     </div>
 
                                     <!-- Step 4 -->
-                                    <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex items-center gap-4 flex-1" :class="electionCreated ? 'cursor-pointer' : 'opacity-50'" @click="if(electionCreated) activeTab = 'share'">
                                         <div :class="activeTab === 'share' ? 'bg-gradient-to-br from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/30' : 'bg-gray-200 text-gray-600'"
                                              class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
                                             4
@@ -295,7 +390,7 @@
 
                     <!-- Main Content Card -->
                     <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl shadow-gray-200/50 border border-gray-200/50 overflow-hidden">
-                        <div class="p-12">
+                        <div class="p-4 sm:p-12">
                             <!-- Panel 1: Basic Information -->
                             <section x-show="activeTab === 'basic'"
                                      x-transition:enter="transition ease-out duration-300"
@@ -331,10 +426,10 @@
                                         </div>
 
                                         <div class="lg:col-span-2">
-                                            <label for="organization" class="block text-sm font-semibold text-gray-900 mb-3">Organization <span class="text-red-500">*</span></label>
-                                            <select id="organization" name="organization_id" x-model="selectedOrganization" required
+                                            <label for="organization" class="block text-sm font-semibold text-gray-900 mb-3">Organization <span class="text-gray-400 text-xs font-normal">(Optional)</span></label>
+                                            <select id="organization" name="organization_id" x-model="selectedOrganization"
                                                     class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
-                                                <option value="">Select an organization</option>
+                                                <option value="">Select an organization (Optional)</option>
                                                 @foreach($organizations as $organization)
                                                     <option value="{{ $organization->id }}">{{ $organization->name }}</option>
                                                 @endforeach
@@ -412,7 +507,28 @@
                                              const response = await fetch(`/admin/partylists/${this.selectedPartylist}/candidates`);
                                              const data = await response.json();
                                              if (data.success && data.positions.length > 0) {
-                                                 this.parentData.positions = data.positions;
+                                                 // Merge positions instead of replacing
+                                                 data.positions.forEach(newPos => {
+                                                     const existingPos = this.parentData.positions.find(p => p.name === newPos.name);
+                                                     if (existingPos) {
+                                                         // Append candidates to existing position, avoid duplicates
+                                                         newPos.candidates.forEach(newCand => {
+                                                             if (!existingPos.candidates.includes(newCand)) {
+                                                                 existingPos.candidates.push(newCand);
+                                                             }
+                                                         });
+                                                     } else {
+                                                         // If position doesn't exist, check if first position is empty
+                                                         if (this.parentData.positions.length === 1 &&
+                                                             this.parentData.positions[0].name === '' &&
+                                                             (this.parentData.positions[0].candidates.length === 0 ||
+                                                              (this.parentData.positions[0].candidates.length === 1 && this.parentData.positions[0].candidates[0] === ''))) {
+                                                             this.parentData.positions = [newPos];
+                                                         } else {
+                                                             this.parentData.positions.push(newPos);
+                                                         }
+                                                     }
+                                                 });
                                                  this.isImported = true;
                                                  this.importedFrom = data.partylist_name;
                                              } else {
@@ -452,7 +568,9 @@
                                         </div>
 
                                         <!-- Automation Mode Toggle -->
-                                        <div class="flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl px-6 py-4">
+                                        <div class="flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl px-6 py-4"
+                                             :class="!parentData.selectedOrganization ? 'opacity-50 grayscale cursor-not-allowed' : ''"
+                                             x-tooltip="!parentData.selectedOrganization ? 'Please select an organization first' : ''">
                                             <div class="flex items-center gap-2">
                                                 <svg class="w-5 h-5 text-amber-600" viewBox="0 0 24 24" fill="none">
                                                     <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -460,7 +578,8 @@
                                                 <span class="font-semibold text-gray-700">Automation Mode</span>
                                             </div>
                                             <button type="button"
-                                                    @click="automationMode = !automationMode"
+                                                    @click="if(parentData.selectedOrganization) automationMode = !automationMode"
+                                                    :disabled="!parentData.selectedOrganization"
                                                     :class="automationMode ? 'bg-amber-500' : 'bg-gray-300'"
                                                     class="relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
                                                     <span :class="automationMode ? 'translate-x-8' : 'translate-x-1'"
@@ -659,7 +778,7 @@
                                                 class="px-8 py-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-semibold transition-all">
                                             ← Previous
                                         </button>
-                                        <button type="button" @click="activeTab = 'settings'"
+                                        <button type="button" @click="if(validatePositions()) activeTab = 'settings'"
                                                 class="px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-bold transition-all">
                                             Continue to Settings →
                                         </button>
@@ -679,7 +798,7 @@
                                          radiusValue: 50,
                                          radiusUnit: 'meters'
                                      }"
-                                     x-init="$watch('enableGeo', value => { if(value && !mapInitialized){ setTimeout(() => { initGeoMap(); mapInitialized = true }, 200) } })"
+                                     x-init="$watch('enableGeo', value => { if((value || formData.enable_geo_registration) && !mapInitialized){ setTimeout(() => { initGeoMap(); mapInitialized = true }, 200) } }); $watch('formData.enable_geo_registration', value => { if((value || enableGeo) && !mapInitialized){ setTimeout(() => { initGeoMap(); mapInitialized = true }, 200) } })"
                                      aria-labelledby="settings-heading">
                                 <div class="mb-10">
                                     <div class="flex items-center gap-3 mb-3">
@@ -725,8 +844,37 @@
                                         </label>
                                     </div>
 
+                                    <!-- Geographic Restriction for Registration/Sign-in Toggle Switch -->
+                                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6">
+                                        <label class="flex items-start justify-between cursor-pointer gap-4">
+                                            <div class="flex items-start gap-4">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-lg font-bold text-gray-900">Registration & Sign-in Restriction</h3>
+                                                    <p class="text-sm text-gray-600 mt-1">Require geographic verification during voter registration and sign-in. This is independent of the voting restriction.</p>
+                                                </div>
+                                            </div>
+                                            <div class="relative flex-shrink-0">
+                                                <input type="checkbox" x-model="formData.enable_geo_registration" name="enable_geo_registration" class="sr-only peer" id="geoRegToggle">
+                                                <div :class="formData.enable_geo_registration ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gray-300'"
+                                                     class="block w-14 h-8 rounded-full transition-all duration-300 cursor-pointer relative shadow-inner">
+                                                    <div :class="formData.enable_geo_registration ? 'translate-x-7' : 'translate-x-1'"
+                                                         class="absolute top-1 left-0 w-6 h-6 bg-white rounded-full shadow-lg transition-transform duration-300 flex items-center justify-center">
+                                                        <svg x-show="formData.enable_geo_registration" class="w-3 h-3 text-amber-600" viewBox="0 0 24 24" fill="none">
+                                                            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+
                                     <!-- Enhanced Geo Configuration -->
-                                    <div x-show="enableGeo"
+                                    <div x-show="enableGeo || formData.enable_geo_registration"
                                          x-transition:enter="transition ease-out duration-300"
                                          x-transition:enter-start="opacity-0 transform translate-y-4"
                                          x-transition:enter-end="opacity-100 transform translate-y-0"

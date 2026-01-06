@@ -1,10 +1,17 @@
 @extends('layouts.app-main-admin')
 
 @section('content')
+    <x-admin-header title="Reports & Tally">
+        <x-slot name="breadcrumbs">
+            <nav class="hidden sm:flex items-center text-sm text-slate-500 space-x-2 mr-4">
+                <span class="text-slate-400">Admin</span>
+                <i class="ri-arrow-right-s-line text-slate-300"></i>
+                <span class="text-slate-700 font-medium">Reports</span>
+            </nav>
+        </x-slot>
+    </x-admin-header>
 
-    <div x-data="{ collapsed: window.innerWidth < 1024, isMobile: window.innerWidth < 1024 }"
-         x-init="window.addEventListener('resize', () => { isMobile = window.innerWidth < 1024 })"
-         class="flex min-h-screen bg-slate-50">
+    <div class="flex min-h-screen bg-slate-50">
 
         <x-admin-sidebar />
 
@@ -15,7 +22,7 @@
                     class="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
                 <button @click="collapsed = false"
                         class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                    <i class="ri-menu-line text-lg"></i>
+                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
                 </button>
                 <h1 class="text-lg font-semibold text-slate-800">Reports &amp; Tally</h1>
             </header>
@@ -34,12 +41,6 @@
                                 <p class="text-sm text-slate-500 mt-1">View completed forms, final tallies and election statistics</p>
                             </div>
                         </div>
-
-                        <nav class="hidden sm:flex items-center text-sm text-slate-500 space-x-2">
-                            <span class="text-slate-400">Admin</span>
-                            <i class="ri-arrow-right-s-line text-slate-300"></i>
-                            <span class="text-slate-700 font-medium">Reports</span>
-                        </nav>
                     </div>
 
                     <!-- Form selector & actions + Forms table -->
@@ -117,7 +118,7 @@
                             <p class="text-sm text-slate-500 mt-1">List of completed forms matching your filters</p>
                         </div>
 
-                        <div class="p-6 overflow-x-auto">
+                        <div class="p-6 responsive-table-container">
                             @if(isset($forms) && count($forms))
                                 <table class="min-w-full text-sm text-left">
                                     <thead>

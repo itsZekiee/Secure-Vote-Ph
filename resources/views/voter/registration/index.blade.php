@@ -305,7 +305,16 @@
                                         </label>
                                     </div>
 
-                                    <button type="submit" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg">
+                                    @if($election->require_geo_registration)
+                                        <div id="geo-status" class="mb-6 p-4 rounded-xl text-sm border flex items-center gap-3 bg-blue-50 border-blue-100 text-blue-700">
+                                            <i class="fas fa-location-dot animate-pulse"></i>
+                                            <span>Initializing location verification...</span>
+                                        </div>
+                                        <input type="hidden" name="latitude" id="reg-lat">
+                                        <input type="hidden" name="longitude" id="reg-lng">
+                                    @endif
+
+                                    <button type="submit" id="register-submit-btn" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg {{ $election->require_geo_registration ? 'opacity-50 pointer-events-none' : '' }}">
                                         <i class="fas fa-user-plus"></i>
                                         Register & Continue
                                     </button>
@@ -314,6 +323,8 @@
                                 <!-- Sign In Form (Hidden by default) -->
                                 <form id="signin-form" action="{{ route('voter.registration.login', $election->code ?? '') }}" method="POST" class="form-transition {{ $registrationOver ? '' : 'hidden' }}">
                                     @csrf
+                                    <input type="hidden" name="latitude" id="login-lat">
+                                    <input type="hidden" name="longitude" id="login-lng">
 
                                     <div class="mb-5">
                                         <label class="block text-sm font-semibold text-slate-700 mb-2">
@@ -350,7 +361,7 @@
                                         <a href="#" class="text-sm text-brand-accent hover:underline font-semibold">Forgot password?</a>
                                     </div>
 
-                                    <button type="submit" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg">
+                                    <button type="submit" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg {{ $election->require_geo_registration ? 'opacity-50 pointer-events-none' : '' }}">
                                         <i class="fas fa-sign-in-alt"></i>
                                         Sign In & Continue
                                     </button>
@@ -572,6 +583,58 @@
                     }
                 });
             }
+            @if($election->require_geo_registration)
+            const geoStatus = document.getElementById('geo-status');
+            const submitBtn = document.getElementById('register-submit-btn');
+            const loginSubmitBtn = document.getElementById('signin-form') ? document.getElementById('signin-form').querySelector('button[type="submit"]') : null;
+            const latInput = document.getElementById('reg-lat');
+            const lngInput = document.getElementById('reg-lng');
+            const loginLatInput = document.getElementById('login-lat');
+            const loginLngInput = document.getElementById('login-lng');
+
+            function getGeoLocation() {
+                if (navigator.geolocation) {
+                    geoStatus.className = 'mb-6 p-4 rounded-xl text-sm border flex items-center gap-3 bg-blue-50 border-blue-100 text-blue-700';
+                    geoStatus.innerHTML = '<i class="fas fa-location-dot animate-pulse"></i><span>Requesting location access...</span>';
+
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            latInput.value = position.coords.latitude;
+                            lngInput.value = position.coords.longitude;
+                            if (loginLatInput) loginLatInput.value = position.coords.latitude;
+                            if (loginLngInput) loginLngInput.value = position.coords.longitude;
+
+                            geoStatus.className = 'mb-6 p-4 rounded-xl text-sm border flex items-center gap-3 bg-emerald-50 border-emerald-100 text-emerald-700';
+                            geoStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>Location verified successfully</span>';
+                            submitBtn.classList.remove('opacity-50', 'pointer-events-none');
+                            if (loginSubmitBtn) loginSubmitBtn.classList.remove('opacity-50', 'pointer-events-none');
+                        },
+                        (error) => {
+                            let message = 'Error getting location';
+                            switch(error.code) {
+                                case error.PERMISSION_DENIED:
+                                    message = 'Location access denied. Please enable GPS and allow location access to continue.';
+                                    break;
+                                case error.POSITION_UNAVAILABLE:
+                                    message = 'Location information is unavailable.';
+                                    break;
+                                case error.TIMEOUT:
+                                    message = 'The request to get user location timed out.';
+                                    break;
+                            }
+                            geoStatus.className = 'mb-6 p-4 rounded-xl text-sm border flex items-center gap-3 bg-red-50 border-red-100 text-red-700';
+                            geoStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>' + message + '</span>';
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                } else {
+                    geoStatus.className = 'mb-6 p-4 rounded-xl text-sm border flex items-center gap-3 bg-red-50 border-red-100 text-red-700';
+                    geoStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Geolocation is not supported by this browser.</span>';
+                }
+            }
+
+            getGeoLocation();
+            @endif
         });
 
         // Toggle password visibility

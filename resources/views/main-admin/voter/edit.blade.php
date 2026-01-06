@@ -4,6 +4,16 @@
     <div class="min-h-screen bg-gray-50 flex flex-col">
         <x-admin-header title="Edit Voter" />
 
+        <!-- Mobile Header -->
+        <header class="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
+            <button @click="collapsed = false"
+                    class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="ri-menu-fold-line text-lg rotate-180"></i>
+            </button>
+            <h1 class="text-lg font-semibold text-slate-800">Edit Voter</h1>
+            <div class="w-10"></div>
+        </header>
+
         <main class="flex-1 p-6">
             <div class="max-w-4xl mx-auto">
                 <div class="mb-6 flex items-center justify-between">

@@ -67,7 +67,17 @@
 
         <!-- Enhanced Header -->
         <div class="bg-white/90 backdrop-blur-md border-b border-gray-200/50 shadow-sm sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-6 py-4">
+            <!-- Mobile Header -->
+            <header class="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
+                <button @click="collapsed = false"
+                        class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
+                </button>
+                <h1 class="text-lg font-semibold text-slate-800">Partylist View</h1>
+                <div class="w-10"></div>
+            </header>
+
+            <div class="max-w-7xl mx-auto px-6 py-4 hidden lg:block">
                 <div class="flex items-center justify-between">
                     <!-- Breadcrumb -->
                     <div class="flex items-center space-x-4">
@@ -239,7 +249,7 @@
                                 <i class="ri-add-line mr-2"></i>New Candidate
                             </a>
                         </div>
-                        <div class="overflow-x-auto">
+                        <div class="responsive-table-container">
                             @if($party->candidates && $party->candidates->count() > 0)
                                 <table class="w-full">
                                     <thead>

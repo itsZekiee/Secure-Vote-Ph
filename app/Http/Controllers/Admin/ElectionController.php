@@ -31,14 +31,17 @@ class ElectionController extends Controller
             ->get();
 
         $organizations = Organization::where('created_by', auth()->id())->get();
+        $positions = collect();
 
-        return view('main-admin.elections', compact('elections', 'organizations'));
+        return view('main-admin.elections', compact('elections', 'organizations', 'positions'));
     }
 
     public function create()
     {
         $organizations = Organization::where('created_by', auth()->id())->get();
-        return view('main-admin.elections', compact('organizations'));
+        $positions = collect();
+
+        return view('main-admin.elections', compact('organizations', 'positions'));
     }
 
     public function edit(Election $election)
@@ -53,13 +56,14 @@ class ElectionController extends Controller
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'organization_id' => 'required|exists:organizations,id',
+                'organization_id' => 'nullable|exists:organizations,id',
                 'voting_start' => 'required|date',
                 'voting_end' => 'required|date|after:voting_start',
                 'positions' => 'required|array|min:1',
                 'positions.*.name' => 'required|string|max:255',
                 'positions.*.candidates' => 'nullable|array',
                 'enable_geo_location' => 'nullable|boolean',
+                'enable_geo_registration' => 'nullable|boolean',
                 'geo_latitude' => 'nullable|numeric',
                 'geo_longitude' => 'nullable|numeric',
                 'geo_radius' => 'nullable|numeric',
@@ -82,6 +86,7 @@ class ElectionController extends Controller
                 'geo_longitude' => $request->geo_longitude,
                 'geo_radius_meters' => $request->geo_radius,
                 'require_geo_verification' => $request->boolean('enable_geo_location'),
+                'require_geo_registration' => $request->boolean('enable_geo_registration'),
             ]);
 
             foreach ($validated['positions'] as $positionData) {
@@ -91,13 +96,24 @@ class ElectionController extends Controller
 
                 if (!empty($positionData['candidates'])) {
                     foreach ($positionData['candidates'] as $candidateName) {
-                        if (trim($candidateName)) {
-                            $position->candidates()->create([
-                                'name' => trim($candidateName)
-                            ]);
+
+                        if ($candidateName && !empty($validated['organization_id'])) {
+                            $candidate = Candidate::where('organization_id', $validated['organization_id'])
+                                ->where('position_id', $position->id)
+                                ->where('name', $candidateName)
+                                ->first();
+
+                            if ($candidate) {
+                                // ✅ ATTACH TO ELECTION
+                                $candidate->update([
+                                    'election_id' => $election->id
+                                ]);
+                            }
                         }
                     }
                 }
+
+
             }
 
             DB::commit();
@@ -191,13 +207,18 @@ class ElectionController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'organization_id' => 'required|exists:organizations,id',
+            'organization_id' => 'nullable|exists:organizations,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'status' => 'required|in:draft,active,completed,cancelled',
             'registration_deadline' => 'nullable|date',
             'accepted_domains' => 'nullable|string',
             'max_votes' => 'nullable|integer|min:1',
+            'enable_geo_location' => 'nullable|boolean',
+            'enable_geo_registration' => 'nullable|boolean',
+            'geo_latitude' => 'nullable|numeric',
+            'geo_longitude' => 'nullable|numeric',
+            'geo_radius' => 'nullable|numeric',
             'sub_admin_ids' => 'nullable|array',
             'sub_admin_ids.*' => 'exists:users,id',
             'positions' => 'nullable|array',
@@ -223,6 +244,11 @@ class ElectionController extends Controller
                 'registration_deadline' => $validated['registration_deadline'] ?? null,
                 'accepted_domains' => $validated['accepted_domains'] ?? null,
                 'max_votes' => $validated['max_votes'] ?? 1,
+                'geo_latitude' => $request->geo_latitude,
+                'geo_longitude' => $request->geo_longitude,
+                'geo_radius_meters' => $request->geo_radius,
+                'require_geo_verification' => $request->boolean('enable_geo_location'),
+                'require_geo_registration' => $request->boolean('enable_geo_registration'),
             ]);
 
             if (!empty($validated['sub_admin_ids'])) {
@@ -264,19 +290,56 @@ class ElectionController extends Controller
                         }
 
                         foreach ($pData['candidates'] as $cIdx => $cData) {
-                            $fullName = trim($cData['first_name'] . ' ' . ($cData['middle_name'] ? $cData['middle_name'] . ' ' : '') . $cData['last_name']);
-                            $position->candidates()->updateOrCreate(
-                                ['id' => $cData['id'] ?? null],
-                                [
-                                    'election_id' => $election->id,
-                                    'first_name' => $cData['first_name'],
-                                    'middle_name' => $cData['middle_name'],
-                                    'last_name' => $cData['last_name'],
-                                    'name' => $fullName,
-                                    'order' => $cIdx + 1,
-                                ]
-                            );
+                            $firstName = trim($cData['first_name'] ?? '');
+                            $lastName = trim($cData['last_name'] ?? '');
+                            $candidateName = trim($firstName . ' ' . (isset($cData['middle_name']) && $cData['middle_name'] ? $cData['middle_name'] . ' ' : '') . $lastName);
+
+                            if (!$firstName || !$lastName) {
+                                continue; // skip incomplete names
+                            }
+
+                            // If id is provided, update the candidate; else create or update by name to avoid duplicates
+                            if (!empty($cData['id'])) {
+                                $position->candidates()->updateOrCreate(
+                                    ['id' => $cData['id']],
+                                    [
+                                        'election_id' => $election->id,
+                                        'name' => $candidateName,
+                                        'first_name' => $firstName,
+                                        'middle_name' => $cData['middle_name'] ?? null,
+                                        'last_name' => $lastName,
+                                        'order' => $cIdx + 1,
+                                    ]
+                                );
+                            } else {
+                                // Try to find candidate by name to avoid duplicates
+                                $candidate = $position->candidates()
+                                    ->where('first_name', $firstName)
+                                    ->where('last_name', $lastName)
+                                    ->first();
+
+                                if ($candidate) {
+                                    $candidate->update([
+                                        'election_id' => $election->id,
+                                        'name' => $candidateName,
+                                        'first_name' => $firstName,
+                                        'middle_name' => $cData['middle_name'] ?? null,
+                                        'last_name' => $lastName,
+                                        'order' => $cIdx + 1,
+                                    ]);
+                                } else {
+                                    $position->candidates()->create([
+                                        'election_id' => $election->id,
+                                        'name' => $candidateName,
+                                        'first_name' => $firstName,
+                                        'middle_name' => $cData['middle_name'] ?? null,
+                                        'last_name' => $lastName,
+                                        'order' => $cIdx + 1,
+                                    ]);
+                                }
+                            }
                         }
+
                     }
                 }
             }
@@ -494,3 +557,4 @@ class ElectionController extends Controller
         ]);
     }
 }
+

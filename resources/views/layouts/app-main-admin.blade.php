@@ -3,6 +3,7 @@
 <x-default-header title="{{ $title ?? config('app.name', 'SecureVote') }} - Admin" />
 
 @stack('styles')
+<link rel="stylesheet" href="{{ asset('css/admin/responsive.css') }}">
 
 <body class="font-sans antialiased bg-slate-50 min-h-screen"
       x-data="{
@@ -21,8 +22,8 @@
         <x-admin-sidebar />
 
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col min-h-screen transition-all duration-300"
-             :class="isMobile ? 'ml-0' : (collapsed ? 'ml-20' : 'ml-72')">
+        <div class="flex-1 flex flex-col min-h-screen transition-all duration-300 overflow-hidden"
+             :class="isMobile ? 'ml-0' : (collapsed ? 'ml-16' : 'ml-72')">
 
             @yield('content')
 
