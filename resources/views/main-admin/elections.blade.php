@@ -260,6 +260,27 @@ document.addEventListener('alpine:init', () => {
                               }
                               return true;
                           },
+                          validatePositions() {
+                              if (this.positions.length === 0) {
+                                  alert('At least one position is required');
+                                  return false;
+                              }
+                              for (let i = 0; i < this.positions.length; i++) {
+                                  if (!this.positions[i].name.trim()) {
+                                      alert(`Position ${i + 1} name is required`);
+                                      return false;
+                                  }
+                                  const validCandidates = this.positions[i].candidates.filter(c =>
+                                      (typeof c === 'string' && c.trim() !== '') ||
+                                      (typeof c === 'object' && c !== null && (c.name || c.first_name))
+                                  );
+                                  if (validCandidates.length === 0) {
+                                      alert('Position ' + this.positions[i].name + ' requires at least one candidate');
+                                      return false;
+                                  }
+                              }
+                              return true;
+                          },
                           generateQRCode(text) {
                               const qrContainer = document.getElementById('qrCodeDisplay');
                               qrContainer.innerHTML = '';
@@ -292,7 +313,7 @@ document.addEventListener('alpine:init', () => {
                             <div class="flex items-center justify-between">
                                 <div class="flex-1 flex items-center gap-8">
                                     <!-- Step 1 -->
-                                    <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="activeTab = 'basic'">
                                         <div :class="activeTab === 'basic' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
                                              class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
                                             <span x-show="!(activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share')">1</span>
@@ -312,7 +333,7 @@ document.addEventListener('alpine:init', () => {
                                     </div>
 
                                     <!-- Step 2 -->
-                                    <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="if(validateBasicInfo()) activeTab = 'candidates'">
                                         <div :class="activeTab === 'candidates' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'settings' || activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
                                              class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
                                             <span x-show="!(activeTab === 'settings' || activeTab === 'share')">2</span>
@@ -332,7 +353,7 @@ document.addEventListener('alpine:init', () => {
                                     </div>
 
                                     <!-- Step 3 -->
-                                    <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="if(validateBasicInfo() && validatePositions()) activeTab = 'settings'">
                                         <div :class="activeTab === 'settings' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
                                              class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
                                             <span x-show="activeTab !== 'share'">3</span>
@@ -352,7 +373,7 @@ document.addEventListener('alpine:init', () => {
                                     </div>
 
                                     <!-- Step 4 -->
-                                    <div class="flex items-center gap-4 flex-1">
+                                    <div class="flex items-center gap-4 flex-1" :class="electionCreated ? 'cursor-pointer' : 'opacity-50'" @click="if(electionCreated) activeTab = 'share'">
                                         <div :class="activeTab === 'share' ? 'bg-gradient-to-br from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/30' : 'bg-gray-200 text-gray-600'"
                                              class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
                                             4
@@ -757,7 +778,7 @@ document.addEventListener('alpine:init', () => {
                                                 class="px-8 py-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-semibold transition-all">
                                             ← Previous
                                         </button>
-                                        <button type="button" @click="activeTab = 'settings'"
+                                        <button type="button" @click="if(validatePositions()) activeTab = 'settings'"
                                                 class="px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl hover:shadow-indigo-500/30 font-bold transition-all">
                                             Continue to Settings →
                                         </button>

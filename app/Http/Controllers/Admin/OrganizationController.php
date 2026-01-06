@@ -84,21 +84,27 @@ class OrganizationController extends Controller
             $query->orderBy('created_at', 'desc');
         }, 'elections' => function($query) {
             $query->orderBy('created_at', 'desc');
-        }]);
+        }, 'partylists']);
+
+        $stats = [
+            'total_users' => $organization->users()->count(),
+            'active_users' => $organization->users()->where('is_active', true)->count(),
+            'total_elections' => $organization->elections()->count(),
+            'active_elections' => $organization->elections()->where('status', 'active')->count()
+        ];
 
         if (request()->expectsJson()) {
             return response()->json([
                 'organization' => $organization,
-                'stats' => [
-                    'total_users' => $organization->users()->count(),
-                    'active_users' => $organization->users()->where('is_active', true)->count(),
-                    'total_elections' => $organization->elections()->count(),
-                    'active_elections' => $organization->elections()->where('status', 'active')->count()
-                ]
+                'stats' => $stats
             ]);
         }
 
-        return view('main-admin.organizations.organization-view', compact('organization'));
+        $membersUrl = route('admin.organizations.members', $organization->id);
+        $partyCreateUrl = route('admin.partylists.create', ['organization_id' => $organization->id]);
+        $partylists = $organization->partylists;
+
+        return view('main-admin.organizations.organization-view', compact('organization', 'membersUrl', 'partyCreateUrl', 'partylists', 'stats'));
     }
 
     /**

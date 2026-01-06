@@ -226,7 +226,9 @@ class ElectionController extends Controller
             'positions.*.name' => 'required|string|max:255',
             'positions.*.candidates' => 'nullable|array',
             'positions.*.candidates.*.id' => 'nullable',
-            'positions.*.candidates.*.name' => 'required|string|max:255',
+            'positions.*.candidates.*.first_name' => 'required|string|max:255',
+            'positions.*.candidates.*.middle_name' => 'nullable|string|max:255',
+            'positions.*.candidates.*.last_name' => 'required|string|max:255',
         ]);
 
         try {
@@ -288,10 +290,12 @@ class ElectionController extends Controller
                         }
 
                         foreach ($pData['candidates'] as $cIdx => $cData) {
-                            $candidateName = trim($cData['name']); // Only 'name', no first/middle/last
+                            $firstName = trim($cData['first_name'] ?? '');
+                            $lastName = trim($cData['last_name'] ?? '');
+                            $candidateName = trim($firstName . ' ' . (isset($cData['middle_name']) && $cData['middle_name'] ? $cData['middle_name'] . ' ' : '') . $lastName);
 
-                            if (!$candidateName) {
-                                continue; // skip empty names
+                            if (!$firstName || !$lastName) {
+                                continue; // skip incomplete names
                             }
 
                             // If id is provided, update the candidate; else create or update by name to avoid duplicates
@@ -301,23 +305,35 @@ class ElectionController extends Controller
                                     [
                                         'election_id' => $election->id,
                                         'name' => $candidateName,
+                                        'first_name' => $firstName,
+                                        'middle_name' => $cData['middle_name'] ?? null,
+                                        'last_name' => $lastName,
                                         'order' => $cIdx + 1,
                                     ]
                                 );
                             } else {
                                 // Try to find candidate by name to avoid duplicates
-                                $candidate = $position->candidates()->where('name', $candidateName)->first();
+                                $candidate = $position->candidates()
+                                    ->where('first_name', $firstName)
+                                    ->where('last_name', $lastName)
+                                    ->first();
 
                                 if ($candidate) {
-                                    if ($candidate->election_id !== $election->id) {
-                                        $candidate->update(['election_id' => $election->id]);
-                                    }
-                                    // Also update order
-                                    $candidate->update(['order' => $cIdx + 1]);
+                                    $candidate->update([
+                                        'election_id' => $election->id,
+                                        'name' => $candidateName,
+                                        'first_name' => $firstName,
+                                        'middle_name' => $cData['middle_name'] ?? null,
+                                        'last_name' => $lastName,
+                                        'order' => $cIdx + 1,
+                                    ]);
                                 } else {
                                     $position->candidates()->create([
                                         'election_id' => $election->id,
                                         'name' => $candidateName,
+                                        'first_name' => $firstName,
+                                        'middle_name' => $cData['middle_name'] ?? null,
+                                        'last_name' => $lastName,
                                         'order' => $cIdx + 1,
                                     ]);
                                 }
