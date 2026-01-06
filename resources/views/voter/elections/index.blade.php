@@ -326,16 +326,17 @@
             voteLng.value = lng;
 
             const distance = calculateDistance(electionLat, electionLng, lat, lng);
+            const buffer = 10; // 10 meters buffer
             geoContainer.classList.remove('hidden');
 
-            if (distance > electionRadius) {
+            if (distance > (electionRadius + buffer)) {
                 geoBox.className = 'p-4 rounded-2xl border flex items-start gap-4 shadow-sm bg-red-50 border-red-200 text-red-800';
                 geoIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-red-100 text-red-600';
                 geoTitle.textContent = 'Out of Bound';
-                geoMessage.textContent = 'You are outside the voting radius. You can still fill out the ballot, but you cannot submit until you return to the designated area.';
+                geoMessage.textContent = 'You are outside the voting radius (Distance: ' + Math.round(distance) + 'm, Allowed: ' + electionRadius + 'm). You can still fill out the ballot, but you cannot submit until you return to the designated area.';
                 submitVoteBtn.disabled = true;
                 submitVoteBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            } else if (distance > electionRadius * 0.9) {
+            } else if (distance > (electionRadius + buffer) * 0.9) {
                 geoBox.className = 'p-4 rounded-2xl border flex items-start gap-4 shadow-sm bg-amber-50 border-amber-200 text-amber-800';
                 geoIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-100 text-amber-600';
                 geoTitle.textContent = 'Near Boundary';

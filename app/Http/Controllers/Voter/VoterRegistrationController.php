@@ -87,8 +87,8 @@ class VoterRegistrationController extends Controller
                 $request->longitude
             );
 
-            if ($distance > $election->geo_radius_meters) {
-                return back()->withErrors(['registration' => 'You must be within the designated voting area to register.'])->withInput();
+            if ($distance > ($election->geo_radius_meters + 10)) { // Add 10m buffer for GPS accuracy
+                return back()->withErrors(['registration' => 'You must be within the designated voting area to register. (Distance: ' . round($distance) . 'm, Allowed: ' . $election->geo_radius_meters . 'm)'])->withInput();
             }
         }
 

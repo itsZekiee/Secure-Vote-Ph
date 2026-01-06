@@ -158,8 +158,8 @@ class VoterElectionController extends Controller
                 $request->longitude
             );
 
-            if ($distance > $election->geo_radius_meters) {
-                return back()->withErrors(['error' => 'You are currently outside the designated voting area. You must return to the designated area to submit your vote.']);
+            if ($distance > ($election->geo_radius_meters + 10)) { // Add 10m buffer for GPS accuracy
+                return back()->withErrors(['error' => 'You are currently outside the designated voting area. (Distance: ' . round($distance) . 'm, Allowed: ' . $election->geo_radius_meters . 'm). You must return to the designated area to submit your vote.']);
             }
         }
 
