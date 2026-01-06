@@ -1,0 +1,92 @@
+/* Responsive styles for main-admin */
+
+/* Global container adjustments */
+.max-w-7xl, .max-w-5xl {
+    width: 100%;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+@media (min-width: 640px) {
+    .max-w-7xl, .max-w-5xl {
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .admin-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .mobile-hidden {
+        display: none !important;
+    }
+
+    .mobile-full-width {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    .mobile-stack {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    /* Grid adjustments */
+    .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+        grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    }
+
+    /* Table responsiveness */
+    .responsive-table-container {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+    }
+
+    /* Card adjustments */
+    .stats-card-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Landscape vs Portrait adjustments */
+@media (max-height: 500px) and (orientation: landscape) {
+    .landscape-low-height {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+}
+
+/* Specific component fixes */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+@media (max-width: 1024px) {
+    .lg\:hidden.bg-white.border-b.px-4.py-3.flex.items-center.justify-between {
+        display: flex !important;
+    }
+}
+
+.flex.items-center.justify-between {
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+@media (max-width: 640px) {
+    .flex.items-center.justify-between > * {
+        width: 100%;
+    }
+}

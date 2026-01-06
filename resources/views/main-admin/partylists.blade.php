@@ -3,8 +3,6 @@
 
 @section('content')
     <div x-data="{
-        collapsed: window.innerWidth < 1024,
-        isMobile: window.innerWidth < 1024,
         selectedPartylist: null,
         showCandidates: false,
         candidates: [],
@@ -79,7 +77,6 @@
         }
     }"
          x-init="
-        window.addEventListener('resize', () => { isMobile = window.innerWidth < 1024 });
         $watch('searchQuery', () => filterPartylists());
         $watch('sortBy', () => filterPartylists());
         $watch('filterStatus', () => filterPartylists());
@@ -100,9 +97,10 @@
                     class="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
                 <button @click="collapsed = false"
                         class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                    <i class="ri-menu-line text-lg"></i>
+                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
                 </button>
-                <h1 class="text-lg font-semibold text-slate-800">Candidates</h1>
+                <h1 class="text-lg font-semibold text-slate-800">Partylists</h1>
+                <div class="w-10"></div>
             </header>
 
             <!-- Top Navigation Bar -->
@@ -294,7 +292,7 @@
                             </div>
                         </div>
 
-                        <div class="overflow-x-auto">
+                        <div class="responsive-table-container">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-white">
                                 <tr class="text-left text-sm font-semibold text-gray-700">

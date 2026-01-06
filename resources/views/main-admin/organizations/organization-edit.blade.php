@@ -199,7 +199,17 @@
 
         <!-- Enhanced Navigation Bar -->
         <div class="bg-gradient-to-r from-white/95 via-blue-50/30 to-white/95 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-40 shadow-sm">
-            <div class="px-8 py-4">
+            <!-- Mobile Header -->
+            <header class="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
+                <button @click="collapsed = false"
+                        class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
+                </button>
+                <h1 class="text-lg font-semibold text-slate-800">Edit Organization</h1>
+                <div class="w-10"></div>
+            </header>
+
+            <div class="px-8 py-4 hidden lg:block">
                 <div class="flex items-center justify-between">
                     <!-- Left Section: Back Button & Breadcrumb -->
                     <div class="flex items-center space-x-4">

@@ -199,7 +199,17 @@
 
         {{-- Top Header --}}
         <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
-            <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+            <!-- Mobile Header -->
+            <header class="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
+                <button @click="collapsed = false"
+                        class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
+                </button>
+                <h1 class="text-lg font-semibold text-slate-800">Create Partylist</h1>
+                <div class="w-10"></div>
+            </header>
+
+            <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between hidden lg:flex">
                 <nav class="flex items-center text-sm space-x-3">
                     <a href="{{ route('admin.dashboard') }}" class="text-gray-600 hover:text-blue-600 transition-colors"><i
                             class="ri-home-4-line text-lg"></i></a>

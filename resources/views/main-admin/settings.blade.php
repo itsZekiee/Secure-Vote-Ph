@@ -18,9 +18,10 @@
             <header class="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
                 <button @click="collapsed = false"
                         class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                    <i class="ri-menu-line text-lg"></i>
+                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
                 </button>
                 <h1 class="text-lg font-semibold text-slate-800">Settings</h1>
+                <div class="w-10"></div>
             </header>
 
             <!-- Page Content -->
@@ -33,7 +34,7 @@
                     </div>
 
                     <!-- Tabs Navigation -->
-                    <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl mb-8">
+                    <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl mb-8 overflow-x-auto no-scrollbar">
                         <button @click="activeTab = 'account'"
                                 :class="activeTab === 'account' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'"
                                 class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all">

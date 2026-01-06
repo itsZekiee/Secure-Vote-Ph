@@ -32,6 +32,19 @@
             box-shadow: 0 25px 50px -12px rgba(0, 212, 170, 0.5);
         }
 
+        .btn-brand:disabled {
+            background: #cbd5e1 !important;
+            color: #64748b !important;
+            box-shadow: none !important;
+            transform: none !important;
+            cursor: not-allowed !important;
+        }
+
+        .btn-brand.btn-active {
+            background: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-secondary) 100%);
+            box-shadow: 0 15px 30px -10px rgba(0, 212, 170, 0.4);
+        }
+
         .glass-card {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(12px);
@@ -130,8 +143,8 @@
                 <div class="p-8 lg:p-12">
                     <div class="flex flex-col md:flex-row items-center gap-8 mb-12">
                         <div
-                            class="w-24 h-24 bg-slate-50 rounded-3xl flex items-center justify-center border border-slate-100 shadow-inner">
-                            <i class="fas fa-user-check text-brand-accent text-4xl"></i>
+                            class="w-24 h-24 bg-brand-primary/5 rounded-3xl flex items-center justify-center border border-brand-primary/10 shadow-inner group">
+                            <i class="fas fa-user-check text-brand-primary text-4xl group-hover:scale-110 transition-transform"></i>
                         </div>
                         <div class="text-center md:text-left">
                             <h2 class="text-2xl lg:text-3xl font-bold text-brand-primary mb-1">Welcome back,
@@ -242,21 +255,19 @@
                             </div>
                         @else
                             <a href="{{ route('voter.elections.vote', $election->code) }}"
-   id="voteBtn"
-   class="flex-1 py-6 bg-brand-primary text-white font-black rounded-3xl text-center shadow-xl shadow-brand-primary/20 hover:shadow-brand-primary/40 hover:-translate-y-1 transition-all flex items-center justify-center gap-3">
-    <i class="fas fa-vote-yea text-xl"></i>
-    <span id="voteBtnText">
-        @if(now()->lt($election->start_date))
-            WAITING TO OPEN
-        @elseif(now()->gt($election->end_date))
-            ELECTION CLOSED
-        @else
-            START VOTING NOW
-        @endif
-    </span>
-</a>
-
-
+                                id="voteBtn"
+                                class="flex-1 py-6 btn-brand text-white font-black rounded-3xl text-center shadow-xl shadow-brand-primary/20 transition-all flex items-center justify-center gap-3">
+                                <i class="fas fa-vote-yea text-xl"></i>
+                                <span id="voteBtnText">
+                                    @if(now()->lt($election->start_date))
+                                        WAITING TO OPEN
+                                    @elseif(now()->gt($election->end_date))
+                                        ELECTION CLOSED
+                                    @else
+                                        START VOTING NOW
+                                    @endif
+                                </span>
+                            </a>
                         @endif
 
                         <a href="{{ route('voter.elections.results', $election->code) }}"
@@ -384,17 +395,22 @@ if (!hasVoted) {
         'cursor-not-allowed',
         'btn-active-pulse'
     );
+    voteBtn.disabled = false;
 
     if (isBeforeStart) {
-        voteBtn.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+        voteBtn.classList.add('pointer-events-none', 'cursor-not-allowed');
+        voteBtn.classList.remove('btn-active');
+        voteBtn.disabled = true;
         voteBtnText.textContent = 'WAITING TO OPEN';
 
     } else if (isEnded) {
-        voteBtn.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+        voteBtn.classList.add('pointer-events-none', 'cursor-not-allowed');
+        voteBtn.classList.remove('btn-active');
+        voteBtn.disabled = true;
         voteBtnText.textContent = 'ELECTION CLOSED';
 
     } else {
-        voteBtn.classList.add('btn-active-pulse');
+        voteBtn.classList.add('btn-active-pulse', 'btn-active');
         voteBtnText.textContent = 'START VOTING NOW';
     }
 }

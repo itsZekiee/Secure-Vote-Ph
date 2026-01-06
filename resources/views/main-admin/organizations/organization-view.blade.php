@@ -69,7 +69,17 @@
 
         <!-- Enhanced Navigation Bar -->
         <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
+            <!-- Mobile Header -->
+            <header class="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
+                <button @click="collapsed = false"
+                        class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
+                </button>
+                <h1 class="text-lg font-semibold text-slate-800">Organization View</h1>
+                <div class="w-10"></div>
+            </header>
+
+            <div class="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between hidden lg:flex">
                 <div class="flex items-center space-x-6">
                     <a href="{{ $indexUrl }}" class="p-2.5 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all border border-gray-100">
                         <i class="ri-arrow-left-line text-xl"></i>
@@ -95,7 +105,7 @@
         </div>
 
         <!-- Main Content -->
-        <div class="max-w-7xl mx-auto px-8 py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-8 py-10">
             <!-- Professional Header Card -->
             <div class="bg-white/90 backdrop-blur-xl rounded-[40px] shadow-2xl shadow-indigo-200/40 border border-white overflow-hidden mb-12">
                 <div class="h-48 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 relative">
@@ -224,7 +234,7 @@
 
                         <div class="p-10">
                             @if($partylists->count() > 0)
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
                                     @foreach($partylists as $party)
                                         @php
                                             $partyId = $party->id ?? 0;

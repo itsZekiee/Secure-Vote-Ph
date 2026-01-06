@@ -12,8 +12,6 @@
 
 @section('content')
     <div x-data="{
-        isMobile: window.innerWidth < 1024,
-        collapsed: window.innerWidth < 1024,
         searchQuery: '',
         sortBy: 'created_at_desc',
         filterElection: '',
@@ -81,7 +79,6 @@
         }
     }"
          x-init="
-        window.addEventListener('resize', () => { isMobile = window.innerWidth < 1024 });
         $watch('searchQuery', () => filter());
         $watch('sortBy', () => filter());
         $watch('filterElection', () => filter());
@@ -96,7 +93,18 @@
         <main class="flex-1">
             <!-- Topbar -->
             <div class="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-40">
-                <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                <!-- Mobile Header -->
+                <header x-show="isMobile"
+                        class="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
+                    <button @click="collapsed = false"
+                            class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                        <i class="ri-menu-fold-line text-lg rotate-180"></i>
+                    </button>
+                    <h1 class="text-lg font-semibold text-slate-800">Candidates</h1>
+                    <div class="w-10"></div>
+                </header>
+
+                <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between hidden lg:flex">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow">
                             <i class="ri-user-3-line text-white text-xl"></i>
@@ -206,7 +214,7 @@
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto">
+                    <div class="responsive-table-container">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-white">
                             <tr class="text-left text-sm font-semibold text-gray-700">

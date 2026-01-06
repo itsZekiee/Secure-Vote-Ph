@@ -166,7 +166,7 @@ document.addEventListener('alpine:init', () => {
             <header class="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm sticky top-0 z-10 lg:hidden">
                 <div class="px-6 py-4 flex items-center justify-between">
                     <button @click="collapsed = false" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                        <i class="ri-menu-line text-lg"></i>
+                        <i class="ri-menu-fold-line text-lg rotate-180"></i>
                     </button>
                     <h1 class="text-lg font-bold text-slate-800">Elections</h1>
                     <div class="w-10"></div>
@@ -221,7 +221,7 @@ document.addEventListener('alpine:init', () => {
             </header>
 
             <!-- Content Container -->
-            <div class="p-8">
+            <div class="p-4 sm:p-8">
                 <form id="electionForm" action="{{ route('admin.elections.store') }}" method="POST"
                       x-data="{
                           activeTab: 'basic',
@@ -308,8 +308,8 @@ document.addEventListener('alpine:init', () => {
                     @csrf
 
                     <!-- Enhanced Progress Stepper -->
-                    <div class="mb-10">
-                        <div class="bg-white/80 backdrop-blur-sm p-8 border border-gray-200/50 rounded-2xl shadow-xl shadow-gray-200/50">
+                    <div class="mb-10 overflow-x-auto no-scrollbar">
+                        <div class="bg-white/80 backdrop-blur-sm p-4 sm:p-8 border border-gray-200/50 rounded-2xl shadow-xl shadow-gray-200/50 min-w-[800px] lg:min-w-0">
                             <div class="flex items-center justify-between">
                                 <div class="flex-1 flex items-center gap-8">
                                     <!-- Step 1 -->
@@ -390,7 +390,7 @@ document.addEventListener('alpine:init', () => {
 
                     <!-- Main Content Card -->
                     <div class="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl shadow-gray-200/50 border border-gray-200/50 overflow-hidden">
-                        <div class="p-12">
+                        <div class="p-4 sm:p-12">
                             <!-- Panel 1: Basic Information -->
                             <section x-show="activeTab === 'basic'"
                                      x-transition:enter="transition ease-out duration-300"

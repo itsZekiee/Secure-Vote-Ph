@@ -1,14 +1,4 @@
-<aside x-show="!collapsed || !isMobile"
-       x-cloak
-       x-transition:enter="transition ease-out duration-300"
-       x-transition:enter-start="-translate-x-full"
-       x-transition:enter-end="translate-x-0"
-       x-transition:leave="transition ease-in duration-300"
-       x-transition:leave-start="translate-x-0"
-       x-transition:leave-end="-translate-x-full"
-       :class="collapsed && !isMobile ? 'w-20' : 'w-72'"
-       class="fixed inset-y-0 left-0 z-40 bg-slate-900 shadow-xl transition-all duration-300 flex flex-col">
-
+<div>
     <!-- Mobile Overlay -->
     <div x-show="!collapsed && isMobile"
          x-cloak
@@ -21,51 +11,54 @@
          @click="collapsed = true"
          class="fixed inset-0 bg-black/50 z-30 lg:hidden"></div>
 
-    <div class="flex flex-col h-full min-h-0">
-        <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-5 bg-slate-800/50 flex-shrink-0">
-            <div x-show="!collapsed || isMobile"
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 scale-100"
-                 x-transition:leave-end="opacity-0 scale-95"
-                 class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                    <i class="ri-shield-keyhole-fill text-slate-600 text-lg"></i>
+    <aside x-show="!collapsed || !isMobile"
+           x-cloak
+           x-transition:enter="transition ease-out duration-300"
+           x-transition:enter-start="-translate-x-full"
+           x-transition:enter-end="translate-x-0"
+           x-transition:leave="transition ease-in duration-300"
+           x-transition:leave-start="translate-x-0"
+           x-transition:leave-end="-translate-x-full"
+           :class="collapsed && !isMobile ? 'w-16' : 'w-72'"
+           class="fixed inset-y-0 left-0 z-40 bg-slate-900 shadow-xl transition-all duration-300 flex flex-col">
+
+        <div class="flex flex-col h-full min-h-0 relative">
+            <!-- Header & Toggle -->
+            <div class="flex items-center justify-between px-6 py-5 bg-slate-800/50 flex-shrink-0" :class="collapsed && !isMobile ? 'flex-col px-0' : ''">
+                <div x-show="!collapsed || isMobile"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                        <i class="ri-shield-keyhole-fill text-slate-600 text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-white tracking-wide">SecureVote</h1>
+                        <p class="text-xs text-slate-300 font-medium">Administration</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-lg font-bold text-white tracking-wide">SecureVote</h1>
-                    <p class="text-xs text-slate-300 font-medium">Administration</p>
-                </div>
+
+                <button x-show="!isMobile"
+                        @click="collapsed = !collapsed"
+                        class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
+                        :class="collapsed ? 'mt-4' : ''"
+                        title="Toggle Sidebar">
+                    <i class="ri-menu-fold-line text-lg" :class="collapsed ? 'rotate-180' : ''"></i>
+                </button>
+
+                <button x-show="isMobile && !collapsed"
+                        @click="collapsed = true"
+                        class="p-2 rounded-lg text-white hover:bg-slate-700/50 lg:hidden transition-colors">
+                    <i class="ri-close-line text-lg"></i>
+                </button>
             </div>
-
-            <div x-show="collapsed && !isMobile"
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 class="w-10 h-10 bg-white rounded-lg flex items-center justify-center mx-auto shadow-sm">
-                <i class="ri-shield-keyhole-fill text-slate-600 text-lg"></i>
-            </div>
-
-            <button x-show="!isMobile"
-                    @click="collapsed = !collapsed"
-                    class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all duration-200"
-                    title="Toggle Sidebar">
-                <i class="ri-menu-fold-line text-lg" x-show="!collapsed"></i>
-                <i class="ri-menu-unfold-line text-lg" x-show="collapsed"></i>
-            </button>
-
-            <button x-show="isMobile && !collapsed"
-                    @click="collapsed = true"
-                    class="p-2 rounded-lg text-white hover:bg-slate-700/50 lg:hidden transition-colors">
-                <i class="ri-close-line text-lg"></i>
-            </button>
-        </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto" x-show="!collapsed || isMobile">
             <!-- Dashboard -->
             <a href="{{ route('admin.dashboard') }}"
                :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
@@ -164,7 +157,7 @@
         </nav>
 
         <!-- User Profile Footer -->
-        <div class="p-2 border-t border-slate-700 bg-slate-800/50 flex-shrink-0">
+        <div class="p-2 border-t border-slate-700 bg-slate-800/50 flex-shrink-0" x-show="!collapsed || isMobile">
             <div :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3'"
                  class="flex items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors cursor-pointer group">
                 <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-lg flex-shrink-0">
@@ -194,3 +187,4 @@
         </div>
     </div>
 </aside>
+</div>

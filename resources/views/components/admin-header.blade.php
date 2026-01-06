@@ -3,8 +3,7 @@
         <div class="flex items-center gap-4">
             <button @click="collapsed = !collapsed"
                     class="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors">
-                <i class="ri-menu-line text-xl" x-show="collapsed"></i>
-                <i class="ri-menu-fold-line text-xl" x-show="!collapsed"></i>
+                <i class="ri-menu-fold-line text-lg" :class="collapsed ? 'rotate-180' : ''"></i>
             </button>
             <div>
                 <h2 class="text-xl font-bold text-slate-800">{{ $title ?? 'Dashboard' }}</h2>

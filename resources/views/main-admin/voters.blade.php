@@ -47,7 +47,7 @@
             <!-- Mobile Header (if needed) -->
             <header class="bg-white/80 backdrop-blur-sm border-b lg:hidden px-6 py-4 flex items-center justify-between">
                 <button @click="collapsed = false" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                    <i class="ri-menu-line text-lg"></i>
+                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
                 </button>
                 <h1 class="text-lg font-bold text-slate-800">Voters</h1>
                 <div class="w-10"></div>
@@ -200,7 +200,7 @@
 
                 <!-- Table -->
                 <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
-                    <div class="overflow-x-auto">
+                    <div class="responsive-table-container">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                             <tr>

@@ -98,7 +98,17 @@
     </script>
 
     <div x-data="dashboard()" @election-selected.window="selectedElection = $event.detail.id" class="flex-1 flex flex-col">
-        <x-admin-header />
+        <x-admin-header title="Dashboard Overview" />
+
+        <!-- Mobile Header -->
+        <header class="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
+            <button @click="collapsed = false"
+                    class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <i class="ri-menu-fold-line text-lg rotate-180"></i>
+            </button>
+            <h1 class="text-lg font-semibold text-slate-800">Dashboard</h1>
+            <div class="w-10"></div>
+        </header>
 
             <main class="flex-1 p-6 pb-10">
                 <div class="max-w-7xl mx-auto space-y-8">
@@ -133,7 +143,7 @@
                         </div>
 
                         <div class="bg-white border border-gray-200 rounded-2xl shadow overflow-hidden">
-                            <div class="overflow-x-auto">
+                            <div class="responsive-table-container">
                                 <div class="max-h-[420px] overflow-y-auto">
                                     <table class="w-full text-sm">
                                         <thead class="bg-slate-50 sticky top-0 z-10">
