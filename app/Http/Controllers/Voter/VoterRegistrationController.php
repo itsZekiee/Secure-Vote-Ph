@@ -120,7 +120,26 @@ class VoterRegistrationController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
+
+        if ($election->require_geo_verification) {
+            if (!$request->latitude || !$request->longitude) {
+                return back()->withErrors(['login' => 'Location access is required to sign in for this election. Please enable GPS.'])->withInput();
+            }
+
+            $distance = $this->calculateDistance(
+                $election->geo_latitude,
+                $election->geo_longitude,
+                $request->latitude,
+                $request->longitude
+            );
+
+            if ($distance > ($election->geo_radius_meters + 10)) { // Add 10m buffer for GPS accuracy
+                return back()->withErrors(['login' => 'You must be within the designated voting area to sign in. (Distance: ' . round($distance) . 'm, Allowed: ' . $election->geo_radius_meters . 'm)'])->withInput();
+            }
+        }
 
         $voter = Voter::where('election_id', $election->id)
             ->where('email', $request->email)

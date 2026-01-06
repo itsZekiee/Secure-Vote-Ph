@@ -323,6 +323,8 @@
                                 <!-- Sign In Form (Hidden by default) -->
                                 <form id="signin-form" action="{{ route('voter.registration.login', $election->code ?? '') }}" method="POST" class="form-transition {{ $registrationOver ? '' : 'hidden' }}">
                                     @csrf
+                                    <input type="hidden" name="latitude" id="login-lat">
+                                    <input type="hidden" name="longitude" id="login-lng">
 
                                     <div class="mb-5">
                                         <label class="block text-sm font-semibold text-slate-700 mb-2">
@@ -359,7 +361,7 @@
                                         <a href="#" class="text-sm text-brand-accent hover:underline font-semibold">Forgot password?</a>
                                     </div>
 
-                                    <button type="submit" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg">
+                                    <button type="submit" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg {{ $election->require_geo_verification ? 'opacity-50 pointer-events-none' : '' }}">
                                         <i class="fas fa-sign-in-alt"></i>
                                         Sign In & Continue
                                     </button>
@@ -584,8 +586,11 @@
             @if($election->require_geo_verification)
             const geoStatus = document.getElementById('geo-status');
             const submitBtn = document.getElementById('register-submit-btn');
+            const loginSubmitBtn = document.getElementById('signin-form') ? document.getElementById('signin-form').querySelector('button[type="submit"]') : null;
             const latInput = document.getElementById('reg-lat');
             const lngInput = document.getElementById('reg-lng');
+            const loginLatInput = document.getElementById('login-lat');
+            const loginLngInput = document.getElementById('login-lng');
 
             function getGeoLocation() {
                 if (navigator.geolocation) {
@@ -596,15 +601,19 @@
                         (position) => {
                             latInput.value = position.coords.latitude;
                             lngInput.value = position.coords.longitude;
+                            if (loginLatInput) loginLatInput.value = position.coords.latitude;
+                            if (loginLngInput) loginLngInput.value = position.coords.longitude;
+
                             geoStatus.className = 'mb-6 p-4 rounded-xl text-sm border flex items-center gap-3 bg-emerald-50 border-emerald-100 text-emerald-700';
                             geoStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>Location verified successfully</span>';
                             submitBtn.classList.remove('opacity-50', 'pointer-events-none');
+                            if (loginSubmitBtn) loginSubmitBtn.classList.remove('opacity-50', 'pointer-events-none');
                         },
                         (error) => {
                             let message = 'Error getting location';
                             switch(error.code) {
                                 case error.PERMISSION_DENIED:
-                                    message = 'Location access denied. Please enable GPS and allow location access to register.';
+                                    message = 'Location access denied. Please enable GPS and allow location access to continue.';
                                     break;
                                 case error.POSITION_UNAVAILABLE:
                                     message = 'Location information is unavailable.';
