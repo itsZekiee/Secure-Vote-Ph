@@ -75,7 +75,7 @@ class VoterRegistrationController extends Controller
             'longitude' => 'nullable|numeric',
         ]);
 
-        if ($election->require_geo_verification) {
+        if ($election->require_geo_registration) {
             if (!$request->latitude || !$request->longitude) {
                 return back()->withErrors(['registration' => 'Location access is required to register for this election. Please enable GPS.'])->withInput();
             }
@@ -124,7 +124,7 @@ class VoterRegistrationController extends Controller
             'longitude' => 'nullable|numeric',
         ]);
 
-        if ($election->require_geo_verification) {
+        if ($election->require_geo_registration) {
             if (!$request->latitude || !$request->longitude) {
                 return back()->withErrors(['login' => 'Location access is required to sign in for this election. Please enable GPS.'])->withInput();
             }

@@ -305,7 +305,7 @@
                                         </label>
                                     </div>
 
-                                    @if($election->require_geo_verification)
+                                    @if($election->require_geo_registration)
                                         <div id="geo-status" class="mb-6 p-4 rounded-xl text-sm border flex items-center gap-3 bg-blue-50 border-blue-100 text-blue-700">
                                             <i class="fas fa-location-dot animate-pulse"></i>
                                             <span>Initializing location verification...</span>
@@ -314,7 +314,7 @@
                                         <input type="hidden" name="longitude" id="reg-lng">
                                     @endif
 
-                                    <button type="submit" id="register-submit-btn" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg {{ $election->require_geo_verification ? 'opacity-50 pointer-events-none' : '' }}">
+                                    <button type="submit" id="register-submit-btn" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg {{ $election->require_geo_registration ? 'opacity-50 pointer-events-none' : '' }}">
                                         <i class="fas fa-user-plus"></i>
                                         Register & Continue
                                     </button>
@@ -361,7 +361,7 @@
                                         <a href="#" class="text-sm text-brand-accent hover:underline font-semibold">Forgot password?</a>
                                     </div>
 
-                                    <button type="submit" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg {{ $election->require_geo_verification ? 'opacity-50 pointer-events-none' : '' }}">
+                                    <button type="submit" class="w-full btn-brand text-white font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg {{ $election->require_geo_registration ? 'opacity-50 pointer-events-none' : '' }}">
                                         <i class="fas fa-sign-in-alt"></i>
                                         Sign In & Continue
                                     </button>
@@ -583,7 +583,7 @@
                     }
                 });
             }
-            @if($election->require_geo_verification)
+            @if($election->require_geo_registration)
             const geoStatus = document.getElementById('geo-status');
             const submitBtn = document.getElementById('register-submit-btn');
             const loginSubmitBtn = document.getElementById('signin-form') ? document.getElementById('signin-form').querySelector('button[type="submit"]') : null;

@@ -87,6 +87,11 @@
                     <input type="hidden" name="start_date" value="{{ $election->start_date->format('Y-m-d\TH:i') }}">
                     <input type="hidden" name="end_date" value="{{ $election->end_date->format('Y-m-d\TH:i') }}">
                     <input type="hidden" name="status" value="{{ $election->status }}">
+                    <input type="hidden" name="enable_geo_location" value="{{ $election->require_geo_verification ? 1 : 0 }}">
+                    <input type="hidden" name="enable_geo_registration" value="{{ $election->require_geo_registration ? 1 : 0 }}">
+                    <input type="hidden" name="geo_latitude" value="{{ $election->geo_latitude }}">
+                    <input type="hidden" name="geo_longitude" value="{{ $election->geo_longitude }}">
+                    <input type="hidden" name="geo_radius" value="{{ $election->geo_radius_meters }}">
 
                     <div class="space-y-8">
                         <template x-for="(position, pIndex) in positions" :key="pIndex">

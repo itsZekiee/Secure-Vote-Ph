@@ -91,8 +91,8 @@
             <div class="flex items-center flex-1">
                 <div
                     @click="toggleStep(index)"
-                    :class="selectedSteps.includes(index) ? 
-                        'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 
+                    :class="selectedSteps.includes(index) ?
+                        'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' :
                         'bg-gray-200 text-gray-600'"
                     class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300 cursor-pointer select-none"
                     x-tooltip="position.name"
@@ -137,7 +137,7 @@
                 return [
                     'id' => $pos->id,
                     'name' => $pos->name,
-                    'max_votes' => $pos->max_votes ?? 1,
+                    'max_votes' => $pos->max_votes ?? 1
                 ];
             })),
             toggleStep(index) {
@@ -238,15 +238,12 @@ document.addEventListener('alpine:init', () => {
                               voting_end: '',
                               accepted_domains: '',
                               registration_deadline: '',
-                              max_votes: 1
+                              max_votes: 1,
+                              enable_geo_registration: false
                           },
                           validateBasicInfo() {
                               if (!this.formData.title.trim()) {
                                   alert('Election Title is required');
-                                  return false;
-                              }
-                              if (!this.selectedOrganization) {
-                                  alert('Please select an organization');
                                   return false;
                               }
                               if (!this.formData.voting_start) {
@@ -408,10 +405,10 @@ document.addEventListener('alpine:init', () => {
                                         </div>
 
                                         <div class="lg:col-span-2">
-                                            <label for="organization" class="block text-sm font-semibold text-gray-900 mb-3">Organization <span class="text-red-500">*</span></label>
-                                            <select id="organization" name="organization_id" x-model="selectedOrganization" required
+                                            <label for="organization" class="block text-sm font-semibold text-gray-900 mb-3">Organization <span class="text-gray-400 text-xs font-normal">(Optional)</span></label>
+                                            <select id="organization" name="organization_id" x-model="selectedOrganization"
                                                     class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
-                                                <option value="">Select an organization</option>
+                                                <option value="">Select an organization (Optional)</option>
                                                 @foreach($organizations as $organization)
                                                     <option value="{{ $organization->id }}">{{ $organization->name }}</option>
                                                 @endforeach
@@ -550,7 +547,9 @@ document.addEventListener('alpine:init', () => {
                                         </div>
 
                                         <!-- Automation Mode Toggle -->
-                                        <div class="flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl px-6 py-4">
+                                        <div class="flex items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl px-6 py-4"
+                                             :class="!parentData.selectedOrganization ? 'opacity-50 grayscale cursor-not-allowed' : ''"
+                                             x-tooltip="!parentData.selectedOrganization ? 'Please select an organization first' : ''">
                                             <div class="flex items-center gap-2">
                                                 <svg class="w-5 h-5 text-amber-600" viewBox="0 0 24 24" fill="none">
                                                     <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -558,7 +557,8 @@ document.addEventListener('alpine:init', () => {
                                                 <span class="font-semibold text-gray-700">Automation Mode</span>
                                             </div>
                                             <button type="button"
-                                                    @click="automationMode = !automationMode"
+                                                    @click="if(parentData.selectedOrganization) automationMode = !automationMode"
+                                                    :disabled="!parentData.selectedOrganization"
                                                     :class="automationMode ? 'bg-amber-500' : 'bg-gray-300'"
                                                     class="relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2">
                                                     <span :class="automationMode ? 'translate-x-8' : 'translate-x-1'"
@@ -777,7 +777,7 @@ document.addEventListener('alpine:init', () => {
                                          radiusValue: 50,
                                          radiusUnit: 'meters'
                                      }"
-                                     x-init="$watch('enableGeo', value => { if(value && !mapInitialized){ setTimeout(() => { initGeoMap(); mapInitialized = true }, 200) } })"
+                                     x-init="$watch('enableGeo', value => { if((value || formData.enable_geo_registration) && !mapInitialized){ setTimeout(() => { initGeoMap(); mapInitialized = true }, 200) } }); $watch('formData.enable_geo_registration', value => { if((value || enableGeo) && !mapInitialized){ setTimeout(() => { initGeoMap(); mapInitialized = true }, 200) } })"
                                      aria-labelledby="settings-heading">
                                 <div class="mb-10">
                                     <div class="flex items-center gap-3 mb-3">
@@ -823,8 +823,37 @@ document.addEventListener('alpine:init', () => {
                                         </label>
                                     </div>
 
+                                    <!-- Geographic Restriction for Registration/Sign-in Toggle Switch -->
+                                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6">
+                                        <label class="flex items-start justify-between cursor-pointer gap-4">
+                                            <div class="flex items-start gap-4">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-lg font-bold text-gray-900">Registration & Sign-in Restriction</h3>
+                                                    <p class="text-sm text-gray-600 mt-1">Require geographic verification during voter registration and sign-in. This is independent of the voting restriction.</p>
+                                                </div>
+                                            </div>
+                                            <div class="relative flex-shrink-0">
+                                                <input type="checkbox" x-model="formData.enable_geo_registration" name="enable_geo_registration" class="sr-only peer" id="geoRegToggle">
+                                                <div :class="formData.enable_geo_registration ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gray-300'"
+                                                     class="block w-14 h-8 rounded-full transition-all duration-300 cursor-pointer relative shadow-inner">
+                                                    <div :class="formData.enable_geo_registration ? 'translate-x-7' : 'translate-x-1'"
+                                                         class="absolute top-1 left-0 w-6 h-6 bg-white rounded-full shadow-lg transition-transform duration-300 flex items-center justify-center">
+                                                        <svg x-show="formData.enable_geo_registration" class="w-3 h-3 text-amber-600" viewBox="0 0 24 24" fill="none">
+                                                            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+
                                     <!-- Enhanced Geo Configuration -->
-                                    <div x-show="enableGeo"
+                                    <div x-show="enableGeo || formData.enable_geo_registration"
                                          x-transition:enter="transition ease-out duration-300"
                                          x-transition:enter-start="opacity-0 transform translate-y-4"
                                          x-transition:enter-end="opacity-100 transform translate-y-0"
