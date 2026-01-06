@@ -340,12 +340,20 @@
 
             let html = '';
             for (const [pos, candidates] of Object.entries(selections)) {
-                html += `
-                    <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 transition-all hover:bg-white hover:shadow-md">
-                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">${pos}</div>
-                        <div class="text-xl font-black text-brand-primary">${candidates.join(', ')}</div>
-                    </div>
-                `;
+                candidates.forEach(candidate => {
+                    html += `
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:shadow-md grid grid-cols-2 gap-4">
+                            <div class="flex flex-col justify-center">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Position</span>
+                                <span class="text-base font-black text-brand-primary leading-tight">${pos}</span>
+                            </div>
+                            <div class="flex flex-col justify-center border-l border-slate-200 pl-6">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Candidate Name</span>
+                                <span class="text-base font-black text-brand-primary leading-tight">${candidate}</span>
+                            </div>
+                        </div>
+                    `;
+                });
             }
 
             modalSummaryContent.innerHTML = html;
