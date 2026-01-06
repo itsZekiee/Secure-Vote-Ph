@@ -76,39 +76,39 @@
                 </div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-6 py-8 space-y-6">
+            <div class="max-w-7xl mx-auto px-6 py-6 space-y-6">
                 <!-- Search & Filters -->
-                <div class="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-                    <div class="px-6 py-5 border-b bg-gradient-to-r from-white via-indigo-50 to-white">
+                <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b bg-gradient-to-r from-white via-indigo-50/30 to-white">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border">
+                                <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-slate-200">
                                     <i class="ri-search-line text-indigo-600"></i>
                                 </div>
                                 <div>
-                                    <h2 class="text-lg font-bold text-gray-900">Search & Filter</h2>
-                                    <p class="text-sm text-gray-600">Quickly find voters and refine results</p>
+                                    <h2 class="text-base font-bold text-gray-900">Search & Filter</h2>
+                                    <p class="text-[11px] text-gray-500 font-medium">Refine voter results</p>
                                 </div>
                             </div>
 
                             <div class="flex items-center gap-3">
                                 <form method="GET" action="{{ route('admin.voters.export') }}">
                                     <input type="hidden" name="format" value="csv" />
-                                    <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-white border rounded-lg text-sm hover:shadow">
+                                    <button type="submit" class="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">
                                         <i class="ri-download-2-line"></i>
                                         Export CSV
                                     </button>
                                 </form>
 
-                                <form method="POST" action="{{ route('admin.voters.import.preview') }}" enctype="multipart/form-data" class="inline-flex items-center gap-2 bg-white border rounded-lg px-3 py-2" id="importForm">
+                                <form method="POST" action="{{ route('admin.voters.import.preview') }}" enctype="multipart/form-data" class="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5" id="importForm">
                                     @csrf
-                                    <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                                    <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700">
                                         <i class="ri-upload-cloud-line text-lg text-indigo-600"></i>
                                         <span class="hidden sm:inline">Import Excel</span>
                                         <input type="file" name="file" accept=".xlsx,.xls" required class="sr-only" onchange="checkFile(this)" />
                                     </label>
-                                    <button type="submit" class="ml-2 inline-flex items-center gap-2 px-3 py-1 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">
-                                        Upload & Preview
+                                    <button type="submit" class="ml-2 inline-flex items-center gap-2 px-3 py-1 bg-indigo-600 text-white rounded text-xs font-bold hover:bg-indigo-700 transition-colors">
+                                        Upload
                                     </button>
                                 </form>
 
@@ -198,99 +198,140 @@
                     </div>
                 </div>
 
-                <!-- Table -->
-                <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
-                    <div class="responsive-table-container">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered Form</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                            </thead>
+            <!-- Table -->
+            <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden mb-12">
+                <div class="px-6 py-4 border-b border-gray-200/60 bg-gradient-to-r from-white via-indigo-50/30 to-white flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-gray-900">Registered Voters</h3>
+                        <p class="text-[11px] text-gray-500 font-medium">Complete list of registered voters</p>
+                    </div>
+                    <div class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg">
+                        <span x-text="total"></span> Total
+                    </div>
+                </div>
 
-                            <tbody class="bg-white divide-y divide-gray-100">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/50">
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Voter Identity</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Contact Details</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Registration Info</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Status</th>
+                                <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 text-right">Management</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
                             @forelse ($collection as $voter)
                                 @php
                                     $id = data_get($voter, 'id');
                                     $name = data_get($voter, 'name') ?? '—';
-                                    $student_id = data_get($voter, 'student_id') ?? '';
-                                    $dob = data_get($voter, 'date_of_birth') ?? data_get($voter, 'dob') ?? null;
+                                    $student_id = data_get($voter, 'student_id') ?? 'N/A';
                                     $email = data_get($voter, 'email') ?? '—';
                                     $phone = data_get($voter, 'phone') ?? data_get($voter, 'phone_number') ?? '—';
                                     $created_at = data_get($voter, 'created_at');
                                     $status = data_get($voter, 'registration_status') ?? 'pending';
-                                    $badgeClass = $status === 'approved' ? 'bg-green-100 text-green-800' : ($status === 'declined' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800');
+
+                                    $statusConfig = [
+                                        'approved' => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'dot' => 'bg-emerald-500', 'icon' => 'ri-checkbox-circle-line'],
+                                        'pending' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-700', 'dot' => 'bg-amber-500', 'icon' => 'ri-time-line'],
+                                        'declined' => ['bg' => 'bg-red-50', 'text' => 'text-red-700', 'dot' => 'bg-red-500', 'icon' => 'ri-close-circle-line'],
+                                    ];
+                                    $cfg = $statusConfig[$status] ?? $statusConfig['pending'];
                                 @endphp
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $id }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">{{ $name }}</div>
-                                        <div class="text-xs text-gray-500">{{ $student_id }}</div>
+                                <tr class="hover:bg-slate-50/80 transition-all group">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 font-bold text-xs group-hover:scale-110 transition-transform">
+                                                {{ substr($name, 0, 1) }}
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-slate-900 leading-tight text-sm">{{ $name }}</p>
+                                                <p class="text-[10px] font-bold text-indigo-500 mt-0.5 uppercase tracking-wider">{{ $student_id }}</p>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $email }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $phone }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                                        {{ $created_at && method_exists($created_at, 'format') ? $created_at->format('Y-m-d') : ($created_at ?? '—') }}
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-0.5">
+                                            <div class="flex items-center gap-2 text-xs font-bold text-slate-600">
+                                                <i class="ri-mail-line text-slate-400"></i>
+                                                {{ $email }}
+                                            </div>
+                                            <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                                <i class="ri-phone-line"></i>
+                                                {{ $phone }}
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                                        {{ optional(data_get($voter, 'election'))->title ?? '—' }}
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-0.5">
+                                            <p class="text-xs font-bold text-slate-700">{{ optional(data_get($voter, 'election'))->title ?? 'No Form Assigned' }}</p>
+                                            <p class="text-[10px] font-bold text-slate-400 italic">
+                                                Joined: {{ $created_at && method_exists($created_at, 'format') ? $created_at->format('M d, Y') : ($created_at ?? '—') }}
+                                            </p>
+                                        </div>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm">
-                                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium {{ $badgeClass }}">
-                                        {{ ucfirst($status) }}
-                                    </span>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-tight {{ $cfg['bg'] }} {{ $cfg['text'] }}">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ $cfg['dot'] }}"></span>
+                                            {{ $status }}
+                                        </span>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                        <a href="{{ route('admin.voters.show', $id) }}" class="text-indigo-600 hover:underline">View</a>
-                                        <a href="{{ route('admin.voters.edit', $id) }}" class="text-gray-600 hover:underline">Edit</a>
-                                        @if($status === 'pending')
-                                            <form id="approve-form-{{ $id }}" method="POST" action="{{ route('admin.voters.approve', $id) }}" class="inline">
-                                                @csrf
-                                                <button type="button" onclick="if(confirm('Approve this voter?')){ this.form.submit(); }" class="text-green-600 hover:underline">Approve</button>
-                                            </form>
-                                        @elseif($status === 'approved')
-                                            <form id="decline-form-{{ $id }}" method="POST" action="{{ route('admin.voters.decline', $id) }}" class="inline">
-                                                @csrf
-                                                <button type="button" onclick="if(confirm('Decline this voter?')){ this.form.submit(); }" class="text-red-600 hover:underline">Decline</button>
-                                            </form>
-                                        @elseif($status === 'declined')
-                                            <form id="approve-form-{{ $id }}" method="POST" action="{{ route('admin.voters.approve', $id) }}" class="inline">
-                                                @csrf
-                                                <button type="button" onclick="if(confirm('Approve this voter?')){ this.form.submit(); }" class="text-green-600 hover:underline">Approve</button>
-                                            </form>
-                                        @endif
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2 transition-all">
+                                            <a href="{{ route('admin.voters.show', $id) }}"
+                                               class="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:shadow transition-all"
+                                               title="View Details">
+                                                <i class="ri-eye-line text-sm"></i>
+                                            </a>
+                                            <a href="{{ route('admin.voters.edit', $id) }}"
+                                               class="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:shadow transition-all"
+                                               title="Edit Voter">
+                                                <i class="ri-edit-line text-sm"></i>
+                                            </a>
+                                            @if($status === 'pending')
+                                                <form method="POST" action="{{ route('admin.voters.approve', $id) }}" class="inline">
+                                                    @csrf
+                                                    <button type="submit" onclick="return confirm('Approve this voter?')"
+                                                            class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all shadow-sm"
+                                                            title="Approve">
+                                                        <i class="ri-check-line text-sm font-bold"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="px-4 py-12 text-center text-sm text-gray-500">
-                                        No voters found. Try changing filters or import a list.
+                                    <td colspan="5" class="px-6 py-16 text-center">
+                                        <div class="flex flex-col items-center gap-3">
+                                            <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300">
+                                                <i class="ri-user-search-line text-3xl"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-base font-bold text-slate-900 uppercase tracking-tight">No Voters Found</p>
+                                                <p class="text-[11px] text-slate-500 font-bold">Try adjusting your filters or import a new list.</p>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                        </tbody>
+                    </table>
+                </div>
 
-                    <div class="px-6 py-4 bg-white border-t flex items-center justify-between">
-                        <div class="text-sm text-gray-700">
-                            Showing <span class="font-medium">{{ $firstItem }}</span> to <span class="font-medium">{{ $lastItem }}</span> of <span class="font-medium">{{ $total }}</span>
-                        </div>
-
-                        <div>
-                            @if ($isPaginated)
-                                {{ $voters->links() }}
-                            @endif
-                        </div>
+                <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        Showing <span class="text-slate-900">{{ $firstItem }}</span> - <span class="text-slate-900">{{ $lastItem }}</span> of <span class="text-slate-900">{{ $total }}</span> Results
+                    </p>
+                    <div>
+                        @if ($isPaginated)
+                            {{ $voters->links() }}
+                        @endif
                     </div>
                 </div>
+            </div>
 
                 @if (session('success'))
                     <div class="rounded-md bg-green-50 border-l-4 border-green-600 p-4">

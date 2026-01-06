@@ -146,66 +146,66 @@
             </div>
 
             <!-- Content -->
-            <div class="px-8 py-8">
+            <div class="px-6 py-6">
                 <div class="max-w-7xl mx-auto">
                     <!-- Search and Filter Section -->
-                    <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden mb-8">
+                    <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden mb-6">
                         <!-- Header with Action Button -->
-                        <div class="px-8 py-6 border-b border-gray-200/60 bg-gradient-to-r from-purple-50 via-indigo-50 to-blue-50">
+                        <div class="px-6 py-4 border-b border-gray-200/60 bg-gradient-to-r from-purple-50/50 via-indigo-50/50 to-blue-50/50">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-4">
-                                    <div class="w-12 h-12 bg-white/80 rounded-xl flex items-center justify-center shadow-sm border border-gray-200/50">
-                                        <i class="ri-search-line text-gray-600 text-lg"></i>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-white/80 rounded-lg flex items-center justify-center shadow-sm border border-gray-200/50">
+                                        <i class="ri-search-line text-gray-600"></i>
                                     </div>
                                     <div>
-                                        <h3 class="text-lg font-bold text-gray-900">Search & Filter</h3>
-                                        <p class="text-sm text-gray-600">Find and manage party lists efficiently</p>
+                                        <h3 class="text-base font-bold text-gray-900">Search & Filter</h3>
+                                        <p class="text-[11px] text-gray-500 font-medium">Find and manage party lists</p>
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.partylists.create') }}"
-                                   class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                                    <i class="ri-add-line mr-2 text-lg"></i>
-                                    Create Party List
+                                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
+                                    <i class="ri-add-line mr-1.5"></i>
+                                    New Party List
                                 </a>
                             </div>
                         </div>
 
                         <!-- Filter Controls -->
-                        <div class="p-8">
+                        <div class="p-6">
                             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                                 <!-- Search Box -->
                                 <div class="lg:col-span-1">
-                                    <label class="block text-sm font-bold text-gray-800 mb-3">
-                                        <i class="ri-search-line text-purple-600 mr-2"></i>
-                                        Search Party Lists
+                                    <label class="block text-xs font-bold text-gray-800 mb-2">
+                                        <i class="ri-search-line text-purple-600 mr-1.5"></i>
+                                        Search
                                     </label>
                                     <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <i class="ri-search-line text-gray-400"></i>
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="ri-search-line text-gray-400 text-sm"></i>
                                         </div>
                                         <input type="text"
                                                x-model="searchQuery"
-                                               placeholder="Search by name, description, platform..."
-                                               class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 bg-white/80 backdrop-blur-sm">
+                                               placeholder="Search..."
+                                               class="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-white">
                                     </div>
                                 </div>
 
                                 <!-- Sort By Filter -->
                                 <div class="lg:col-span-1">
-                                    <label class="block text-sm font-bold text-gray-800 mb-3">
-                                        <i class="ri-sort-asc text-purple-600 mr-2"></i>
+                                    <label class="block text-xs font-bold text-gray-800 mb-2">
+                                        <i class="ri-sort-asc text-purple-600 mr-1.5"></i>
                                         Sort By
                                     </label>
                                     <div class="relative">
                                         <select x-model="sortBy"
-                                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 bg-white/80 backdrop-blur-sm appearance-none">
+                                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-white appearance-none">
                                             <option value="name">Name (A-Z)</option>
                                             <option value="created_at_desc">Newest First</option>
                                             <option value="created_at_asc">Oldest First</option>
                                             <option value="candidates_count">Most Candidates</option>
                                             <option value="status">Status</option>
                                         </select>
-                                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                             <i class="ri-arrow-down-s-line text-gray-400"></i>
                                         </div>
                                     </div>
@@ -213,19 +213,19 @@
 
                                 <!-- Status Filter -->
                                 <div class="lg:col-span-1">
-                                    <label class="block text-sm font-bold text-gray-800 mb-3">
-                                        <i class="ri-checkbox-circle-line text-purple-600 mr-2"></i>
-                                        Filter by Status
+                                    <label class="block text-xs font-bold text-gray-800 mb-2">
+                                        <i class="ri-checkbox-circle-line text-purple-600 mr-1.5"></i>
+                                        Status
                                     </label>
                                     <div class="relative">
                                         <select x-model="filterStatus"
-                                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 bg-white/80 backdrop-blur-sm appearance-none">
+                                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-white appearance-none">
                                             <option value="">All Statuses</option>
                                             <option value="active">Active</option>
                                             <option value="pending">Pending</option>
                                             <option value="inactive">Inactive</option>
                                         </select>
-                                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                             <i class="ri-arrow-down-s-line text-gray-400"></i>
                                         </div>
                                     </div>
@@ -233,77 +233,55 @@
 
                                 <!-- Election Filter -->
                                 <div class="lg:col-span-1">
-                                    <label class="block text-sm font-bold text-gray-800 mb-3">
-                                        <i class="ri-calendar-event-line text-purple-600 mr-2"></i>
-                                        Filter by Election
+                                    <label class="block text-xs font-bold text-gray-800 mb-2">
+                                        <i class="ri-calendar-event-line text-purple-600 mr-1.5"></i>
+                                        Election
                                     </label>
                                     <div class="relative">
                                         <select x-model="filterElection"
-                                                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 bg-white/80 backdrop-blur-sm appearance-none">
+                                                class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-white appearance-none">
                                             <option value="">All Elections</option>
                                             <template x-for="election in elections" :key="election.id">
                                                 <option :value="election.id" x-text="election.name || election.title"></option>
                                             </template>
                                         </select>
-                                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                             <i class="ri-arrow-down-s-line text-gray-400"></i>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Results Summary -->
-                            <div class="mt-8 pt-6 border-t border-gray-100">
-                                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="flex items-center space-x-2">
-                                            <i class="ri-file-list-3-line text-purple-600"></i>
-                                            <span class="text-sm font-semibold text-gray-900">
-                                                Showing <span x-text="filteredPartylists.length"></span> of <span x-text="allPartylists.length"></span> results
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex items-center space-x-3">
-                                        <button @click="clearAllFilters()"
-                                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-200">
-                                            <i class="ri-refresh-line mr-2"></i>
-                                            Clear Filters
-                                        </button>
-                                        <button class="inline-flex items-center px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-all duration-200">
-                                            <i class="ri-download-line mr-2"></i>
-                                            Export Results
-                                        </button>
-                                    </div>
+                            <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <i class="ri-file-list-3-line text-purple-600 text-sm"></i>
+                                    <span class="text-xs font-semibold text-gray-600">
+                                        Showing <span x-text="filteredPartylists.length" class="text-gray-900 font-bold"></span> of <span x-text="allPartylists.length"></span> results
+                                    </span>
                                 </div>
+                                <button @click="clearAllFilters()"
+                                        class="inline-flex items-center px-3 py-1.5 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                                    <i class="ri-refresh-line mr-1.5"></i>
+                                    Reset
+                                </button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Party Lists Table -->
-                    <div class="mt-8 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-200/60 bg-gradient-to-r from-white via-purple-50 to-white">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-900">Party Lists Table</h3>
-                                    <p class="text-sm text-gray-600">View party lists stored in the database</p>
-                                </div>
-                                <div class="text-sm text-gray-500">Showing <span class="font-semibold" x-text="filteredPartylists.length"></span> results</div>
-                            </div>
-                        </div>
-
+                    <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden">
                         <div class="responsive-table-container">
                             <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-white">
-                                <tr class="text-left text-sm font-semibold text-gray-700">
-                                    <th class="px-6 py-4">Partylist Name</th>
-                                    <th class="px-6 py-4">Organization</th>
-                                    <th class="px-6 py-4">Created Date</th>
-                                    <th class="px-6 py-4 text-right">Actions</th>
+                                <thead class="bg-slate-50/50">
+                                <tr class="text-left">
+                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Partylist Name</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Organization</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Created Date</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Actions</th>
                                 </tr>
                                 </thead>
 
-                                <tbody class="bg-white divide-y divide-gray-100 text-sm text-gray-700">
+                                <tbody class="divide-y divide-slate-100 text-sm text-gray-700">
                                 <template x-for="partylist in filteredPartylists" :key="partylist.id">
                                     <tr class="hover:bg-purple-50/30 transition-colors duration-150">
                                         <!-- Partylist Name -->
@@ -311,36 +289,34 @@
                                             <div class="flex items-center space-x-3">
                                                 <img :src="partylist.logo ? ('/storage/' + partylist.logo) : '/images/placeholder-logo.png'"
                                                      :alt="partylist.name + ' logo'"
-                                                     class="w-12 h-12 object-cover rounded-lg border border-gray-200" />
+                                                     class="w-10 h-10 object-cover rounded-lg border border-gray-200" />
                                                 <div>
-                                                    <div class="font-semibold text-gray-900" x-text="partylist.name"></div>
-                                                    <div class="text-xs text-gray-500" x-text="partylist.acronym || 'No acronym'"></div>
+                                                    <div class="font-bold text-slate-900 text-sm" x-text="partylist.name"></div>
+                                                    <div class="text-[10px] text-gray-500 font-medium" x-text="partylist.acronym || 'No acronym'"></div>
                                                 </div>
                                             </div>
                                         </td>
 
                                         <!-- Organization -->
                                         <td class="px-6 py-4 align-middle">
-                                            <span class="text-gray-700 font-medium"
+                                            <span class="text-gray-700 font-bold text-xs"
                                                   x-text="partylist.organization ? (partylist.organization.name || partylist.organization_name) : '—'"></span>
                                         </td>
 
                                         <!-- Created Date -->
-                                        <td class="px-6 py-4 align-middle text-gray-600"
+                                        <td class="px-6 py-4 align-middle text-gray-500 text-xs font-medium"
                                             x-text="new Date(partylist.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })"></td>
 
                                         <!-- Actions -->
                                         <td class="px-6 py-4 align-middle text-right">
                                             <div class="inline-flex items-center space-x-2">
                                                 <a :href="`/admin/partylists/${partylist.id}`"
-                                                   class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 text-purple-600 rounded-lg text-sm font-medium hover:bg-purple-50 transition-colors">
-                                                    <i class="ri-eye-line mr-2"></i>
-                                                    View
+                                                   class="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:text-purple-600 hover:border-purple-200 transition-all">
+                                                    <i class="ri-eye-line text-sm"></i>
                                                 </a>
                                                 <a :href="`/admin/partylists/${partylist.id}/edit`"
-                                                   class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-                                                    <i class="ri-edit-line mr-2"></i>
-                                                    Edit
+                                                   class="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all">
+                                                    <i class="ri-edit-line text-sm"></i>
                                                 </a>
                                             </div>
                                         </td>
