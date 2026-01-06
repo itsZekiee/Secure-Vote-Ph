@@ -16,6 +16,7 @@ class Candidate extends Model
         'election_id',
         'position_id',
         'user_id',
+        'organization_id',
         'partylist_id',
         'first_name',      // Add this
         'middle_name',     // Add this

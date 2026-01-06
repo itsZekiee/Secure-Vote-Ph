@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\JsonResponse;
 
 class CandidateController extends Controller
 {
@@ -297,6 +298,14 @@ class CandidateController extends Controller
                 ]);
             }
 
+            if (!empty($validated['partylist_id'])) {
+                $partylist = Partylist::find($validated['partylist_id']);
+                if ($partylist) {
+                    $validated['organization_id'] = $partylist->organization_id;
+                }
+            }
+
+
             return redirect()->route('admin.candidates.index')->with('success', 'Candidate created successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -546,6 +555,38 @@ class CandidateController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+
+    /**
+     * Automation Mode:
+     * Attach existing candidates from a partylist to an election
+     * WITHOUT creating duplicates
+     */
+    public function attachPartylistCandidatesToElection(
+        Request $request,
+        Election $election
+    ): JsonResponse {
+        if (!$this->canUserManageElection($election)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'partylist_id' => 'required|exists:partylists,id',
+        ]);
+
+        // ✅ THIS IS THE FIX
+        $updated = Candidate::where('partylist_id', $validated['partylist_id'])
+            ->where('organization_id', $election->organization_id)
+            ->whereNull('election_id')   // prevent duplicates
+            ->update([
+                'election_id' => $election->id
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'attached_candidates' => $updated
+        ]);
+    }
+
     /**
      * Resolve a query builder that returns voter users.
      */
@@ -610,4 +651,6 @@ class CandidateController extends Controller
 
         return Position::query()->orderBy('title');
     }
+
+    
 }

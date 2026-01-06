@@ -91,13 +91,26 @@ class ElectionController extends Controller
 
                 if (!empty($positionData['candidates'])) {
                     foreach ($positionData['candidates'] as $candidateName) {
-                        if (trim($candidateName)) {
-                            $position->candidates()->create([
-                                'name' => trim($candidateName)
+
+                        $candidateName = trim($candidateName);
+                        if (!$candidateName)
+                            continue;
+
+                        $candidate = Candidate::where('organization_id', $validated['organization_id'])
+                            ->where('position_id', $position->id)
+                            ->where('name', $candidateName)
+                            ->first();
+
+                        if ($candidate) {
+                            // ✅ ATTACH TO ELECTION
+                            $candidate->update([
+                                'election_id' => $election->id
                             ]);
                         }
                     }
                 }
+
+
             }
 
             DB::commit();
@@ -205,9 +218,7 @@ class ElectionController extends Controller
             'positions.*.name' => 'required|string|max:255',
             'positions.*.candidates' => 'nullable|array',
             'positions.*.candidates.*.id' => 'nullable',
-            'positions.*.candidates.*.first_name' => 'required|string|max:255',
-            'positions.*.candidates.*.middle_name' => 'nullable|string|max:255',
-            'positions.*.candidates.*.last_name' => 'required|string|max:255',
+            'positions.*.candidates.*.name' => 'required|string|max:255',
         ]);
 
         try {
@@ -264,19 +275,42 @@ class ElectionController extends Controller
                         }
 
                         foreach ($pData['candidates'] as $cIdx => $cData) {
-                            $fullName = trim($cData['first_name'] . ' ' . ($cData['middle_name'] ? $cData['middle_name'] . ' ' : '') . $cData['last_name']);
-                            $position->candidates()->updateOrCreate(
-                                ['id' => $cData['id'] ?? null],
-                                [
-                                    'election_id' => $election->id,
-                                    'first_name' => $cData['first_name'],
-                                    'middle_name' => $cData['middle_name'],
-                                    'last_name' => $cData['last_name'],
-                                    'name' => $fullName,
-                                    'order' => $cIdx + 1,
-                                ]
-                            );
+                            $candidateName = trim($cData['name']); // Only 'name', no first/middle/last
+
+                            if (!$candidateName) {
+                                continue; // skip empty names
+                            }
+
+                            // If id is provided, update the candidate; else create or update by name to avoid duplicates
+                            if (!empty($cData['id'])) {
+                                $position->candidates()->updateOrCreate(
+                                    ['id' => $cData['id']],
+                                    [
+                                        'election_id' => $election->id,
+                                        'name' => $candidateName,
+                                        'order' => $cIdx + 1,
+                                    ]
+                                );
+                            } else {
+                                // Try to find candidate by name to avoid duplicates
+                                $candidate = $position->candidates()->where('name', $candidateName)->first();
+
+                                if ($candidate) {
+                                    if ($candidate->election_id !== $election->id) {
+                                        $candidate->update(['election_id' => $election->id]);
+                                    }
+                                    // Also update order
+                                    $candidate->update(['order' => $cIdx + 1]);
+                                } else {
+                                    $position->candidates()->create([
+                                        'election_id' => $election->id,
+                                        'name' => $candidateName,
+                                        'order' => $cIdx + 1,
+                                    ]);
+                                }
+                            }
                         }
+
                     }
                 }
             }

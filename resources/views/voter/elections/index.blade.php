@@ -130,24 +130,8 @@
                     </div>
 
                     <!-- Positions & Candidates -->
-                    @if($election->require_geo_verification)
-                        <div id="geo-alert-container" class="mb-8 hidden">
-                            <div id="geo-alert-box" class="p-4 rounded-2xl border flex items-start gap-4 shadow-sm transition-all duration-300">
-                                <div id="geo-alert-icon" class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-location-dot text-xl"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 id="geo-alert-title" class="font-bold mb-1">Location Status</h3>
-                                    <p id="geo-alert-message" class="text-sm opacity-90"></p>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
                     <form action="{{ route('voter.elections.submit', $election->code) }}" method="POST" id="voting-form">
                         @csrf
-                        <input type="hidden" name="latitude" id="vote-lat">
-                        <input type="hidden" name="longitude" id="vote-lng">
                         <div class="space-y-12">
                             @foreach($positions as $index => $position)
                                 <div class="position-card" data-position-id="{{ $position->id }}">
@@ -289,90 +273,6 @@
         const modalConfirm = document.getElementById('modal-confirm');
         const finalSubmitBtn = document.getElementById('final-submit-btn');
         const totalPositions = {{ $positions->count() }};
-
-        @if($election->require_geo_verification)
-        const geoContainer = document.getElementById('geo-alert-container');
-        const geoBox = document.getElementById('geo-alert-box');
-        const geoIcon = document.getElementById('geo-alert-icon');
-        const geoTitle = document.getElementById('geo-alert-title');
-        const geoMessage = document.getElementById('geo-alert-message');
-        const submitVoteBtn = document.getElementById('final-submit-btn');
-        const voteLat = document.getElementById('vote-lat');
-        const voteLng = document.getElementById('vote-lng');
-
-        const electionLat = {{ $election->geo_latitude }};
-        const electionLng = {{ $election->geo_longitude }};
-        const electionRadius = {{ $election->geo_radius_meters }};
-
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // meters
-            const φ1 = lat1 * Math.PI/180;
-            const φ2 = lat2 * Math.PI/180;
-            const Δφ = (lat2-lat1) * Math.PI/180;
-            const Δλ = (lon2-lon1) * Math.PI/180;
-
-            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                    Math.cos(φ1) * Math.cos(φ2) *
-                    Math.sin(Δλ/2) * Math.sin(Δλ/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-            return R * c;
-        }
-
-        function updateGeoStatus(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            voteLat.value = lat;
-            voteLng.value = lng;
-
-            const distance = calculateDistance(electionLat, electionLng, lat, lng);
-            const buffer = 10; // 10 meters buffer
-            geoContainer.classList.remove('hidden');
-
-            if (distance > (electionRadius + buffer)) {
-                geoBox.className = 'p-4 rounded-2xl border flex items-start gap-4 shadow-sm bg-red-50 border-red-200 text-red-800';
-                geoIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-red-100 text-red-600';
-                geoTitle.textContent = 'Out of Bound';
-                geoMessage.textContent = 'You are outside the voting radius (Distance: ' + Math.round(distance) + 'm, Allowed: ' + electionRadius + 'm). You can still fill out the ballot, but you cannot submit until you return to the designated area.';
-                submitVoteBtn.disabled = true;
-                submitVoteBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            } else if (distance > (electionRadius + buffer) * 0.9) {
-                geoBox.className = 'p-4 rounded-2xl border flex items-start gap-4 shadow-sm bg-amber-50 border-amber-200 text-amber-800';
-                geoIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-100 text-amber-600';
-                geoTitle.textContent = 'Near Boundary';
-                geoMessage.textContent = 'Warning: You are approaching the end of the voting radius. Please stay within the area to ensure your vote can be submitted.';
-                submitVoteBtn.disabled = false;
-                submitVoteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
-                geoBox.className = 'p-4 rounded-2xl border flex items-start gap-4 shadow-sm bg-emerald-50 border-emerald-200 text-emerald-800';
-                geoIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-emerald-100 text-emerald-600';
-                geoTitle.textContent = 'Within Radius';
-                geoMessage.textContent = 'Your location is verified. You are within the designated voting area.';
-                submitVoteBtn.disabled = false;
-                submitVoteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        }
-
-        function handleGeoError(error) {
-            geoContainer.classList.remove('hidden');
-            geoBox.className = 'p-4 rounded-2xl border flex items-start gap-4 shadow-sm bg-red-50 border-red-200 text-red-800';
-            geoIcon.className = 'w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-red-100 text-red-600';
-            geoTitle.textContent = 'Location Error';
-            geoMessage.textContent = 'Unable to verify your location. GPS access is required to submit your vote.';
-            submitVoteBtn.disabled = true;
-            submitVoteBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(updateGeoStatus, handleGeoError, {
-                enableHighAccuracy: true,
-                maximumAge: 5000,
-                timeout: 10000
-            });
-        } else {
-            handleGeoError({code: 0});
-        }
-        @endif
 
         function updateProgress() {
             const selectedPositions = new Set();

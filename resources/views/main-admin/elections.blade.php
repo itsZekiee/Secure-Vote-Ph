@@ -83,6 +83,83 @@
             </div>
         </div>
 
+{{-- Insert this block after your header and before your main form content (e.g., inside .max-w-5xl container) --}}
+
+<div x-data="multiStepper()" class="max-w-5xl mx-auto mb-10 px-4 sm:px-6">
+    <div class="flex items-center gap-4">
+        <template x-for="(position, index) in positions" :key="position.id">
+            <div class="flex items-center flex-1">
+                <div
+                    @click="toggleStep(index)"
+                    :class="selectedSteps.includes(index) ? 
+                        'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 
+                        'bg-gray-200 text-gray-600'"
+                    class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300 cursor-pointer select-none"
+                    x-tooltip="position.name"
+                    role="checkbox"
+                    :aria-checked="selectedSteps.includes(index)"
+                    tabindex="0"
+                    @keydown.enter.prevent="toggleStep(index)"
+                    @keydown.space.prevent="toggleStep(index)"
+                >
+                    <template x-if="selectedSteps.includes(index)">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </template>
+                    <template x-if="!selectedSteps.includes(index)">
+                        <span x-text="index + 1"></span>
+                    </template>
+                </div>
+                <div class="ml-4">
+                    <p :class="selectedSteps.includes(index) ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors" x-text="position.name"></p>
+                    <p class="text-xs text-gray-500" x-text="position.max_votes > 1 ? `Select up to ${position.max_votes} candidates` : `Select 1 candidate`"></p>
+                </div>
+
+                <template x-if="index < positions.length - 1">
+                    <div class="flex-1 h-1 bg-gray-200 rounded-full mx-4 relative overflow-hidden">
+                        <div
+                            :class="selectedSteps.includes(index) && selectedSteps.includes(index + 1) ? 'w-full' : 'w-0'"
+                            class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"
+                        ></div>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </div>
+</div>
+
+<script>
+    function multiStepper() {
+        return {
+            selectedSteps: [],
+            positions: @json($positions->map(function($pos) {
+                return [
+                    'id' => $pos->id,
+                    'name' => $pos->name,
+                    'max_votes' => $pos->max_votes ?? 1,
+                ];
+            })),
+            toggleStep(index) {
+                if (this.selectedSteps.includes(index)) {
+                    this.selectedSteps = this.selectedSteps.filter(i => i !== index);
+                } else {
+                    this.selectedSteps.push(index);
+                }
+            }
+        }
+    }
+</script>
+
+<script>
+document.addEventListener('alpine:init', () => {
+  Alpine.directive('tooltip', (el, { expression }) => {
+    el.setAttribute('title', expression);
+  });
+});
+</script>
+
+
         <!-- Main Content -->
         <main class="flex-1">
             <!-- Enhanced Page Header -->
