@@ -384,9 +384,19 @@
 
                     if (this.type === 'radio') {
                         document.querySelectorAll(`.vote-input[data-position-id="${positionId}"]`).forEach(i => {
-                            i.closest('.candidate-card').classList.remove('selected');
+                            if (i !== this) {
+                                i.checked = false;
+                                i.closest('.candidate-card').classList.remove('selected');
+                            }
                         });
                     } else {
+                        // If checking a candidate, uncheck abstain
+                        const abstainInput = document.querySelector(`.abstain-input[data-position-id="${positionId}"]`);
+                        if (abstainInput && abstainInput.checked) {
+                            abstainInput.checked = false;
+                            abstainInput.closest('.candidate-card').classList.remove('selected');
+                        }
+
                         const checkedCount = document.querySelectorAll(`.vote-input[data-position-id="${positionId}"]:checked`).length;
                         if (checkedCount > maxVotes) {
                             this.checked = false;
