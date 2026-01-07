@@ -44,8 +44,12 @@ class ElectionController extends Controller
         return view('main-admin.elections', compact('organizations', 'positions'));
     }
 
-    public function edit(Election $election)
+    public function edit(string $id)
     {
+        $election = Election::findOrFail($id);
+        if (!$this->canUserManageElection($election)) {
+            abort(403);
+        }
         $organizations = Organization::where('created_by', auth()->id())->get();
         return view('main-admin.elections.edit', compact('election', 'organizations'));
     }
@@ -177,8 +181,9 @@ class ElectionController extends Controller
         }
     }
 
-    public function show(Election $election)
+    public function show(string $id)
     {
+        $election = Election::findOrFail($id);
         if (!$this->canUserManageElection($election)) {
             abort(403, 'Unauthorized');
         }
@@ -198,8 +203,9 @@ class ElectionController extends Controller
         return view('main-admin.elections.show', compact('election', 'voter', 'positions'));
     }
 
-    public function update(Request $request, Election $election)
+    public function update(Request $request, string $id)
     {
+        $election = Election::findOrFail($id);
         if ($election->created_by !== auth()->id()) {
             return back()->withErrors(['general' => 'Only the election creator can edit it']);
         }
@@ -357,8 +363,9 @@ class ElectionController extends Controller
         }
     }
 
-    public function destroy(Election $election)
+    public function destroy(string $id)
     {
+        $election = Election::findOrFail($id);
         if ($election->created_by !== auth()->id()) {
             return back()->withErrors(['general' => 'Only the election creator can delete it']);
         }
@@ -384,8 +391,9 @@ class ElectionController extends Controller
         }
     }
 
-    public function assignSubAdmin(Request $request, Election $election)
+    public function assignSubAdmin(Request $request, string $id)
     {
+        $election = Election::findOrFail($id);
         if ($election->created_by !== auth()->id()) {
             return response()->json(['error' => 'Only the creator can assign sub-admins'], 403);
         }
@@ -402,8 +410,9 @@ class ElectionController extends Controller
         }
     }
 
-    public function removeSubAdmin(Request $request, Election $election)
+    public function removeSubAdmin(Request $request, string $id)
     {
+        $election = Election::findOrFail($id);
         if ($election->created_by !== auth()->id()) {
             return response()->json(['error' => 'Only the creator can remove sub-admins'], 403);
         }
@@ -420,8 +429,9 @@ class ElectionController extends Controller
         }
     }
 
-    public function candidates(Election $election)
+    public function candidates(string $id)
     {
+        $election = Election::findOrFail($id);
         if (!$this->canUserManageElection($election)) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
@@ -512,7 +522,7 @@ class ElectionController extends Controller
     /**
      * Get partylists for an organization (Automation Mode)
      */
-    public function getOrganizationPartylists(int $organizationId): JsonResponse
+    public function getOrganizationPartylists(string $organizationId): JsonResponse
     {
         $partylists = Partylist::where('organization_id', $organizationId)
             ->where('status', 'active')
@@ -528,7 +538,7 @@ class ElectionController extends Controller
     /**
      * Get candidates grouped by position for a partylist (Automation Mode)
      */
-    public function getPartylistCandidates(int $partylistId): JsonResponse
+    public function getPartylistCandidates(string $partylistId): JsonResponse
     {
         $partylist = Partylist::with(['candidates.position'])->findOrFail($partylistId);
 
