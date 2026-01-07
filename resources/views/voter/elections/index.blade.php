@@ -129,66 +129,96 @@
                         </div>
                     </div>
 
-                    <!-- Positions & Candidates -->
+                         <!-- Positions & Candidates -->
                     <form action="{{ route('voter.elections.submit', $election->code) }}" method="POST" id="voting-form">
                         @csrf
                         <div class="space-y-12">
                             @foreach($positions as $index => $position)
                                 <div class="position-card" data-position-id="{{ $position->id }}">
                                     <div class="flex items-center gap-4 mb-6">
-                                        <div class="w-14 h-14 bg-brand-primary text-white rounded-2xl flex items-center justify-center font-black text-xl shadow-xl shadow-brand-primary/20">
-                                            {{ $index + 1 }}
+                                        <div class="w-14 h-14 bg-brand-primary text-white rounded-2xl
+                                                        flex items-center justify-center font-black text-xl">
+                                            {{ $loop->iteration }}
                                         </div>
+
                                         <div>
-                                            <h2 class="text-2xl font-black text-brand-primary tracking-tight uppercase">{{ $position->name }}</h2>
+                                            <!--  THIS LINE SHOWS THE POSITION NAME -->
+                                            <h2 class="text-xl font-black text-brand-primary uppercase">
+                                                {{ $position->title }}
+                                            </h2>
+
                                             <p class="text-slate-400 font-bold text-sm">
-                                                Please select <span class="text-brand-accent">{{ $position->max_votes ?? 1 }}</span> candidate{{ ($position->max_votes ?? 1) > 1 ? 's' : '' }}
+                                                Please select
+                                                <span class="text-brand-accent">
+                                                    {{ $position->max_votes ?? 1 }}
+                                                </span>
+                                                candidate{{ ($position->max_votes ?? 1) > 1 ? 's' : '' }}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                                    <div class="grid grid-cols-1 gap-6">
                                         @foreach($position->candidates as $candidate)
                                             <label class="candidate-card group cursor-pointer block">
                                                 <input type="{{ ($position->max_votes ?? 1) > 1 ? 'checkbox' : 'radio' }}"
-                                                       name="votes[{{ $position->id }}]{{ ($position->max_votes ?? 1) > 1 ? '[]' : '' }}"
-                                                       value="{{ $candidate->id }}"
-                                                       class="vote-input hidden"
-                                                       data-position-id="{{ $position->id }}"
-                                                       data-position-name="{{ $position->name }}"
-                                                       data-candidate-name="{{ $candidate->name }}"
-                                                       data-max-votes="{{ $position->max_votes ?? 1 }}">
+                                                    name="votes[{{ $position->id }}]{{ ($position->max_votes ?? 1) > 1 ? '[]' : '' }}"
+                                                    value="{{ $candidate->id }}" class="vote-input hidden"
+                                                    data-position-id="{{ $position->id }}"
+                                                    data-position-name="{{ $position->name }}"
+                                                    data-candidate-name="{{ $candidate->name }}"
+                                                    data-max-votes="{{ $position->max_votes ?? 1 }}">
 
-                                                <div class="card-content relative bg-white rounded-[2rem] border-2 border-transparent p-6 transition-all duration-300 shadow-sm hover:shadow-xl hover:border-brand-accent/20">
-                                                    <!-- Selection Indicator -->
-                                                    <div class="check-icon hidden absolute -top-3 -right-3 w-8 h-8 bg-brand-accent text-white rounded-full items-center justify-center shadow-lg border-2 border-white z-10">
+                                                <div
+                                                    class="card-content relative bg-white rounded-[2rem]
+                                                                            border-2 border-transparent p-6 transition-all
+                                                                            shadow-sm hover:shadow-xl hover:border-brand-accent/20">
+
+                                                    <div class="check-icon hidden absolute -top-3 -right-3
+                                                                                w-8 h-8 bg-brand-accent text-white rounded-full
+                                                                                items-center justify-center shadow-lg
+                                                                                border-2 border-white z-10">
                                                         <i class="fas fa-check text-xs"></i>
                                                     </div>
 
-                                                    <div class="flex flex-col items-center text-center">
-                                                        <div class="w-24 h-24 rounded-[2rem] mb-4 overflow-hidden border-4 border-slate-50 shadow-inner group-hover:scale-105 transition-transform duration-500">
-                                                            @if($candidate->photo)
-                                                                <img src="{{ asset('storage/' . $candidate->photo) }}" class="w-full h-full object-cover">
-                                                            @else
-                                                                <div class="w-full h-full gradient-brand flex items-center justify-center">
-                                                                    <span class="text-white text-3xl font-black">{{ substr($candidate->name, 0, 1) }}</span>
-                                                                </div>
-                                                            @endif
+                                                    <h4 class="font-black text-brand-primary text-lg mb-1">
+                                                        {{ $candidate->name }}
+                                                    </h4>
+
+                                                    @if($candidate->partylist)
+                                                        <div class="inline-block mt-2 px-3 py-1
+                                                                                        bg-brand-primary/5 rounded-full
+                                                                                        border border-brand-primary/10">
+                                                            <span
+                                                                class="text-[10px] font-black text-brand-primary uppercase tracking-widest">
+                                                                {{ $candidate->partylist->name }}
+                                                            </span>
                                                         </div>
-
-                                                        <h4 class="font-black text-brand-primary text-lg leading-tight mb-1">{{ $candidate->name }}</h4>
-
-                                                        @if($candidate->partylist)
-                                                            <div class="px-3 py-1 bg-brand-primary/5 rounded-full border border-brand-primary/10">
-                                                                <span class="text-[10px] font-black text-brand-primary uppercase tracking-widest">
-                                                                    {{ $candidate->partylist->name }}
-                                                                </span>
-                                                            </div>
-                                                        @endif
-                                                    </div>
+                                                    @endif
                                                 </div>
                                             </label>
                                         @endforeach
+                                        <!--  ABSTAIN OPTION (ONE PER POSITION) -->
+
+                                        <label class="candidate-card group cursor-pointer block">
+                                            <input type="radio" name="votes[{{ $position->id }}]" value="abstain"
+                                                class="vote-input hidden abstain-input" data-position-id="{{ $position->id }}"
+                                                data-position-name="{{ $position->name }}" data-candidate-name="Abstain">
+
+                                            <div
+                                                class="card-content relative bg-slate-50 rounded-[2rem]
+                                                                    border-2 border-dashed border-slate-300 p-6 transition-all">
+
+                                                <h4 class="font-black text-slate-500 text-lg">
+                                                    ABSTAIN
+                                                </h4>
+
+                                                <p class="text-xs text-slate-400 font-bold">
+                                                    No selection for this position
+                                                </p>
+                                            </div>
+                                        </label>
+
                                     </div>
                                 </div>
                             @endforeach
@@ -260,130 +290,122 @@
 @endsection
 
 @push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('voting-form');
-        const voteInputs = document.querySelectorAll('.vote-input');
-        const progressBar = document.getElementById('progress-bar');
-        const progressText = document.getElementById('progress-text');
-        const reviewBtn = document.getElementById('review-btn');
-        const summaryModal = document.getElementById('summary-modal');
-        const closeModalBtns = document.querySelectorAll('.close-modal');
-        const modalSummaryContent = document.getElementById('modal-summary-content');
-        const modalConfirm = document.getElementById('modal-confirm');
-        const finalSubmitBtn = document.getElementById('final-submit-btn');
-        const totalPositions = {{ $positions->count() }};
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('voting-form');
+            const voteInputs = document.querySelectorAll('.vote-input');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const reviewBtn = document.getElementById('review-btn');
+            const summaryModal = document.getElementById('summary-modal');
+            const closeModalBtns = document.querySelectorAll('.close-modal');
+            const modalSummaryContent = document.getElementById('modal-summary-content');
+            const modalConfirm = document.getElementById('modal-confirm');
+            const finalSubmitBtn = document.getElementById('final-submit-btn');
+            const totalPositions = {{ $positions->count() }};
 
-        function updateProgress() {
-            const selectedPositions = new Set();
-            voteInputs.forEach(input => {
-                if (input.checked) {
-                    selectedPositions.add(input.dataset.positionId);
-                }
-            });
-
-            const count = selectedPositions.size;
-            const percentage = (count / totalPositions) * 100;
-            progressBar.style.width = percentage + '%';
-            progressText.textContent = count + ' / ' + totalPositions;
-        }
-
-        voteInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                const positionId = this.dataset.positionId;
-                const maxVotes = parseInt(this.dataset.maxVotes);
-                const card = this.closest('.candidate-card');
-
-                if (this.type === 'radio') {
-                    document.querySelectorAll(`.vote-input[data-position-id="${positionId}"]`).forEach(i => {
-                        i.closest('.candidate-card').querySelector('.card-content').classList.remove('border-brand-accent', 'bg-brand-accent/[0.03]');
-                        i.closest('.candidate-card').querySelector('.check-icon').classList.add('hidden');
-                    });
-                } else {
-                    const checkedCount = document.querySelectorAll(`.vote-input[data-position-id="${positionId}"]:checked`).length;
-                    if (checkedCount > maxVotes) {
-                        this.checked = false;
-                        alert(`You can only select up to ${maxVotes} candidates.`);
-                        return;
+            function updateProgress() {
+                const selectedPositions = new Set();
+                voteInputs.forEach(input => {
+                    if (input.checked) {
+                        selectedPositions.add(input.dataset.positionId);
                     }
-                }
+                });
 
-                if (this.checked) {
-                    card.querySelector('.card-content').classList.add('border-brand-accent', 'bg-brand-accent/[0.03]');
-                    card.querySelector('.check-icon').classList.remove('hidden');
-                } else {
-                    card.querySelector('.card-content').classList.remove('border-brand-accent', 'bg-brand-accent/[0.03]');
-                    card.querySelector('.check-icon').classList.add('hidden');
-                }
-
-                updateProgress();
-            });
-        });
-
-        reviewBtn.addEventListener('click', function() {
-            const selections = {};
-            let hasSelection = false;
+                const count = selectedPositions.size;
+                const percentage = (count / totalPositions) * 100;
+                progressBar.style.width = percentage + '%';
+                progressText.textContent = count + ' / ' + totalPositions;
+            }
 
             voteInputs.forEach(input => {
-                if (input.checked) {
-                    const posName = input.dataset.positionName;
-                    if (!selections[posName]) selections[posName] = [];
-                    selections[posName].push(input.dataset.candidateName);
-                    hasSelection = true;
+                input.addEventListener('change', function () {
+                    const positionId = this.dataset.positionId;
+                    const maxVotes = parseInt(this.dataset.maxVotes);
+                    const card = this.closest('.candidate-card');
+
+                    if (this.type === 'radio') {
+                        document.querySelectorAll(`.vote-input[data-position-id="${positionId}"]`).forEach(i => {
+                            i.closest('.candidate-card').querySelector('.card-content').classList.remove('border-brand-accent', 'bg-brand-accent/[0.03]');
+                            i.closest('.candidate-card').querySelector('.check-icon').classList.add('hidden');
+                        });
+                    } else {
+                        const checkedCount = document.querySelectorAll(`.vote-input[data-position-id="${positionId}"]:checked`).length;
+                        if (checkedCount > maxVotes) {
+                            this.checked = false;
+                            alert(`You can only select up to ${maxVotes} candidates.`);
+                            return;
+                        }
+                    }
+
+                    if (this.checked) {
+                        card.querySelector('.card-content').classList.add('border-brand-accent', 'bg-brand-accent/[0.03]');
+                        card.querySelector('.check-icon').classList.remove('hidden');
+                    } else {
+                        card.querySelector('.card-content').classList.remove('border-brand-accent', 'bg-brand-accent/[0.03]');
+                        card.querySelector('.check-icon').classList.add('hidden');
+                    }
+
+                    updateProgress();
+                });
+            });
+
+            reviewBtn.addEventListener('click', function () {
+                const selections = {};
+                let hasSelection = false;
+
+                voteInputs.forEach(input => {
+                    if (input.checked) {
+                        const posName = input.dataset.positionName;
+                        if (!selections[posName]) selections[posName] = [];
+                        selections[posName].push(input.dataset.candidateName);
+                        hasSelection = true;
+                    }
+                });
+
+                if (!hasSelection) {
+                    alert('Please select at least one candidate before reviewing.');
+                    return;
+                }
+
+                let html = '';
+                for (const [pos, candidates] of Object.entries(selections)) {
+                    html += `
+                                <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 transition-all hover:bg-white hover:shadow-md">
+                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">${pos}</div>
+                                    <div class="text-xl font-black text-brand-primary">${candidates.join(', ')}</div>
+                                </div>
+                            `;
+                }
+
+                modalSummaryContent.innerHTML = html;
+                summaryModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            });
+
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    summaryModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                });
+            });
+
+            modalConfirm.addEventListener('change', function () {
+                finalSubmitBtn.disabled = !this.checked;
+                finalSubmitBtn.classList.toggle('opacity-50', !this.checked);
+                finalSubmitBtn.classList.toggle('cursor-not-allowed', !this.checked);
+                if (this.checked) {
+                    finalSubmitBtn.classList.add('hover:-translate-y-1', 'hover:shadow-brand-primary/40');
+                } else {
+                    finalSubmitBtn.classList.remove('hover:-translate-y-1', 'hover:shadow-brand-primary/40');
                 }
             });
 
-            if (!hasSelection) {
-                alert('Please select at least one candidate before reviewing.');
-                return;
-            }
-
-            let html = '';
-            for (const [pos, candidates] of Object.entries(selections)) {
-                candidates.forEach(candidate => {
-                    html += `
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:shadow-md grid grid-cols-2 gap-4">
-                            <div class="flex flex-col justify-center">
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Position</span>
-                                <span class="text-base font-black text-brand-primary leading-tight">${pos}</span>
-                            </div>
-                            <div class="flex flex-col justify-center border-l border-slate-200 pl-6">
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Candidate Name</span>
-                                <span class="text-base font-black text-brand-primary leading-tight">${candidate}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            modalSummaryContent.innerHTML = html;
-            summaryModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        });
-
-        closeModalBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                summaryModal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
+            finalSubmitBtn.addEventListener('click', function () {
+                finalSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SUBMITTING...';
+                finalSubmitBtn.disabled = true;
+                form.submit();
             });
         });
-
-        modalConfirm.addEventListener('change', function() {
-            finalSubmitBtn.disabled = !this.checked;
-            finalSubmitBtn.classList.toggle('opacity-50', !this.checked);
-            finalSubmitBtn.classList.toggle('cursor-not-allowed', !this.checked);
-            if (this.checked) {
-                finalSubmitBtn.classList.add('hover:-translate-y-1', 'hover:shadow-brand-primary/40');
-            } else {
-                finalSubmitBtn.classList.remove('hover:-translate-y-1', 'hover:shadow-brand-primary/40');
-            }
-        });
-
-        finalSubmitBtn.addEventListener('click', function() {
-            finalSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SUBMITTING...';
-            finalSubmitBtn.disabled = true;
-            form.submit();
-        });
-    });
-</script>
+    </script>
 @endpush
