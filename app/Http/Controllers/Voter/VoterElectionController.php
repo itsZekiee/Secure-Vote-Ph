@@ -176,6 +176,10 @@ class VoterElectionController extends Controller
         }
 
         // Record votes
+        $votedAt = now();
+        $ipAddress = $request->ip();
+        $userAgent = $request->userAgent();
+
         foreach ($request->votes as $positionId => $candidateIds) {
             // Handle both single candidate ID (string/int) and multiple IDs (array)
             $ids = is_array($candidateIds) ? $candidateIds : [$candidateIds];
@@ -187,6 +191,11 @@ class VoterElectionController extends Controller
                         'election_id' => $election->id,
                         'position_id' => $positionId,
                         'candidate_id' => $candidateId === 'abstain' ? null : $candidateId,
+                        'latitude' => $request->latitude,
+                        'longitude' => $request->longitude,
+                        'ip_address' => $ipAddress,
+                        'user_agent' => $userAgent,
+                        'voted_at' => $votedAt,
                     ]);
                 }
             }

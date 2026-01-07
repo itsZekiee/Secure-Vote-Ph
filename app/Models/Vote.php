@@ -16,6 +16,15 @@ class Vote extends Model
         'candidate_id',
         'voter_id',
         'position_id',
+        'latitude',
+        'longitude',
+        'ip_address',
+        'user_agent',
+        'voted_at',
+    ];
+
+    protected $casts = [
+        'voted_at' => 'datetime',
     ];
 
     /**
@@ -36,11 +45,9 @@ class Vote extends Model
 
     /**
      * The voter (user) who cast this vote.
-     *
-     * Project has a `User` model (no `Voter` model present), so reference User.
      */
     public function voter(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'voter_id', 'id');
+        return $this->belongsTo(Voter::class, 'voter_id', 'id');
     }
 }
