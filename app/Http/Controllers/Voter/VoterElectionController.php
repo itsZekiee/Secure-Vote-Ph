@@ -258,6 +258,33 @@ class VoterElectionController extends Controller
     }
 
     /**
+     * Get real-time vote counts for an election
+     */
+    public function getVotes($code)
+    {
+        $election = Election::where('code', $code)->first();
+
+        if (!$election) {
+            return response()->json(['error' => 'Election not found'], 404);
+        }
+
+        $candidates = \App\Models\Candidate::where('election_id', $election->id)
+            ->withCount(['votes' => function ($q) use ($election) {
+                $q->where('election_id', $election->id);
+            }])
+            ->get()
+            ->mapWithKeys(function ($candidate) {
+                return [$candidate->id => $candidate->votes_count];
+            });
+
+        return response()->json([
+            'success' => true,
+            'votes' => $candidates,
+            'total_votes' => \App\Models\Vote::where('election_id', $election->id)->count()
+        ]);
+    }
+
+    /**
      * Extract election code from URL
      */
     private function extractCodeFromLink($link)

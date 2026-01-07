@@ -5,67 +5,47 @@
 @push('styles')
     <style>
         .gradient-brand {
-            background: linear-gradient(135deg, #003153 0%, #00D4AA 100%);
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
         }
-        .text-brand-primary { color: #003153; }
-        .text-brand-accent { color: #00D4AA; }
-        .bg-brand-primary { background-color: #003153; }
-        .bg-brand-accent { background-color: #00D4AA; }
-        .border-brand-accent { border-color: #00D4AA; }
+        .text-brand-primary { color: #0f172a; }
+        .text-brand-accent { color: #3b82f6; }
+        .bg-brand-primary { background-color: #0f172a; }
+        .bg-brand-accent { background-color: #3b82f6; }
+        .border-brand-accent { border-color: #3b82f6; }
 
         .btn-brand {
-            background: linear-gradient(135deg, #003153 0%, #00D4AA 100%);
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .btn-brand:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 40px -10px rgba(0, 212, 170, 0.5);
-        }
-        .btn-brand:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
         }
 
         .candidate-card {
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .candidate-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0, 49, 83, 0.1);
+            transform: translateY(-4px);
+            border-color: #3b82f6 !important;
         }
         .candidate-card.selected {
-            border-color: #00D4AA !important;
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.05) 0%, rgba(0, 49, 83, 0.05) 100%) !important;
-            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.2);
+            border-color: #3b82f6 !important;
+            background-color: #f8fafc !important;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
         .candidate-card.selected .check-icon {
             display: flex !important;
         }
-        .candidate-card input:checked + .card-content {
-            border-color: #00D4AA !important;
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.05) 0%, rgba(0, 49, 83, 0.05) 100%) !important;
-        }
-        .candidate-card input:checked + .card-content .check-icon {
-            display: flex !important;
-        }
-
-        .position-badge {
-            background: linear-gradient(135deg, rgba(0, 49, 83, 0.1) 0%, rgba(0, 212, 170, 0.1) 100%);
-        }
 
         .progress-bar-fill {
-            background: linear-gradient(135deg, #003153 0%, #00D4AA 100%);
+            background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
         }
 
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .partylist-badge {
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(0, 49, 83, 0.1) 100%);
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
     </style>
 @endpush
@@ -91,51 +71,61 @@
 
         <div class="relative z-10 min-h-screen flex flex-col">
             <!-- Header -->
-            <header class="py-5 px-6 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm">
+            <header class="py-6 px-8 bg-white/90 backdrop-blur-xl border-b border-slate-200 sticky top-[41px] z-40 shadow-sm">
                 <div class="max-w-7xl mx-auto flex items-center justify-between">
-                    <div class="flex items-center gap-3 group">
-                        <div class="w-11 h-11 rounded-xl gradient-brand flex items-center justify-center shadow-lg shadow-brand-primary/20 group-hover:scale-105 transition-transform">
-                            <i class="fas fa-vote-yea text-white text-lg"></i>
+                    <div class="flex items-center gap-4 group">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-xl shadow-slate-200 transition-transform group-hover:scale-105">
+                            <i class="fas fa-vote-yea text-white text-xl"></i>
                         </div>
                         <div>
-                            <h1 class="text-lg font-bold text-brand-primary tracking-tight">SecureVote</h1>
-                            <p class="text-xs text-brand-accent">Philippines</p>
+                            <h1 class="text-xl font-black text-slate-900 tracking-tight uppercase">SecureVote</h1>
+                            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-[0.2em]">Philippines</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-8">
                         <div class="text-right hidden sm:block">
-                            <p class="text-slate-400 text-xs uppercase tracking-wider">Now Voting</p>
-                            <p class="text-brand-primary font-medium">{{ $election->title }}</p>
+                            <p class="text-slate-400 text-[10px] uppercase font-black tracking-[0.2em] mb-0.5">Active Session</p>
+                            <p class="text-slate-900 font-bold text-sm">{{ $election->title }}</p>
                         </div>
-                        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg">
-                            <i class="fas fa-user text-brand-accent text-sm"></i>
-                            <span class="text-slate-600 text-sm">{{ $voter['name'] }}</span>
+                        <div class="h-8 w-px bg-slate-200 hidden md:block"></div>
+                        <div class="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                                <i class="fas fa-user text-xs"></i>
+                            </div>
+                            <span class="text-slate-900 font-bold text-sm">{{ $voter['name'] }}</span>
                         </div>
                     </div>
                 </div>
             </header>
 
             <!-- Main Content -->
-            <div class="flex-grow px-4 sm:px-6 py-8">
-                <div class="max-w-5xl mx-auto">
+            <div class="flex-grow px-6 py-10">
+                <div class="max-w-6xl mx-auto">
                     <!-- Election Header Card -->
-                    <div class="gradient-brand rounded-2xl p-6 sm:p-8 mb-8 shadow-2xl shadow-brand-primary/20">
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
-                                <i class="fas fa-vote-yea text-white text-2xl sm:text-3xl"></i>
+                    <div class="bg-slate-900 rounded-[2.5rem] p-8 sm:p-12 mb-10 shadow-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[100px] rounded-full -mr-32 -mt-32"></div>
+                        <div class="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/20 blur-[100px] rounded-full -ml-32 -mb-32"></div>
+
+                        <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center gap-8">
+                            <div class="w-20 h-20 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/20 shadow-inner">
+                                <i class="fas fa-landmark text-white text-3xl"></i>
                             </div>
                             <div class="flex-grow">
-                                <h2 class="text-2xl sm:text-3xl font-bold text-white mb-2">{{ $election->title }}</h2>
-                                <p class="text-white/80 text-sm sm:text-base">{{ $election->description ?? 'Select your preferred candidates for each position below' }}</p>
-                            </div>
-                            <div class="flex gap-3 w-full sm:w-auto">
-                                <div class="flex-1 sm:flex-none bg-white/20 backdrop-blur rounded-xl px-4 py-3 text-center">
-                                    <p class="text-white/70 text-xs uppercase tracking-wider">Positions</p>
-                                    <p class="text-white text-xl font-bold">{{ $positions->count() }}</p>
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="px-3 py-1 bg-blue-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Official Election</span>
+                                    <span class="text-slate-400 text-sm font-medium">• {{ $election->organization ? $election->organization->name : 'General' }}</span>
                                 </div>
-                                <div class="flex-1 sm:flex-none bg-white/20 backdrop-blur rounded-xl px-4 py-3 text-center">
-                                    <p class="text-white/70 text-xs uppercase tracking-wider">Candidates</p>
-                                    <p class="text-white text-xl font-bold">{{ $positions->sum(fn($p) => $p->candidates->count()) }}</p>
+                                <h2 class="text-3xl sm:text-4xl font-black text-white mb-4 tracking-tight leading-tight">{{ $election->title }}</h2>
+                                <p class="text-slate-400 text-lg max-w-2xl leading-relaxed">{{ $election->description ?? 'Securely cast your vote for the leadership positions listed below. Every vote counts towards our future.' }}</p>
+                            </div>
+                            <div class="flex lg:flex-col gap-4 w-full lg:w-auto">
+                                <div class="flex-1 lg:w-40 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Positions</p>
+                                    <p class="text-white text-2xl font-black">{{ $positions->count() }}</p>
+                                </div>
+                                <div class="flex-1 lg:w-40 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                                    <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Candidates</p>
+                                    <p class="text-white text-2xl font-black">{{ $positions->sum(fn($p) => $p->candidates->count()) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -143,49 +133,44 @@
 
                     <form onsubmit="return false;" id="voting-form">
                         <!-- Progress Indicator -->
-                        <div class="bg-white rounded-xl p-5 mb-6 border border-slate-200 shadow-sm">
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="text-slate-600 text-sm font-medium">Voting Progress</span>
-                                <span class="text-brand-accent font-semibold text-sm" id="progress-text">0 / {{ $positions->count() }} positions</span>
+                        <div class="bg-white rounded-3xl p-8 mb-10 border border-slate-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <span class="text-slate-900 text-sm font-black uppercase tracking-widest">Voting Progress</span>
+                                    <p class="text-slate-400 text-xs mt-1 font-medium">Please complete all positions to finalize your ballot</p>
+                                </div>
+                                <span class="text-blue-600 font-black text-sm" id="progress-text">0 / {{ $positions->count() }} POSITIONS</span>
                             </div>
-                            <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
-                                <div class="h-full progress-bar-fill rounded-full transition-all duration-500" id="progress-bar" style="width: 0%"></div>
+                            <div class="h-4 bg-slate-100 rounded-full overflow-hidden p-1">
+                                <div class="h-full progress-bar-fill rounded-full transition-all duration-700 shadow-sm" id="progress-bar" style="width: 0%"></div>
                             </div>
                         </div>
 
                         <!-- Positions and Candidates -->
-                        @foreach($positions as $index => $position)
-                            <div class="bg-white rounded-2xl mb-6 overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow position-card" data-position-id="{{ $position->id }}">
-                                <!-- Position Header -->
-                                <div class="bg-gradient-to-r from-slate-50 to-white px-6 py-5 border-b border-slate-100">
-                                    <div class="flex items-center justify-between flex-wrap gap-3">
-                                        <div class="flex items-center gap-4">
-                                            <div class="w-12 h-12 position-badge rounded-xl flex items-center justify-center">
-                                                <span class="text-brand-primary font-bold text-lg">{{ $index + 1 }}</span>
-                                            </div>
-                                            <div>
-                                                <h3 class="text-lg font-bold text-brand-primary">{{ $position->name }}</h3>
-                                                <p class="text-slate-500 text-sm">
-                                                    Select {{ $position->max_votes ?? 1 }} candidate{{ ($position->max_votes ?? 1) > 1 ? 's' : '' }}
-                                                </p>
+                        <div class="space-y-12">
+                            @foreach($positions as $index => $position)
+                                <div class="position-card" data-position-id="{{ $position->id }}">
+                                    <!-- Position Header -->
+                                    <div class="flex items-center gap-6 mb-8">
+                                        <div class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-slate-200">
+                                            {{ sprintf('%02d', $index + 1) }}
+                                        </div>
+                                        <div>
+                                            <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">{{ $position->name }}</h3>
+                                            <div class="flex items-center gap-3 mt-1">
+                                                <span class="text-slate-500 text-sm font-bold">Requirement:</span>
+                                                <span class="px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-black rounded-full uppercase tracking-wider">
+                                                    Select {{ $position->max_votes ?? 1 }} Candidate{{ ($position->max_votes ?? 1) > 1 ? 's' : '' }}
+                                                </span>
                                             </div>
                                         </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="px-3 py-1.5 bg-brand-accent/10 text-brand-accent text-xs font-semibold rounded-full">
-                                                {{ $position->candidates->count() }} Candidate{{ $position->candidates->count() > 1 ? 's' : '' }}
-                                            </span>
-                                        </div>
+                                        <div class="h-px flex-grow bg-slate-100 ml-4 hidden md:block"></div>
                                     </div>
-                                    @if($position->description)
-                                        <p class="mt-3 text-slate-500 text-sm pl-16">{{ $position->description }}</p>
-                                    @endif
-                                </div>
 
-                                <!-- Candidates Grid -->
-                                <div class="p-6 bg-slate-50/50">
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <!-- Candidates Grid -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                         @foreach($position->candidates as $candidate)
-                                            <label class="candidate-card cursor-pointer block">
+                                            <label class="candidate-card group cursor-pointer block relative">
                                                 <input type="{{ ($position->max_votes ?? 1) > 1 ? 'checkbox' : 'radio' }}"
                                                        name="votes[{{ $position->id }}]{{ ($position->max_votes ?? 1) > 1 ? '[]' : '' }}"
                                                        value="{{ $candidate->id }}"
@@ -193,48 +178,57 @@
                                                        data-position="{{ $position->id }}"
                                                        data-candidate-name="{{ $candidate->name }}"
                                                        data-max-votes="{{ $position->max_votes ?? 1 }}">
-                                                <div class="card-content relative bg-white rounded-xl border-2 border-slate-200 p-4 hover:border-brand-accent/50 transition-all">
-                                                    <div class="flex items-center gap-4">
-                                                        <div class="relative">
-                                                            <div class="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden border border-slate-200">
+
+                                                <div class="card-content bg-white rounded-[2rem] border-2 border-slate-100 p-6 transition-all hover:shadow-xl hover:shadow-slate-100 relative overflow-hidden">
+                                                    <div class="flex flex-col items-center text-center">
+                                                        <div class="relative mb-6">
+                                                            <div class="w-24 h-24 rounded-3xl bg-slate-50 overflow-hidden border-4 border-white shadow-lg transition-transform group-hover:scale-105">
                                                                 @if($candidate->photo)
                                                                     <img src="{{ asset('storage/' . $candidate->photo) }}" class="w-full h-full object-cover">
                                                                 @else
-                                                                    <div class="w-full h-full flex items-center justify-center text-slate-300">
-                                                                        <i class="fas fa-user text-xl"></i>
+                                                                    <div class="w-full h-full flex items-center justify-center text-slate-200">
+                                                                        <i class="fas fa-user text-3xl"></i>
                                                                     </div>
                                                                 @endif
                                                             </div>
-                                                            <div class="check-icon absolute -top-2 -right-2 w-6 h-6 bg-brand-accent text-white rounded-full hidden items-center justify-center shadow-lg border-2 border-white">
-                                                                <i class="fas fa-check text-[10px]"></i>
+                                                            <div class="check-icon absolute -top-2 -right-2 w-8 h-8 bg-blue-600 text-white rounded-xl hidden items-center justify-center shadow-lg border-2 border-white transform rotate-12">
+                                                                <i class="fas fa-check text-xs"></i>
                                                             </div>
                                                         </div>
-                                                        <div class="flex-grow">
-                                                            <h4 class="font-bold text-brand-primary leading-tight">{{ $candidate->name }}</h4>
-                                                            @if($candidate->partylist)
-                                                                <p class="text-[10px] font-bold text-brand-accent uppercase tracking-wider mt-1">{{ $candidate->partylist->name }}</p>
-                                                            @endif
-                                                        </div>
+
+                                                        <h4 class="font-black text-lg text-slate-900 leading-tight mb-2">{{ $candidate->name }}</h4>
+
+                                                        @if($candidate->partylist)
+                                                            <span class="px-3 py-1 bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] rounded-full">
+                                                                {{ $candidate->partylist->name }}
+                                                            </span>
+                                                        @else
+                                                            <span class="px-3 py-1 bg-slate-50 text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] rounded-full">
+                                                                Independent
+                                                            </span>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </label>
                                         @endforeach
                                     </div>
                                 </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
 
                         <!-- Submit Section -->
-                        <div class="mt-12 bg-white rounded-2xl p-8 border border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col items-center text-center">
-                            <div class="w-16 h-16 bg-brand-accent/10 rounded-full flex items-center justify-center mb-6">
-                                <i class="fas fa-shield-alt text-brand-accent text-2xl"></i>
+                        <div class="mt-20 bg-slate-50 rounded-[3rem] p-12 border-2 border-slate-100 flex flex-col items-center text-center">
+                            <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-8 shadow-xl shadow-slate-200">
+                                <i class="fas fa-shield-alt text-blue-600 text-3xl"></i>
                             </div>
-                            <h3 class="text-xl font-bold text-brand-primary mb-2">Review Your Selection</h3>
-                            <p class="text-slate-500 mb-8 max-w-md">In preview mode, you can select candidates but submission is disabled.</p>
+                            <h3 class="text-3xl font-black text-slate-900 mb-4 tracking-tight uppercase">Review Your Ballot</h3>
+                            <p class="text-slate-500 mb-10 max-w-md text-lg leading-relaxed">Please ensure all your selections are correct. You cannot change your vote after submission.</p>
 
-                            <button type="button" disabled class="btn-brand text-white px-10 py-4 rounded-xl font-bold text-lg opacity-50 cursor-not-allowed">
-                                <i class="fas fa-paper-plane mr-2"></i> Submit Vote
+                            <button type="button" disabled class="bg-slate-200 text-slate-400 px-12 py-5 rounded-2xl font-black text-lg cursor-not-allowed uppercase tracking-widest flex items-center gap-3">
+                                <i class="fas fa-lock text-sm"></i>
+                                Submit Final Vote
                             </button>
+                            <p class="mt-6 text-slate-400 text-xs font-bold uppercase tracking-widest italic">Submission is disabled in preview mode</p>
                         </div>
                     </form>
                 </div>

@@ -78,7 +78,7 @@
                                                 @endif
                                             </div>
                                             <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-brand-primary text-white rounded-xl flex items-center justify-center shadow-lg border-2 border-white">
-                                                <span class="text-xs font-black">{{ $candidate->votes_count }}</span>
+                                                <span class="text-xs font-black vote-count" data-candidate-id="{{ $candidate->id }}">{{ $candidate->votes_count }}</span>
                                             </div>
                                         </div>
 
@@ -121,9 +121,35 @@
             el.classList.toggle('hidden');
         }
 
-        // Auto refresh every 30 seconds
-        setTimeout(() => {
-            window.location.reload();
-        }, 30000);
+        async function updateVotes() {
+            try {
+                const response = await fetch('{{ route('voter.elections.results.votes', $election->code) }}');
+                const data = await response.json();
+
+                if (data.success) {
+                    Object.entries(data.votes).forEach(([id, count]) => {
+                        const el = document.querySelector(`.vote-count[data-candidate-id="${id}"]`);
+                        if (el) {
+                            const currentCount = parseInt(el.textContent);
+                            if (currentCount !== count) {
+                                // Add a subtle pulse effect when count changes
+                                el.textContent = count;
+                                el.parentElement.classList.add('animate-bounce');
+                                setTimeout(() => {
+                                    el.parentElement.classList.remove('animate-bounce');
+                                }, 1000);
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to update votes:', error);
+            }
+        }
+
+        // Update every 5 seconds
+        setInterval(updateVotes, 5000);
+        // Initial update
+        updateVotes();
     </script>
 @endsection

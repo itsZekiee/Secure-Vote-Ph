@@ -23,11 +23,12 @@ class Candidate extends Model
         'middle_name',     // Add this
         'last_name',
         'name',
-        'description',
+        'platform',
         'photo',
         'party_affiliation',
         'created_by',
         'order',
+        'status',
     ];
 
     protected $casts = [

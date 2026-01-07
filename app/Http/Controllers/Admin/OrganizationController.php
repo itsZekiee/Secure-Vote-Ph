@@ -74,8 +74,9 @@ class OrganizationController extends Controller
     /**
      * Display the specified organization
      */
-    public function show(Organization $organization)
+    public function show(string $id)
     {
+        $organization = Organization::findOrFail($id);
         if ($organization->created_by !== auth()->id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
@@ -110,8 +111,9 @@ class OrganizationController extends Controller
     /**
      * Show the form for editing the specified organization
      */
-    public function edit(Organization $organization)
+    public function edit(string $id)
     {
+        $organization = Organization::findOrFail($id);
         if ($organization->created_by !== auth()->id()) {
             abort(403, 'Unauthorized');
         }
@@ -122,8 +124,9 @@ class OrganizationController extends Controller
     /**
      * Update the specified organization
      */
-    public function update(Request $request, Organization $organization)
+    public function update(Request $request, string $id)
     {
+        $organization = Organization::findOrFail($id);
         if ($organization->created_by !== auth()->id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
@@ -190,8 +193,9 @@ class OrganizationController extends Controller
     /**
      * Remove the specified organization from storage
      */
-    public function destroy(Organization $organization)
+    public function destroy(string $id)
     {
+        $organization = Organization::findOrFail($id);
         if ($organization->created_by !== auth()->id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }

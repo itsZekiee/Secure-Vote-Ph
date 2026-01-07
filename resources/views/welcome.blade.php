@@ -51,7 +51,7 @@
         <x-default-nav />
 
         <!-- Main Content -->
-        <main>
+        <main class="relative">
             <div class="max-w-7xl mx-auto">
                 <!-- Welcome Section -->
                 <section class="welcome-section px-6 lg:px-8 py-20 lg:py-32 bg-gradient-to-br from-gray-50 to-white min-h-screen flex items-center">
@@ -80,7 +80,7 @@
                             <div class="relative">
                                 <div class="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-3xl blur-3xl"></div>
                                 <div class="relative bg-white p-8 rounded-3xl shadow-2xl">
-                                    <img src="{{ asset('asset/Voting-amico.svg') }}" alt="Secure Voting" class="w-full h-auto object-contain">
+                                    <img src="{{ asset('assets/Voting-amico.svg') }}" alt="Secure Voting" class="w-full h-auto object-contain">
                                 </div>
                             </div>
                         </div>
@@ -139,7 +139,7 @@
                             <div class="relative">
                                 <div class="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-3xl blur-2xl"></div>
                                 <div class="relative">
-                                    <img src="{{ asset('asset/33633910_map.jpg') }}" alt="Geo Location Verification" class="w-full h-auto object-contain rounded-lg shadow-lg">
+                                    <img src="{{ asset('assets/33633910_map.jpg') }}" alt="Geo Location Verification" class="w-full h-auto object-contain rounded-lg shadow-lg">
                                 </div>
                             </div>
                         </div>
@@ -161,7 +161,7 @@
                             <div class="relative">
                                 <div class="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-3xl blur-2xl"></div>
                                 <div class="relative">
-                                    <img src="{{ asset('asset/concept-illustration-data-security-technology.png') }}" alt="Security Features" class="w-full h-auto object-contain rounded-lg shadow-lg">
+                                    <img src="{{ asset('assets/concept-illustration-data-security-technology.png') }}" alt="Security Features" class="w-full h-auto object-contain rounded-lg shadow-lg">
                                 </div>
                             </div>
                             <div class="space-y-6">
@@ -243,7 +243,7 @@
                             <div class="relative">
                                 <div class="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 rounded-3xl blur-2xl"></div>
                                 <div class="relative">
-                                    <img src="{{ asset('asset/coloured-statistics-design.png') }}" alt="Analytics Dashboard" class="w-full h-auto object-contain rounded-lg shadow-lg">
+                                    <img src="{{ asset('assets/coloured-statistics-design.png') }}" alt="Analytics Dashboard" class="w-full h-auto object-contain rounded-lg shadow-lg">
                                 </div>
                             </div>
                         </div>

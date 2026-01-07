@@ -286,7 +286,14 @@ class CandidateController extends Controller
                 'created_by' => auth()->id(),
             ];
 
-            Candidate::create($candidateData);
+            Candidate::updateOrCreate(
+                [
+                    'user_id' => $userId,
+                    'election_id' => $validated['election_id'] ?? null,
+                    'position_id' => $validated['position_id'],
+                ],
+                $candidateData
+            );
 
             DB::commit();
 
@@ -324,22 +331,24 @@ class CandidateController extends Controller
     /**
      * Display the specified candidate
      */
-    public function show(Candidate $candidate)
+    public function show(string $id)
     {
+        $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
             abort(403, 'Unauthorized');
         }
 
         $candidate->load(['user', 'election', 'position', 'partylist', 'votes']);
 
-        return view('main-admin.candidates.show', compact('candidate'));
+        return view('main-admin.candidate.show', compact('candidate'));
     }
 
     /**
      * Show the form for editing the specified candidate
      */
-    public function edit(Candidate $candidate)
+    public function edit(string $id)
     {
+        $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
             abort(403, 'Unauthorized');
         }
@@ -378,8 +387,9 @@ class CandidateController extends Controller
     /**
      * Update the specified candidate
      */
-    public function update(Request $request, Candidate $candidate)
+    public function update(Request $request, string $id)
     {
+        $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
             return back()->withErrors(['general' => 'Unauthorized']);
         }
@@ -435,8 +445,9 @@ class CandidateController extends Controller
     /**
      * Remove the specified candidate from storage
      */
-    public function destroy(Candidate $candidate)
+    public function destroy(string $id)
     {
+        $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
             return back()->withErrors(['general' => 'Unauthorized']);
         }
@@ -652,5 +663,5 @@ class CandidateController extends Controller
         return Position::query()->orderBy('title');
     }
 
-    
+
 }
