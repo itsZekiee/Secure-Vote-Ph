@@ -134,8 +134,8 @@ class VoterController extends Controller
             \App\Models\Voter::create([
                 'name' => $validated['full_name'],
                 'email' => $validated['email'],
-                'phone' => $validated['phone'],
-                'student_id' => $validated['student_id'],
+                'phone' => $validated['phone'] ?? null,
+                'student_id' => $validated['student_id'] ?? null,
                 'election_id' => $validated['form_id'],
                 'registration_status' => $validated['registration_status'],
                 'password' => \Illuminate\Support\Facades\Hash::make('password'),
@@ -160,20 +160,20 @@ class VoterController extends Controller
         }
     }
 
-    public function show($id)
+    public function show(string $id)
     {
         $voter = \App\Models\Voter::with(['election'])->findOrFail($id);
         return view('main-admin.voter.view', compact('voter'));
     }
 
-    public function edit($id)
+    public function edit(string $id)
     {
         $voter = \App\Models\Voter::with(['election'])->findOrFail($id);
         $forms = \App\Models\Election::where('created_by', auth()->id())->get();
         return view('main-admin.voter.edit', compact('voter', 'forms'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id)
     {
         $voter = \App\Models\Voter::findOrFail($id);
 
@@ -204,12 +204,14 @@ class VoterController extends Controller
         }
     }
 
-    public function destroy(User $voter)
+    public function destroy(string $id)
     {
         try {
             DB::beginTransaction();
 
-            if (method_exists($voter, 'votes') && $voter->votes()->count() > 0) {
+            $voter = Voter::findOrFail($id);
+
+            if ($voter->votes()->count() > 0) {
                 return back()->withErrors(['general' => 'Cannot delete voter with existing votes']);
             }
 
@@ -227,7 +229,7 @@ class VoterController extends Controller
         }
     }
 
-    public function approve($id)
+    public function approve(string $id)
     {
         $voter = Voter::findOrFail($id);
         $voter->registration_status = 'approved';
@@ -236,7 +238,7 @@ class VoterController extends Controller
         return back()->with('success', 'Voter approved.');
     }
 
-    public function decline($id)
+    public function decline(string $id)
     {
         $voter = Voter::findOrFail($id);
         $voter->registration_status = 'declined';
@@ -331,12 +333,12 @@ class VoterController extends Controller
         $rows = $sheets->first() ?? collect();
 
         $voters = $rows->map(function ($row) {
-            $studentId = $row['id'] ?? ($row['student_id'] ?? ($row['id_number'] ?? ($row['employee_id'] ?? null)));
+            $studentId = $row['id'] ?? ($row['student_id'] ?? ($row['id_number'] ?? ($row['employee_id'] ?? ($row['student id'] ?? null))));
             return (object) [
-                'name' => $row['full_name'] ?? ($row['name'] ?? null),
+                'name' => $row['full_name'] ?? ($row['name'] ?? ($row['full name'] ?? null)),
                 'email' => $row['email'] ?? null,
                 'student_id' => $studentId,
-                'phone' => $row['phone'] ?? ($row['phone_number'] ?? null),
+                'phone' => $row['phone'] ?? ($row['phone_number'] ?? ($row['phone number'] ?? null)),
                 'registration_status' => 'approved',
                 'created_at' => now(),
             ];
@@ -381,11 +383,11 @@ class VoterController extends Controller
         try {
             foreach ($rows as $row) {
                 $email = $row['email'] ?? null;
-                if (!$email || User::where('email', $email)->exists()) {
+                if (!$email) {
                     continue;
                 }
 
-                $studentId = $row['id'] ?? ($row['student_id'] ?? ($row['id_number'] ?? ($row['employee_id'] ?? null)));
+                $studentId = $row['id'] ?? ($row['student_id'] ?? ($row['id_number'] ?? ($row['employee_id'] ?? ($row['student id'] ?? null))));
 
                 // Validate Student ID format (xxxx-xxxxxx-xx-x)
                 if ($studentId && !preg_match('/^\d{4}-\d{6}-\d{2}-\d{1}$/', (string)$studentId)) {

@@ -591,7 +591,7 @@ class PartylistController extends Controller
     /**
      * API endpoint to get partylists for a specific organization
      */
-    public function getByOrganization(Request $request, $organizationId)
+    public function getByOrganization(Request $request, string $organizationId)
     {
         $partylists = Partylist::where('organization_id', $organizationId)
             ->with(['candidates.user'])

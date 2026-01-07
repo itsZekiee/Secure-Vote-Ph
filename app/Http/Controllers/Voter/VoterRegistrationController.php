@@ -68,7 +68,7 @@ class VoterRegistrationController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:voters,email,NULL,id,election_id,' . $election->id,
+            'email' => 'required|email|unique:voters,email,NULL,id,election_id,' . (string)$election->id,
             'student_id' => 'nullable|string|max:50',
             'password' => 'required|string|min:6|confirmed',
             'latitude' => 'nullable|numeric',
@@ -96,7 +96,7 @@ class VoterRegistrationController extends Controller
             'election_id' => $election->id,
             'name' => $request->name,
             'email' => $request->email,
-            'student_id' => $request->student_id,
+            'student_id' => $request->student_id ?? null,
             'password' => Hash::make($request->password),
             'registration_status' => 'pending',
         ]);
