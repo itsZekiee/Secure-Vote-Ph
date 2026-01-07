@@ -13,32 +13,32 @@ class OrganizationSeeder extends Seeder
             [
                 'name' => 'Student Council',
                 'description' => 'Official student government organization',
-                'status' => 'active',
+                'is_active' => true,
             ],
             [
                 'name' => 'Computer Science Department',
                 'description' => 'Department of Computer Science and Technology',
-                'status' => 'active',
+                'is_active' => true,
             ],
             [
                 'name' => 'Engineering Society',
                 'description' => 'Organization for all engineering students',
-                'status' => 'active',
+                'is_active' => true,
             ],
             [
                 'name' => 'Business Club',
                 'description' => 'Business and entrepreneurship organization',
-                'status' => 'active',
+                'is_active' => true,
             ],
             [
                 'name' => 'Arts & Culture Organization',
                 'description' => 'Promoting arts and cultural activities',
-                'status' => 'active',
+                'is_active' => true,
             ],
             [
                 'name' => 'Sports Committee',
                 'description' => 'Managing sports and athletic events',
-                'status' => 'active',
+                'is_active' => true,
             ],
         ];
 

@@ -7,320 +7,269 @@
         :root {
             --brand-primary: #003153;
             --brand-accent: #00D4AA;
-            --brand-secondary: #008080;
+            --brand-accent-dark: #00B38F;
+            --brand-text-dark: #003153;
+            --brand-text-muted: #64748b;
+            --brand-bg: #f8fafc;
+            --card-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
         }
 
-        .gradient-brand {
-            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fff;
         }
 
-        .text-brand-primary {
-            color: var(--brand-primary);
+        .btn-start-voting {
+            background: linear-gradient(135deg, #003153 0%, #00D4AA 100%);
+            color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .text-brand-accent {
-            color: var(--brand-accent);
+        .btn-start-voting:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px -10px rgba(0, 212, 170, 0.5);
+            color: white;
         }
 
-        .btn-brand {
-            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .btn-brand:hover:not(:disabled) {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 25px 50px -12px rgba(0, 212, 170, 0.5);
-        }
-
-        .btn-brand:disabled {
-            background: #cbd5e1 !important;
-            color: #64748b !important;
-            box-shadow: none !important;
-            transform: none !important;
-            cursor: not-allowed !important;
-        }
-
-        .btn-brand.btn-active {
-            background: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-secondary) 100%);
-            box-shadow: 0 15px 30px -10px rgba(0, 212, 170, 0.4);
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .countdown-item {
-            background: rgba(255, 255, 255, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-        }
-
-        .countdown-item div:first-child {
-            color: #ffffff;
-        }
-
-        .countdown-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-
-        @keyframes pulse-ring {
-            0% {
-                transform: scale(.95);
-                box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.7);
-            }
-
-            70% {
-                transform: scale(1);
-                box-shadow: 0 0 0 15px rgba(0, 212, 170, 0);
-            }
-
-            100% {
-                transform: scale(.95);
-                box-shadow: 0 0 0 0 rgba(0, 212, 170, 0);
-            }
-        }
-
-        .btn-active-pulse {
-            animation: pulse-ring 2s infinite;
-        }
-
-        .stat-card {
+        .btn-view-results {
+            border: 2px solid #003153;
+            color: #003153;
             transition: all 0.3s ease;
         }
 
-        .stat-card:hover {
-            transform: translateY(-8px);
-            background: white !important;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        .btn-view-results:hover {
+            background-color: #003153;
+            color: white;
         }
 
-        #countdown .countdown-item {
-            background: rgba(0, 0, 0, 0.35) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        .countdown-card {
+            background: white;
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 49, 83, 0.15);
+            border: 1px solid rgba(0, 49, 83, 0.05);
         }
 
-        #countdown .countdown-item div:first-child {
-            color: #ffffff !important;
+        .countdown-box {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(0, 49, 83, 0.05) 100%);
+            border-radius: 1.5rem;
+            padding: 1.5rem 1rem;
+            min-width: 80px;
+            border: 1px solid rgba(0, 212, 170, 0.1);
         }
 
-        #countdown .countdown-item div:last-child {
-            color: rgba(255, 255, 255, 0.8) !important;
+        .stat-card-small {
+            background: white;
+            border: 1px solid #f1f5f9;
+            border-radius: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
-        /* Seconds box */
-        #countdown .countdown-item.active,
-        #countdown .bg-brand-accent {
-            background: linear-gradient(135deg,
-                    #00d4aa,
-                    #00bfa5) !important;
+        .stat-card-small:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 212, 170, 0.2);
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid #f1f5f9;
+            border-radius: 2.5rem;
+            padding: 2.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px -12px rgba(0, 49, 83, 0.12);
+            border-color: rgba(0, 212, 170, 0.3);
+        }
+
+        .icon-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .icon-teal {
+            background: linear-gradient(135deg, #003153 0%, #00D4AA 100%);
+            color: white;
+        }
+
+        .icon-dark-teal {
+            background-color: #003153;
+            color: white;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #003153 0%, #00D4AA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
     </style>
 @endpush
 
 @section('content')
-    <div class="min-h-screen bg-[#F5F5F5] py-12 px-4 relative overflow-hidden">
-        <!-- Decoration -->
-        <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-brand-primary/5 to-transparent"></div>
-
-        <div class="max-w-4xl mx-auto relative z-10">
-            <!-- Header -->
-            <div class="text-center mb-12">
-                <div
-                    class="inline-flex items-center px-4 py-2 bg-white rounded-full shadow-sm mb-6 border border-slate-100">
-                    <span class="w-2 h-2 bg-brand-accent rounded-full mr-2 animate-pulse"></span>
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Election Portal</span>
+    <div class="min-h-screen bg-white">
+        <!-- Header -->
+        <header class="border-b border-slate-100 py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-[#003153] to-[#00D4AA] rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-accent/20">
+                        <i class="fas fa-vote-yea text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black text-[#003153] tracking-tight">SecureVote</h1>
+                        <p class="text-[10px] font-black text-[#00D4AA] uppercase tracking-[0.2em]">Digital Ballot System</p>
+                    </div>
                 </div>
-                <h1 class="text-4xl lg:text-5xl font-black text-brand-primary mb-4 tracking-tight">{{ $election->title }}
-                </h1>
-                <p class="text-slate-500 text-lg">Official Digital Ballot for Election Code: <span
-                        class="font-mono font-bold text-brand-accent">{{ $election->code }}</span></p>
             </div>
+        </header>
 
-            <!-- Main Content Card -->
-            <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-white">
-                <div class="p-8 lg:p-12">
-                    <div class="flex flex-col md:flex-row items-center gap-8 mb-12">
-                        <div
-                            class="w-24 h-24 bg-brand-primary/5 rounded-3xl flex items-center justify-center border border-brand-primary/10 shadow-inner group">
-                            <i class="fas fa-user-check text-brand-primary text-4xl group-hover:scale-110 transition-transform"></i>
-                        </div>
-                        <div class="text-center md:text-left">
-                            <h2 class="text-2xl lg:text-3xl font-bold text-brand-primary mb-1">Welcome back,
-                                {{ $voter['name'] }}!
-                            </h2>
-                            <p class="text-slate-400">Your identity has been verified. You are authorized to participate in
-                                this election.</p>
-                        </div>
-                        @if(!$hasVoted)
-                            <div class="ml-auto">
-                                <span
-                                    class="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-sm font-bold border border-emerald-100">
-                                    <i class="fas fa-shield-check mr-1"></i> Ready to Vote
-                                </span>
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="flex flex-col lg:flex-row gap-16 items-start">
+                <!-- Left Content -->
+                <div class="flex-1">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-[#00D4AA]/10 text-[#003153] rounded-full text-sm font-bold mb-8">
+                        <i class="far fa-calendar-alt text-[#00D4AA]"></i>
+                        {{ $election->start_date->format('Y') }} General Election
+                    </div>
+
+                    <h2 class="text-5xl lg:text-6xl font-extrabold text-[#003153] mb-8 leading-[1.1] tracking-tight">
+                        {{ $election->title }}
+                    </h2>
+
+                    <p class="text-slate-500 text-lg mb-12 max-w-2xl leading-relaxed font-medium">
+                        {{ $election->description ?? 'Exercise your democratic right and make your voice heard. This election will determine the leadership for the next four years. Your vote matters in shaping our collective future.' }}
+                    </p>
+
+                    <!-- Stats Cards -->
+                    <div class="flex flex-wrap gap-6 mb-12">
+                        <div class="stat-card-small flex items-center gap-6 p-6 min-w-[280px]">
+                            <div class="icon-box icon-teal shadow-brand-accent/20">
+                                <i class="fas fa-users"></i>
                             </div>
-                        @endif
-                    </div>
-
-                    @if($election->description)
-                        <div class="bg-slate-50 rounded-[2rem] p-8 mb-10 border border-slate-100">
-                            <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Election Overview</h3>
-                            <p class="text-slate-600 text-lg leading-relaxed">{{ $election->description }}</p>
-                        </div>
-                    @endif
-
-                    <!-- Progress Bar -->
-                    <div class="mb-10">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Election
-                                Progress</span>
-                            <span id="progress-text" class="text-xs font-bold text-brand-primary">0%</span>
-                        </div>
-                        <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200 p-0.5">
-                            <div id="progress-bar"
-                                class="h-full bg-gradient-to-r from-brand-primary to-brand-accent rounded-full transition-all duration-1000"
-                                style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <!-- Prominent Countdown Section -->
-                    <div
-                        class="bg-brand-primary rounded-[2.5rem] p-10 lg:p-14 text-white shadow-2xl shadow-brand-primary/30 mb-12 relative overflow-hidden">
-                        <!-- Abstract Background -->
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                        <div
-                            class="absolute bottom-0 left-0 w-64 h-64 bg-brand-accent/10 rounded-full -ml-32 -mb-32 blur-3xl">
+                            <div>
+                                <div class="text-3xl font-black text-[#003153] tracking-tight">{{ $election->candidates()->count() }}</div>
+                                <div class="text-xs text-slate-400 font-black uppercase tracking-widest">Candidates</div>
+                            </div>
                         </div>
 
-                        <div class="relative z-10">
-                            <h3 class="text-center text-white/70 font-bold uppercase tracking-[0.3em] text-xs mb-8">
-                                <span id="countdown-label">
-                                    @if(now()->lt($election->start_date))
-                                        Election Commences In
-                                    @elseif(now()->gt($election->end_date))
-                                        Election Concluded
-                                    @else
-                                        Voting Period Ends In
-                                    @endif
-                                </span>
-                            </h3>
-
-                            <div id="countdown" class="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
-                                <div class="relative group">
-                                    <div class="countdown-item rounded-3xl p-6 lg:p-8 transition-transform hover:scale-105">
-                                        <div id="days" class="text-4xl lg:text-6xl font-black mb-1">00</div>
-                                        <div
-                                            class="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white/50">
-                                            Days</div>
-                                    </div>
-                                </div>
-                                <div class="relative group">
-                                    <div class="countdown-item rounded-3xl p-6 lg:p-8 transition-transform hover:scale-105">
-                                        <div id="hours" class="text-4xl lg:text-6xl font-black mb-1">00</div>
-                                        <div
-                                            class="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white/50">
-                                            Hours</div>
-                                    </div>
-                                </div>
-                                <div class="relative group">
-                                    <div class="countdown-item rounded-3xl p-6 lg:p-8 transition-transform hover:scale-105">
-                                        <div id="minutes" class="text-4xl lg:text-6xl font-black mb-1">00</div>
-                                        <div
-                                            class="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white/50">
-                                            Mins</div>
-                                    </div>
-                                </div>
-                                <div class="relative group">
-                                    <div
-                                        class="countdown-item countdown-active rounded-3xl p-6 lg:p-8 transition-transform hover:scale-105">
-                                        <div id="seconds" class="text-4xl lg:text-6xl font-black mb-1">00</div>
-                                        <div
-                                            class="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-black/70">
-                                            Secs</div>
-                                    </div>
-                                </div>
-
+                        <div class="stat-card-small flex items-center gap-6 p-6 min-w-[280px]">
+                            <div class="icon-box icon-teal shadow-brand-accent/20">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div>
+                                <div class="text-3xl font-black text-[#003153] tracking-tight">{{ number_format($election->votes()->count()) }}</div>
+                                <div class="text-xs text-slate-400 font-black uppercase tracking-widest">Votes Cast</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="flex flex-wrap gap-6">
                         @if($hasVoted)
-                            <div
-                                class="flex-1 py-6 bg-emerald-50 text-emerald-600 font-black rounded-3xl text-center border-2 border-emerald-100 flex items-center justify-center gap-3">
-                                <i class="fas fa-check-circle text-2xl"></i>
-                                <span>VOTE SUBMITTED</span>
+                            <div class="px-10 py-5 bg-slate-100 text-slate-500 rounded-2xl font-bold flex items-center gap-3">
+                                <i class="fas fa-check-circle text-emerald-500"></i>
+                                VOTE ALREADY SUBMITTED
                             </div>
                         @else
                             <a href="{{ route('voter.elections.vote', $election->code) }}"
-                                id="voteBtn"
-                                class="flex-1 py-6 btn-brand text-white font-black rounded-3xl text-center shadow-xl shadow-brand-primary/20 transition-all flex items-center justify-center gap-3">
-                                <i class="fas fa-vote-yea text-xl"></i>
-                                <span id="voteBtnText">
-                                    @if(now()->lt($election->start_date))
-                                        WAITING TO OPEN
-                                    @elseif(now()->gt($election->end_date))
-                                        ELECTION CLOSED
-                                    @else
-                                        START VOTING NOW
-                                    @endif
-                                </span>
+                               id="voteBtn"
+                               class="btn-start-voting px-12 py-6 rounded-[2rem] font-black flex items-center gap-4 shadow-2xl shadow-brand-accent/30 text-lg">
+                                <i class="fas fa-edit"></i>
+                                <span id="voteBtnText">START VOTING</span>
                             </a>
                         @endif
 
                         <a href="{{ route('voter.elections.results', $election->code) }}"
-                            class="flex-1 py-6 bg-white text-brand-primary font-black rounded-3xl text-center border-2 border-slate-100 hover:border-brand-primary hover:bg-slate-50 transition-all flex items-center justify-center gap-3">
-                            <i class="fas fa-chart-pie text-xl text-brand-accent"></i>
-                            LIVE RESULTS
+                           class="btn-view-results px-12 py-6 rounded-[2rem] font-black flex items-center gap-4 text-lg border-2">
+                            <i class="fas fa-poll-h"></i>
+                            VIEW RESULTS
                         </a>
                     </div>
                 </div>
+
+                <!-- Right Content: Countdown Card -->
+                <div class="w-full lg:w-[450px]">
+                    <div class="countdown-card p-10">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-[#003153] rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-accent/20">
+                                <i class="fas fa-clock text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-[#003153] uppercase tracking-tight">Time Remaining</h3>
+                                <p class="text-[10px] text-[#00D4AA] font-black uppercase tracking-widest">Election Clock</p>
+                            </div>
+                        </div>
+
+                        <div id="countdown" class="grid grid-cols-4 gap-4 mb-10">
+                            <div class="text-center">
+                                <div id="days" class="countdown-box text-3xl font-black text-[#003153] mb-2">00</div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Days</div>
+                            </div>
+                            <div class="text-center">
+                                <div id="hours" class="countdown-box text-3xl font-black text-[#003153] mb-2">00</div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hours</div>
+                            </div>
+                            <div class="text-center">
+                                <div id="minutes" class="countdown-box text-3xl font-black text-[#003153] mb-2">00</div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Min</div>
+                            </div>
+                            <div class="text-center">
+                                <div id="seconds" class="countdown-box text-3xl font-black text-[#003153] mb-2">00</div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sec</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 rounded-2xl p-6 text-center border border-slate-100">
+                            <span class="text-[#003153] font-black uppercase text-[10px] tracking-widest">Deadline:</span>
+                            <span class="text-slate-500 font-bold ml-1 text-xs">{{ $election->end_date->format('F d, Y \a\t h:i A') }}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Stats -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12 mb-12">
-                <div
-                    class="stat-card bg-white/60 backdrop-blur rounded-[2rem] p-8 border border-white shadow-sm text-center transition-all">
-                    <div
-                        class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-500">
-                        <i class="fas fa-calendar-alt text-xl"></i>
+            <!-- Features Section -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32">
+                <div class="feature-card">
+                    <div class="icon-box icon-teal mb-8">
+                        <i class="fas fa-shield-alt"></i>
                     </div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Start Time</p>
-                    <p class="font-bold text-brand-primary">{{ $election->start_date->format('M d, Y') }}</p>
-                    <p class="text-xs text-slate-500">{{ $election->start_date->format('h:i A') }}</p>
+                    <h4 class="text-xl font-black text-[#003153] mb-4 uppercase tracking-tight">Secure & Anonymous</h4>
+                    <p class="text-slate-500 font-medium leading-relaxed">Your vote is encrypted and completely anonymous. We use industry-standard security protocols.</p>
                 </div>
-                <div
-                    class="stat-card bg-white/60 backdrop-blur rounded-[2rem] p-8 border border-white shadow-sm text-center transition-all">
-                    <div
-                        class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-orange-500">
-                        <i class="fas fa-calendar-check text-xl"></i>
+
+                <div class="feature-card">
+                    <div class="icon-box icon-teal mb-8">
+                        <i class="fas fa-magic text-xl"></i>
                     </div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">End Time</p>
-                    <p class="font-bold text-brand-primary">{{ $election->end_date->format('M d, Y') }}</p>
-                    <p class="text-xs text-slate-500">{{ $election->end_date->format('h:i A') }}</p>
+                    <h4 class="text-xl font-black text-[#003153] mb-4 uppercase tracking-tight">Easy to Use</h4>
+                    <p class="text-slate-500 font-medium leading-relaxed">Simple, intuitive interface designed for voters of all technical backgrounds.</p>
                 </div>
-                <div
-                    class="stat-card bg-white/60 backdrop-blur rounded-[2rem] p-8 border border-white shadow-sm text-center transition-all">
-                    <div
-                        class="w-12 h-12 bg-brand-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-brand-accent">
-                        <i class="fas fa-list-ul text-xl"></i>
+
+                <div class="feature-card">
+                    <div class="icon-box icon-teal mb-8">
+                        <i class="fas fa-chart-line text-xl"></i>
                     </div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ballot Content</p>
-                    <p class="font-bold text-brand-primary">{{ $election->positions()->count() }} Positions</p>
-                    <p class="text-xs text-slate-500">{{ $election->candidates()->count() }} Candidates</p>
+                    <h4 class="text-xl font-black text-[#003153] mb-4 uppercase tracking-tight">Real-time Results</h4>
+                    <p class="text-slate-500 font-medium leading-relaxed">View live election results as votes are counted with full transparency.</p>
                 </div>
             </div>
 
-            <div class="text-center">
+            <div class="text-center mt-20">
                 <a href="{{ route('voter.elections.access') }}"
-                    class="inline-flex items-center gap-2 text-slate-400 font-bold hover:text-brand-primary transition-colors py-2 px-4 rounded-xl hover:bg-white shadow-none hover:shadow-sm">
+                   class="text-slate-400 font-bold hover:text-[#003153] transition-all uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-2">
                     <i class="fas fa-sign-out-alt"></i>
-                    <span>Exit Portal</span>
+                    Exit Election Portal
                 </a>
             </div>
-        </div>
+        </main>
     </div>
 @endsection
 
@@ -337,21 +286,24 @@
 
         function updateCountdown() {
             const now = new Date().getTime() + timeOffset;
-            let targetDate, label, isBeforeStart, isEnded;
+            let targetDate, label, isBeforeStart, isEnded, subLabel;
 
             if (now < startDate) {
                 targetDate = startDate;
-                label = "Election Commences In";
+                label = "VOTING START: IN PROGRESS";
+                subLabel = "Time remaining until voting starts";
                 isBeforeStart = true;
                 isEnded = false;
             } else if (now < endDate) {
                 targetDate = endDate;
-                label = "Voting Period Ends In";
+                label = "VOTING END: ACTIVE";
+                subLabel = "Time remaining until voting closes";
                 isBeforeStart = false;
                 isEnded = false;
             } else {
                 targetDate = now;
-                label = "Election Concluded";
+                label = "VOTING ENDED: CLOSED";
+                subLabel = "Election has concluded";
                 isBeforeStart = false;
                 isEnded = true;
             }
@@ -367,54 +319,33 @@
             document.getElementById('hours').textContent = String(hours).padStart(2, '0');
             document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
             document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
-            document.getElementById('countdown-label').textContent = label;
 
-            // Update Progress Bar
-            const totalDuration = endDate - startDate;
-            const elapsed = now - startDate;
-            let progress = 0;
-            if (now >= startDate && now < endDate) {
-                progress = (elapsed / totalDuration) * 100;
-            } else if (now >= endDate) {
-                progress = 100;
+            const subLabelEl = document.getElementById('countdown-label-sub');
+            if (subLabelEl) subLabelEl.textContent = subLabel;
+
+            // Update button status
+            if (!hasVoted) {
+                const voteBtn = document.getElementById('voteBtn');
+                const voteBtnText = document.getElementById('voteBtnText');
+
+                if (voteBtn) {
+                    voteBtn.classList.remove(
+                        'pointer-events-none',
+                        'opacity-50',
+                        'cursor-not-allowed'
+                    );
+
+                    if (isBeforeStart) {
+                        voteBtn.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+                        if (voteBtnText) voteBtnText.textContent = 'WAITING TO OPEN';
+                    } else if (isEnded) {
+                        voteBtn.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+                        if (voteBtnText) voteBtnText.textContent = 'ELECTION CLOSED';
+                    } else {
+                        if (voteBtnText) voteBtnText.textContent = 'Start Voting';
+                    }
+                }
             }
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
-            if (progressBar) progressBar.style.width = progress + '%';
-            if (progressText) progressText.textContent = Math.round(progress) + '%';
-
-// Update button status
-if (!hasVoted) {
-    const voteBtn = document.getElementById('voteBtn');
-    const voteBtnText = document.getElementById('voteBtnText');
-
-    // RESET STATE
-    voteBtn.classList.remove(
-        'pointer-events-none',
-        'opacity-50',
-        'cursor-not-allowed',
-        'btn-active-pulse'
-    );
-    voteBtn.disabled = false;
-
-    if (isBeforeStart) {
-        voteBtn.classList.add('pointer-events-none', 'cursor-not-allowed');
-        voteBtn.classList.remove('btn-active');
-        voteBtn.disabled = true;
-        voteBtnText.textContent = 'WAITING TO OPEN';
-
-    } else if (isEnded) {
-        voteBtn.classList.add('pointer-events-none', 'cursor-not-allowed');
-        voteBtn.classList.remove('btn-active');
-        voteBtn.disabled = true;
-        voteBtnText.textContent = 'ELECTION CLOSED';
-
-    } else {
-        voteBtn.classList.add('btn-active-pulse', 'btn-active');
-        voteBtnText.textContent = 'START VOTING NOW';
-    }
-}
-
         }
 
         updateCountdown();
