@@ -66,10 +66,6 @@ class VoterElectionController extends Controller
 
         $voter = session('voter');
 
-        if (!$voter) {
-            return redirect()->route('voter.registration.index', $election->code);
-        }
-
         $hasVoted = $this->checkIfVoted($election->id, $voter['id']);
 
         return view('voter.welcome', [
@@ -93,10 +89,6 @@ class VoterElectionController extends Controller
         }
 
         $voter = session('voter');
-
-        if (!$voter) {
-            return redirect()->route('voter.registration.index', $election->code);
-        }
 
         // Rest of existing logic...
         if (Carbon::now()->lt($election->start_date)) {
@@ -165,11 +157,6 @@ class VoterElectionController extends Controller
 
         $voter = session('voter');
 
-        if (!$voter) {
-            return redirect()->route('voter.registration.index', $election->code)
-                ->withErrors(['error' => 'Please register first to vote.']);
-        }
-
         // Check if already voted
         if ($this->checkIfVoted($election->id, $voter['id'])) {
             return redirect()->route('voter.elections.welcome', $election->code)
@@ -227,10 +214,6 @@ class VoterElectionController extends Controller
         }
 
         $voter = session('voter');
-
-        if (!$voter) {
-            return redirect()->route('voter.registration.index', $election->code);
-        }
 
         $positions = $election->positions()
             ->with(['candidates' => function ($query) use ($election) {

@@ -4,287 +4,347 @@
 
 @push('styles')
     <style>
-        .gradient-brand {
-            background: linear-gradient(135deg, #003153 0%, #00D4AA 100%);
+        :root {
+            --brand-primary: #003153;
+            --brand-accent: #00D4AA;
+            --brand-bg: #F8FAFC;
         }
-        .text-brand-primary { color: #003153; }
-        .text-brand-accent { color: #00D4AA; }
-        .bg-brand-primary { background-color: #003153; }
-        .bg-brand-accent { background-color: #00D4AA; }
-        .border-brand-accent { border-color: #00D4AA; }
 
-        .btn-brand {
-            background: linear-gradient(135deg, #003153 0%, #00D4AA 100%);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .gradient-brand {
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
         }
-        .btn-brand:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 40px -10px rgba(0, 212, 170, 0.5);
+
+        .text-brand-primary { color: var(--brand-primary); }
+        .text-brand-accent { color: var(--brand-accent); }
+        .bg-brand-primary { background-color: var(--brand-primary); }
+        .bg-brand-accent { background-color: var(--brand-accent); }
+
+        .position-card {
+            background: white;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #E2E8F0;
         }
-        .btn-brand:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+
+        .position-header {
+            background: linear-gradient(to right, var(--brand-primary) 0%, var(--brand-accent) 100%);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+
+        .candidate-grid {
+            display: grid;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+            gap: 0.75rem;
+            padding: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .candidate-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
 
         .candidate-card {
-            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+            border: 2px solid #E2E8F0;
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
+
         .candidate-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(0, 49, 83, 0.1);
+            border-color: var(--brand-accent);
+            background-color: rgba(0, 212, 170, 0.02);
         }
+
         .candidate-card.selected {
-            border-color: #00D4AA !important;
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.05) 0%, rgba(0, 49, 83, 0.05) 100%) !important;
-            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.2);
-        }
-        .candidate-card.selected .check-icon {
-            display: flex !important;
-        }
-        .candidate-card input:checked + .card-content {
-            border-color: #00D4AA !important;
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.05) 0%, rgba(0, 49, 83, 0.05) 100%) !important;
-        }
-        .candidate-card input:checked + .card-content .check-icon {
-            display: flex !important;
+            border-color: var(--brand-accent);
+            background-color: rgba(0, 212, 170, 0.05);
         }
 
-        .position-badge {
-            background: linear-gradient(135deg, rgba(0, 49, 83, 0.1) 0%, rgba(0, 212, 170, 0.1) 100%);
+        .check-circle {
+            width: 28px;
+            height: 28px;
+            border: 2px solid #E2E8F0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
         }
 
-        .progress-bar-fill {
-            background: linear-gradient(135deg, #003153 0%, #00D4AA 100%);
+        .candidate-card.selected .check-circle {
+            background-color: var(--brand-accent);
+            border-color: var(--brand-accent);
         }
 
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+        .check-circle i {
+            color: white;
+            font-size: 0.875rem;
+            display: none;
         }
 
-        .partylist-badge {
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1) 0%, rgba(0, 49, 83, 0.1) 100%);
+        .candidate-card.selected .check-circle i {
+            display: block;
+        }
+
+        .progress-indicator {
+            font-weight: 700;
+            color: var(--brand-primary);
+        }
+
+        .btn-review {
+            background: var(--brand-primary);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            font-weight: 800;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.875rem;
+        }
+
+        .btn-review:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(0, 49, 83, 0.3);
+        }
+
+        .abstain-card {
+            grid-column: 1 / -1;
+            border-style: dashed;
+            justify-content: center;
+            background-color: #F8FAFC;
+        }
+
+        /* Glass effect for header */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .success-overlay {
+            position: fixed;
+            inset: 0;
+            background: white;
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-checkmark {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            color: white;
+            font-size: 3.5rem;
+            box-shadow: 0 20px 40px -10px rgba(0, 212, 170, 0.3);
+        }
+
+        .encryption-badge {
+            display: inline-flex;
+            items-center: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 212, 170, 0.05);
+            border: 1px solid rgba(0, 212, 170, 0.2);
+            border-radius: 9999px;
+            color: var(--brand-primary);
+            font-weight: 700;
+            margin-top: 3rem;
         }
     </style>
 @endpush
 
 @section('content')
-    <div class="min-h-screen bg-[#F5F5F5] relative overflow-hidden">
-        <!-- Background Decoration -->
-        <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-brand-primary/5 to-transparent"></div>
+    <div class="min-h-screen bg-slate-50">
+        <!-- Top Navigation -->
+        <header class="glass-header sticky top-0 z-50 px-6 py-4">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <a href="{{ route('voter.elections.welcome', $election->code) }}" class="flex items-center gap-2 text-brand-primary font-bold hover:opacity-70 transition-opacity">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Home</span>
+                </a>
 
-        <div class="relative z-10 min-h-screen flex flex-col">
-            <!-- Header -->
-            <header class="py-4 px-6 bg-white/90 backdrop-blur-xl border-b border-slate-100 shadow-sm sticky top-0 z-30">
-                <div class="max-w-7xl mx-auto flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center shadow-lg shadow-brand-primary/20">
-                            <i class="fas fa-vote-yea text-white text-base"></i>
-                        </div>
-                        <div class="hidden sm:block">
-                            <h1 class="text-base font-black text-brand-primary tracking-tight">SecureVote</h1>
-                            <p class="text-[10px] font-bold text-brand-accent uppercase tracking-widest">Digital Ballot</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-8">
-                        <div class="hidden lg:flex items-center gap-4">
-                            <div class="text-right">
-                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Active Voter</p>
-                                <p class="text-sm font-bold text-brand-primary">{{ $voter['name'] }}</p>
-                            </div>
-                            <div class="w-px h-8 bg-slate-100"></div>
-                            <div class="text-right">
-                                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Election</p>
-                                <p class="text-sm font-bold text-brand-primary truncate max-w-[200px]">{{ $election->title }}</p>
-                            </div>
-                        </div>
-
-                        <a href="{{ route('voter.elections.welcome', $election->code) }}" class="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-500 hover:text-brand-primary hover:bg-white rounded-xl transition-all border border-slate-100 text-sm font-bold">
-                            <i class="fas fa-arrow-left text-xs"></i>
-                            <span>Cancel</span>
-                        </a>
-                    </div>
+                <div class="progress-indicator flex items-center gap-2">
+                    <span>Progress:</span>
+                    <span id="progress-text-top" class="text-brand-accent">0 / {{ $positions->count() }}</span>
                 </div>
-            </header>
+            </div>
+        </header>
 
-            <!-- Main Content -->
-            <div class="flex-grow px-4 sm:px-6 py-10">
-                <div class="max-w-5xl mx-auto">
-                    <!-- Progress Section -->
-                    <div class="bg-white rounded-[2rem] p-8 mb-10 shadow-xl shadow-slate-200/50 border border-white">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-brand-accent/10 rounded-lg flex items-center justify-center text-brand-accent">
-                                    <i class="fas fa-tasks"></i>
+        <!-- Main Content -->
+        <main class="max-w-4xl mx-auto px-6 py-8">
+            <!-- Title Section -->
+            <div class="text-center mb-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-brand-accent/10 text-brand-accent rounded-full text-[10px] font-black uppercase tracking-widest mb-4 border border-brand-accent/20">
+                    <i class="fas fa-check-double"></i>
+                    <span>Official Ballot</span>
+                </div>
+                <h1 class="text-4xl font-black text-brand-primary mb-3 tracking-tight uppercase">Cast Your Ballot</h1>
+                <p class="text-slate-500 text-base font-medium">Please review each position and select your preferred candidates.</p>
+            </div>
+
+            <form action="{{ route('voter.elections.submit', $election->code) }}" method="POST" id="voting-form">
+                @csrf
+                <div class="space-y-12">
+                    @foreach($positions as $position)
+                        <div class="position-card" data-position-id="{{ $position->id }}">
+                            <!-- Position Header -->
+                            <div class="position-header">
+                                <div class="flex items-center gap-4">
+                                    <i class="fas fa-user text-lg opacity-80"></i>
+                                    <h2 class="text-xl font-bold uppercase tracking-wide">{{ $position->title }}</h2>
                                 </div>
-                                <span class="text-sm font-black text-slate-400 uppercase tracking-widest">Ballot Completion</span>
+                                <div class="selection-badge hidden items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-sm">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Selected</span>
+                                </div>
                             </div>
-                            <span class="text-brand-primary font-black text-lg" id="progress-text">0 / {{ $positions->count() }}</span>
+
+                            <!-- Candidates Grid -->
+                            <div class="candidate-grid">
+                                @foreach($position->candidates as $candidate)
+                                    <label class="candidate-card group">
+                                        <input type="{{ ($position->max_votes ?? 1) > 1 ? 'checkbox' : 'radio' }}"
+                                            name="votes[{{ $position->id }}]{{ ($position->max_votes ?? 1) > 1 ? '[]' : '' }}"
+                                            value="{{ $candidate->id }}" class="vote-input hidden"
+                                            data-position-id="{{ $position->id }}"
+                                            data-position-name="{{ $position->title }}"
+                                            data-candidate-name="{{ $candidate->name }}"
+                                            data-max-votes="{{ $position->max_votes ?? 1 }}">
+
+                                        <div class="flex flex-col">
+                                            <span class="text-lg font-bold text-brand-primary group-hover:text-brand-accent transition-colors">
+                                                {{ $candidate->name }}
+                                            </span>
+                                            @if($candidate->partylist)
+                                                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                                    {{ $candidate->partylist->name }}
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        <div class="check-circle">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                    </label>
+                                @endforeach
+
+                                <!-- Abstain Option -->
+                                <label class="candidate-card abstain-card group">
+                                    <input type="radio" name="votes[{{ $position->id }}]" value="abstain"
+                                        class="vote-input hidden abstain-input" data-position-id="{{ $position->id }}"
+                                        data-position-name="{{ $position->title }}" data-candidate-name="Abstain">
+
+                                    <span class="text-base font-bold text-slate-400 group-hover:text-slate-600 transition-colors">
+                                        Abstain from this position
+                                    </span>
+
+                                    <div class="check-circle">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
-                        <div class="h-4 bg-slate-50 rounded-full p-1 border border-slate-100">
-                            <div class="h-full progress-bar-fill rounded-full transition-all duration-700 ease-out" id="progress-bar" style="width: 0%"></div>
+                    @endforeach
+                </div>
+
+                <!-- Action Button -->
+                <div class="mt-20 flex justify-center">
+                    <button type="button" id="review-btn" class="btn-review">
+                        Review Ballot
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <!-- Summary Modal (Keep structure but match styles) -->
+    <div id="summary-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity bg-brand-primary/80 backdrop-blur-sm" aria-hidden="true"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div class="inline-block align-bottom bg-white rounded-[2.5rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                <div class="bg-brand-primary p-8 flex items-center justify-between text-white">
+                    <div class="flex items-center gap-4">
+                        <i class="fas fa-clipboard-check text-2xl text-brand-accent"></i>
+                        <h3 class="text-2xl font-black uppercase tracking-tight" id="modal-title">Review Your Ballot</h3>
+                    </div>
+                    <button type="button" class="close-modal opacity-50 hover:opacity-100 transition-opacity">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="p-8">
+                    <div id="modal-summary-content" class="space-y-3 max-h-[50vh] overflow-y-auto pr-2">
+                        <!-- Dynamic Content -->
+                    </div>
+
+                    <div class="mt-8 p-6 bg-amber-50 rounded-2xl border border-amber-100 flex gap-4">
+                        <i class="fas fa-exclamation-triangle text-amber-500 mt-1"></i>
+                        <div>
+                            <h4 class="text-amber-800 font-bold text-sm uppercase tracking-wider mb-1">Final Confirmation</h4>
+                            <p class="text-amber-700/80 text-xs font-medium leading-relaxed">
+                                Please review your selections carefully. Once submitted, your vote cannot be changed.
+                            </p>
                         </div>
                     </div>
 
-                         <!-- Positions & Candidates -->
-                    <form action="{{ route('voter.elections.submit', $election->code) }}" method="POST" id="voting-form">
-                        @csrf
-                        <div class="space-y-12">
-                            @foreach($positions as $index => $position)
-                                <div class="position-card" data-position-id="{{ $position->id }}">
-                                    <div class="flex items-center gap-4 mb-6">
-                                        <div class="w-14 h-14 bg-brand-primary text-white rounded-2xl
-                                                        flex items-center justify-center font-black text-xl">
-                                            {{ $loop->iteration }}
-                                        </div>
+                    <div class="mt-8 space-y-4">
+                        <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer">
+                            <input type="checkbox" id="modal-confirm" class="w-5 h-5 text-brand-accent border-slate-300 rounded focus:ring-brand-accent">
+                            <span class="text-slate-600 font-bold text-xs">I confirm that my selections are final and correct.</span>
+                        </label>
 
-                                        <div>
-                                            <!--  THIS LINE SHOWS THE POSITION NAME -->
-                                            <h2 class="text-xl font-black text-brand-primary uppercase">
-                                                {{ $position->title }}
-                                            </h2>
-
-                                            <p class="text-slate-400 font-bold text-sm">
-                                                Please select
-                                                <span class="text-brand-accent">
-                                                    {{ $position->max_votes ?? 1 }}
-                                                </span>
-                                                candidate{{ ($position->max_votes ?? 1) > 1 ? 's' : '' }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-
-                                    <div class="grid grid-cols-1 gap-6">
-                                        @foreach($position->candidates as $candidate)
-                                            <label class="candidate-card group cursor-pointer block">
-                                                <input type="{{ ($position->max_votes ?? 1) > 1 ? 'checkbox' : 'radio' }}"
-                                                    name="votes[{{ $position->id }}]{{ ($position->max_votes ?? 1) > 1 ? '[]' : '' }}"
-                                                    value="{{ $candidate->id }}" class="vote-input hidden"
-                                                    data-position-id="{{ $position->id }}"
-                                                    data-position-name="{{ $position->name }}"
-                                                    data-candidate-name="{{ $candidate->name }}"
-                                                    data-max-votes="{{ $position->max_votes ?? 1 }}">
-
-                                                <div
-                                                    class="card-content relative bg-white rounded-[2rem]
-                                                                            border-2 border-transparent p-6 transition-all
-                                                                            shadow-sm hover:shadow-xl hover:border-brand-accent/20">
-
-                                                    <div class="check-icon hidden absolute -top-3 -right-3
-                                                                                w-8 h-8 bg-brand-accent text-white rounded-full
-                                                                                items-center justify-center shadow-lg
-                                                                                border-2 border-white z-10">
-                                                        <i class="fas fa-check text-xs"></i>
-                                                    </div>
-
-                                                    <h4 class="font-black text-brand-primary text-lg mb-1">
-                                                        {{ $candidate->name }}
-                                                    </h4>
-
-                                                    @if($candidate->partylist)
-                                                        <div class="inline-block mt-2 px-3 py-1
-                                                                                        bg-brand-primary/5 rounded-full
-                                                                                        border border-brand-primary/10">
-                                                            <span
-                                                                class="text-[10px] font-black text-brand-primary uppercase tracking-widest">
-                                                                {{ $candidate->partylist->name }}
-                                                            </span>
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            </label>
-                                        @endforeach
-                                        <!--  ABSTAIN OPTION (ONE PER POSITION) -->
-
-                                        <label class="candidate-card group cursor-pointer block">
-                                            <input type="radio" name="votes[{{ $position->id }}]" value="abstain"
-                                                class="vote-input hidden abstain-input" data-position-id="{{ $position->id }}"
-                                                data-position-name="{{ $position->name }}" data-candidate-name="Abstain">
-
-                                            <div
-                                                class="card-content relative bg-slate-50 rounded-[2rem]
-                                                                    border-2 border-dashed border-slate-300 p-6 transition-all">
-
-                                                <h4 class="font-black text-slate-500 text-lg">
-                                                    ABSTAIN
-                                                </h4>
-
-                                                <p class="text-xs text-slate-400 font-bold">
-                                                    No selection for this position
-                                                </p>
-                                            </div>
-                                        </label>
-
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-
-                        <!-- Final Review Button -->
-                        <div class="mt-20 flex justify-center">
-                            <button type="button" id="review-btn"
-                                    class="group px-12 py-6 bg-brand-primary text-white rounded-[2rem] font-black text-xl shadow-2xl shadow-brand-primary/30 hover:shadow-brand-primary/50 hover:-translate-y-1 transition-all flex items-center gap-4">
-                                <span>REVIEW BALLOT</span>
-                                <i class="fas fa-arrow-right text-brand-accent group-hover:translate-x-1 transition-transform"></i>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button type="button" class="close-modal py-4 bg-slate-100 text-slate-500 font-black rounded-2xl hover:bg-slate-200 transition-all uppercase tracking-widest text-[10px]">
+                                Go Back
+                            </button>
+                            <button type="button" id="final-submit-btn" disabled
+                                    class="py-4 bg-brand-primary text-white font-black rounded-2xl opacity-50 cursor-not-allowed transition-all uppercase tracking-widest text-[10px]">
+                                Submit Ballot
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Summary Modal -->
-        <div id="summary-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 transition-opacity bg-brand-primary/60 backdrop-blur-md" aria-hidden="true"></div>
-
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-                <div class="inline-block align-bottom bg-white rounded-[3rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-                    <div class="bg-white p-8 lg:p-12">
-                        <div class="flex items-center justify-between mb-10">
-                            <div>
-                                <h3 class="text-3xl font-black text-brand-primary uppercase tracking-tight" id="modal-title">Review Your Ballot</h3>
-                                <p class="text-slate-400 font-bold">Please verify your selections before final submission.</p>
-                            </div>
-                            <button type="button" class="close-modal w-12 h-12 flex items-center justify-center bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 transition-colors">
-                                <i class="fas fa-times text-xl"></i>
-                            </button>
-                        </div>
-
-                        <div id="modal-summary-content" class="space-y-6 max-h-[50vh] overflow-y-auto pr-4 custom-scrollbar">
-                            <!-- Dynamic Content -->
-                        </div>
-
-                        <div class="mt-12 space-y-4">
-                            <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                                <label class="flex items-start gap-4 cursor-pointer">
-                                    <div class="relative flex items-center mt-1">
-                                        <input type="checkbox" id="modal-confirm" class="w-6 h-6 text-brand-accent border-slate-300 rounded-lg focus:ring-brand-accent transition-all">
-                                    </div>
-                                    <span class="text-slate-600 font-bold text-sm leading-relaxed">
-                                        I confirm that my selections are final. I understand that I cannot change my vote after this submission.
-                                    </span>
-                                </label>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <button type="button" class="close-modal py-5 bg-slate-100 text-slate-500 font-black rounded-[2rem] hover:bg-slate-200 transition-all">
-                                    GO BACK
-                                </button>
-                                <button type="button" id="final-submit-btn" disabled
-                                        class="py-5 bg-brand-primary text-white font-black rounded-[2rem] shadow-xl shadow-brand-primary/20 opacity-50 cursor-not-allowed transition-all">
-                                    CONFIRM & SUBMIT
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Success Screen Overlay -->
+    <div id="success-screen" class="success-overlay">
+        <div class="success-checkmark">
+            <i class="fas fa-check"></i>
+        </div>
+        <h2 class="text-4xl font-black text-brand-primary mb-4 tracking-tight">Vote Successfully Cast!</h2>
+        <p class="text-slate-500 text-lg font-medium max-w-md mx-auto leading-relaxed">
+            Thank you for participating in the democratic process. Your vote has been securely recorded and counted.
+        </p>
+        <div class="encryption-badge">
+            <i class="fas fa-shield-alt text-brand-accent"></i>
+            <span>Encrypted & Anonymous</span>
         </div>
     </div>
 @endsection
@@ -294,8 +354,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('voting-form');
             const voteInputs = document.querySelectorAll('.vote-input');
-            const progressBar = document.getElementById('progress-bar');
-            const progressText = document.getElementById('progress-text');
+            const progressTextTop = document.getElementById('progress-text-top');
             const reviewBtn = document.getElementById('review-btn');
             const summaryModal = document.getElementById('summary-modal');
             const closeModalBtns = document.querySelectorAll('.close-modal');
@@ -313,37 +372,42 @@
                 });
 
                 const count = selectedPositions.size;
-                const percentage = (count / totalPositions) * 100;
-                progressBar.style.width = percentage + '%';
-                progressText.textContent = count + ' / ' + totalPositions;
+                progressTextTop.textContent = count + ' / ' + totalPositions;
             }
 
             voteInputs.forEach(input => {
                 input.addEventListener('change', function () {
                     const positionId = this.dataset.positionId;
                     const maxVotes = parseInt(this.dataset.maxVotes);
-                    const card = this.closest('.candidate-card');
+                    const positionCard = this.closest('.position-card');
+                    const selectionBadge = positionCard.querySelector('.selection-badge');
 
                     if (this.type === 'radio') {
                         document.querySelectorAll(`.vote-input[data-position-id="${positionId}"]`).forEach(i => {
-                            i.closest('.candidate-card').querySelector('.card-content').classList.remove('border-brand-accent', 'bg-brand-accent/[0.03]');
-                            i.closest('.candidate-card').querySelector('.check-icon').classList.add('hidden');
+                            i.closest('.candidate-card').classList.remove('selected');
                         });
                     } else {
                         const checkedCount = document.querySelectorAll(`.vote-input[data-position-id="${positionId}"]:checked`).length;
                         if (checkedCount > maxVotes) {
                             this.checked = false;
-                            alert(`You can only select up to ${maxVotes} candidates.`);
                             return;
                         }
                     }
 
                     if (this.checked) {
-                        card.querySelector('.card-content').classList.add('border-brand-accent', 'bg-brand-accent/[0.03]');
-                        card.querySelector('.check-icon').classList.remove('hidden');
+                        this.closest('.candidate-card').classList.add('selected');
                     } else {
-                        card.querySelector('.card-content').classList.remove('border-brand-accent', 'bg-brand-accent/[0.03]');
-                        card.querySelector('.check-icon').classList.add('hidden');
+                        this.closest('.candidate-card').classList.remove('selected');
+                    }
+
+                    // Update Selection Badge
+                    const hasSelection = positionCard.querySelectorAll('.vote-input:checked').length > 0;
+                    if (hasSelection) {
+                        selectionBadge.classList.remove('hidden');
+                        selectionBadge.classList.add('flex');
+                    } else {
+                        selectionBadge.classList.add('hidden');
+                        selectionBadge.classList.remove('flex');
                     }
 
                     updateProgress();
@@ -368,24 +432,20 @@
                     return;
                 }
 
-                let html = `
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4 px-6 mb-2">
-                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">POSITION</div>
-                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">CANDIDATE</div>
-                        </div>
-                `;
+                let html = '';
                 for (const [pos, candidates] of Object.entries(selections)) {
                     candidates.forEach(candidate => {
                         html += `
-                            <div class="grid grid-cols-2 gap-4 bg-slate-50 p-6 rounded-[2rem] border border-slate-100 transition-all hover:bg-white hover:shadow-md">
-                                <div class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center">${pos}</div>
-                                <div class="text-xl font-black text-brand-primary">${candidate}</div>
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div>
+                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">${pos}</div>
+                                    <div class="text-lg font-bold text-brand-primary">${candidate}</div>
+                                </div>
+                                <i class="fas fa-check-circle text-brand-accent text-xl"></i>
                             </div>
                         `;
                     });
                 }
-                html += '</div>';
 
                 modalSummaryContent.innerHTML = html;
                 summaryModal.classList.remove('hidden');
@@ -403,17 +463,43 @@
                 finalSubmitBtn.disabled = !this.checked;
                 finalSubmitBtn.classList.toggle('opacity-50', !this.checked);
                 finalSubmitBtn.classList.toggle('cursor-not-allowed', !this.checked);
-                if (this.checked) {
-                    finalSubmitBtn.classList.add('hover:-translate-y-1', 'hover:shadow-brand-primary/40');
-                } else {
-                    finalSubmitBtn.classList.remove('hover:-translate-y-1', 'hover:shadow-brand-primary/40');
-                }
             });
 
             finalSubmitBtn.addEventListener('click', function () {
-                finalSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SUBMITTING...';
+                finalSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> SUBMITTING...';
                 finalSubmitBtn.disabled = true;
-                form.submit();
+
+                const formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => {
+                    if (response.ok || response.status === 302) {
+                        // Successfully cast vote
+                        summaryModal.classList.add('hidden');
+                        document.getElementById('success-screen').style.display = 'flex';
+
+                        setTimeout(() => {
+                            window.location.href = "{{ route('voter.elections.welcome', $election->code) }}";
+                        }, 3000);
+                    } else {
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'Something went wrong');
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error submitting vote: ' + error.message);
+                    finalSubmitBtn.innerHTML = 'Submit Ballot';
+                    finalSubmitBtn.disabled = false;
+                });
             });
         });
     </script>
