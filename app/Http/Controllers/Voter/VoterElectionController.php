@@ -133,7 +133,19 @@ class VoterElectionController extends Controller
 
         $request->validate([
             'votes' => 'required|array',
-            'votes.*' => 'required|exists:candidates,id',
+            'votes.*' => ['required', function ($attribute, $value, $fail) {
+                if (is_array($value)) {
+                    foreach ($value as $id) {
+                        if ($id !== 'abstain' && !\DB::table('candidates')->where('id', $id)->exists()) {
+                            $fail("The selected $attribute is invalid.");
+                        }
+                    }
+                } else {
+                    if ($value !== 'abstain' && !\DB::table('candidates')->where('id', $value)->exists()) {
+                        $fail("The selected $attribute is invalid.");
+                    }
+                }
+            }],
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
         ]);
@@ -174,7 +186,7 @@ class VoterElectionController extends Controller
                         'voter_id' => $voter['id'],
                         'election_id' => $election->id,
                         'position_id' => $positionId,
-                        'candidate_id' => $candidateId,
+                        'candidate_id' => $candidateId === 'abstain' ? null : $candidateId,
                     ]);
                 }
             }
