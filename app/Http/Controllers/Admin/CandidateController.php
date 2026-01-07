@@ -324,8 +324,9 @@ class CandidateController extends Controller
     /**
      * Display the specified candidate
      */
-    public function show(Candidate $candidate)
+    public function show(string $id)
     {
+        $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
             abort(403, 'Unauthorized');
         }
@@ -338,8 +339,9 @@ class CandidateController extends Controller
     /**
      * Show the form for editing the specified candidate
      */
-    public function edit(Candidate $candidate)
+    public function edit(string $id)
     {
+        $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
             abort(403, 'Unauthorized');
         }
@@ -378,8 +380,9 @@ class CandidateController extends Controller
     /**
      * Update the specified candidate
      */
-    public function update(Request $request, Candidate $candidate)
+    public function update(Request $request, string $id)
     {
+        $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
             return back()->withErrors(['general' => 'Unauthorized']);
         }
@@ -435,8 +438,9 @@ class CandidateController extends Controller
     /**
      * Remove the specified candidate from storage
      */
-    public function destroy(Candidate $candidate)
+    public function destroy(string $id)
     {
+        $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
             return back()->withErrors(['general' => 'Unauthorized']);
         }
@@ -652,5 +656,5 @@ class CandidateController extends Controller
         return Position::query()->orderBy('title');
     }
 
-    
+
 }
