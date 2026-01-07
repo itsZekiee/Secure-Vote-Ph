@@ -509,12 +509,22 @@ document.addEventListener('alpine:init', () => {
                                              if (data.success && data.positions.length > 0) {
                                                  // Merge positions instead of replacing
                                                  data.positions.forEach(newPos => {
-                                                     const existingPos = this.parentData.positions.find(p => p.name === newPos.name);
+                                                     const existingPos = this.parentData.positions.find(p => p.name.trim().toLowerCase() === newPos.name.trim().toLowerCase());
                                                      if (existingPos) {
                                                          // Append candidates to existing position, avoid duplicates
                                                          newPos.candidates.forEach(newCand => {
-                                                             if (!existingPos.candidates.includes(newCand)) {
-                                                                 existingPos.candidates.push(newCand);
+                                                             const isDuplicate = existingPos.candidates.some(c =>
+                                                                 (typeof c === 'string' ? c.trim().toLowerCase() : '') ===
+                                                                 (typeof newCand === 'string' ? newCand.trim().toLowerCase() : '')
+                                                             );
+
+                                                             if (!isDuplicate) {
+                                                                 // If the only candidate is an empty string, replace it
+                                                                 if (existingPos.candidates.length === 1 && existingPos.candidates[0].trim() === '') {
+                                                                     existingPos.candidates = [newCand];
+                                                                 } else {
+                                                                     existingPos.candidates.push(newCand);
+                                                                 }
                                                              }
                                                          });
                                                      } else {
@@ -719,59 +729,61 @@ document.addEventListener('alpine:init', () => {
                                     </template>
 
                                     <!-- Manual Entry Form -->
-                                    <div x-show="!automationMode" class="space-y-6">
-                                        <template x-for="(position, pIndex) in parentData.positions" :key="pIndex">
-                                            <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
-                                                <div class="flex items-center gap-4 mb-6">
-                                                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg" x-text="pIndex + 1"></div>
-                                                    <div class="flex-1">
-                                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Position name</label>
-                                                        <input type="text" x-model="position.name" :name="'positions[' + pIndex + '][name]'"
-                                                               class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all"
-                                                               placeholder="e.g., President, Vice President, Secretary">
-                                                    </div>
-                                                    <button type="button" @click="parentData.positions.splice(pIndex, 1)" x-show="parentData.positions.length > 1"
-                                                            class="p-3 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-all self-end">
-                                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        </svg>
-                                                    </button>
-                                                </div>
-
-                                                <div class="space-y-4 pl-16">
-                                                    <label class="block text-sm font-semibold text-gray-700">Candidates</label>
-                                                    <template x-for="(candidate, cIndex) in position.candidates" :key="cIndex">
-                                                        <div class="flex items-center gap-3">
-                                                            <input type="text" x-model="position.candidates[cIndex]" :name="'positions[' + pIndex + '][candidates][]'"
-                                                                   class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-3 text-base transition-all"
-                                                                   placeholder="Candidate name">
-                                                            <button type="button" @click="position.candidates.splice(cIndex, 1)" x-show="position.candidates.length > 1"
-                                                                    class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all">
-                                                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                                                                    <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                                </svg>
-                                                            </button>
+                                    <template x-if="!automationMode">
+                                        <div class="space-y-6">
+                                            <template x-for="(position, pIndex) in parentData.positions" :key="pIndex">
+                                                <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow">
+                                                    <div class="flex items-center gap-4 mb-6">
+                                                        <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg" x-text="pIndex + 1"></div>
+                                                        <div class="flex-1">
+                                                            <label class="block text-sm font-semibold text-gray-700 mb-2">Position name</label>
+                                                            <input type="text" x-model="position.name" :name="'positions[' + pIndex + '][name]'"
+                                                                   class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all"
+                                                                   placeholder="e.g., President, Vice President, Secretary">
                                                         </div>
-                                                    </template>
-                                                    <button type="button" @click="position.candidates.push('')"
-                                                            class="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-semibold text-sm transition-all">
-                                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                                                            <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        </svg>
-                                                        Add Candidate
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </template>
+                                                        <button type="button" @click="parentData.positions.splice(pIndex, 1)" x-show="parentData.positions.length > 1"
+                                                                class="p-3 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-all self-end">
+                                                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
 
-                                        <button type="button" @click="parentData.positions.push({ name: '', candidates: [''] })"
-                                                class="mt-8 w-full py-4 border-2 border-dashed border-indigo-300 rounded-2xl text-indigo-600 hover:bg-indigo-50 hover:border-indigo-400 font-semibold transition-all flex items-center justify-center gap-2">
-                                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-                                                <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            Add New Position
-                                        </button>
-                                    </div>
+                                                    <div class="space-y-4 pl-16">
+                                                        <label class="block text-sm font-semibold text-gray-700">Candidates</label>
+                                                        <template x-for="(candidate, cIndex) in position.candidates" :key="cIndex">
+                                                            <div class="flex items-center gap-3">
+                                                                <input type="text" x-model="position.candidates[cIndex]" :name="'positions[' + pIndex + '][candidates][]'"
+                                                                       class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-3 text-base transition-all"
+                                                                       placeholder="Candidate name">
+                                                                <button type="button" @click="position.candidates.splice(cIndex, 1)" x-show="position.candidates.length > 1"
+                                                                        class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all">
+                                                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                                                        <path d="M6 18L18 6M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </template>
+                                                        <button type="button" @click="position.candidates.push('')"
+                                                                class="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-semibold text-sm transition-all">
+                                                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                                                                <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            </svg>
+                                                            Add Candidate
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <button type="button" @click="parentData.positions.push({ name: '', candidates: [''] })"
+                                                    class="mt-8 w-full py-4 border-2 border-dashed border-indigo-300 rounded-2xl text-indigo-600 hover:bg-indigo-50 hover:border-indigo-400 font-semibold transition-all flex items-center justify-center gap-2">
+                                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                    <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                                Add New Position
+                                            </button>
+                                        </div>
+                                    </template>
 
                                     <div class="flex justify-between pt-10 border-t border-gray-200">
                                         <button type="button" @click="activeTab = 'basic'"

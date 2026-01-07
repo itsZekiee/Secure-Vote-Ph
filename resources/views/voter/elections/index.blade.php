@@ -368,15 +368,24 @@
                     return;
                 }
 
-                let html = '';
+                let html = `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4 px-6 mb-2">
+                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">POSITION</div>
+                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest">CANDIDATE</div>
+                        </div>
+                `;
                 for (const [pos, candidates] of Object.entries(selections)) {
-                    html += `
-                                <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 transition-all hover:bg-white hover:shadow-md">
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">${pos}</div>
-                                    <div class="text-xl font-black text-brand-primary">${candidates.join(', ')}</div>
-                                </div>
-                            `;
+                    candidates.forEach(candidate => {
+                        html += `
+                            <div class="grid grid-cols-2 gap-4 bg-slate-50 p-6 rounded-[2rem] border border-slate-100 transition-all hover:bg-white hover:shadow-md">
+                                <div class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center">${pos}</div>
+                                <div class="text-xl font-black text-brand-primary">${candidate}</div>
+                            </div>
+                        `;
+                    });
                 }
+                html += '</div>';
 
                 modalSummaryContent.innerHTML = html;
                 summaryModal.classList.remove('hidden');

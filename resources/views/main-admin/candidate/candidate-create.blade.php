@@ -1,422 +1,365 @@
 @extends('layouts.app-main-admin')
 
 @section('content')
-    <div x-data="candidateData()" class="min-h-screen bg-gray-50 flex">
+    <div x-data="candidateData()" class="min-h-screen bg-slate-50/50 flex">
         <x-admin-sidebar />
 
-        <main class="flex-1 ">
+        <main class="flex-1 min-w-0">
             <!-- Top Navigation Bar -->
-            <div class="bg-white border-b border-gray-200">
-                <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="bg-white border-b border-slate-200">
+                <div class="max-w-7xl mx-auto px-8 py-5">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3 text-sm text-gray-600">
-                            <a href="{{ route('admin.dashboard') }}" class="hover:text-indigo-600 transition-colors">Dashboard</a>
-                            <i class="ri-arrow-right-s-line text-xs"></i>
-                            <a href="{{ route('admin.candidates.index') }}" class="hover:text-indigo-600 transition-colors">Candidates</a>
-                            <i class="ri-arrow-right-s-line text-xs"></i>
-                            <span class="font-medium text-gray-900">Create New</span>
+                        <div class="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                            <a href="{{ route('admin.dashboard') }}" class="hover:text-blue-600 transition-colors">Dashboard</a>
+                            <i class="ri-arrow-right-s-line text-sm"></i>
+                            <a href="{{ route('admin.candidates.index') }}" class="hover:text-blue-600 transition-colors">Candidates</a>
+                            <i class="ri-arrow-right-s-line text-sm"></i>
+                            <span class="text-slate-900">Registration</span>
                         </div>
-                        <button type="button" @click="resetForm()" class="text-sm text-gray-600 hover:text-indigo-600 flex items-center gap-2 transition-colors">
+                        <button type="button" @click="resetForm()" class="text-xs font-black text-slate-500 hover:text-red-500 flex items-center gap-2 transition-all uppercase tracking-widest bg-slate-100 px-4 py-2 rounded-lg">
                             <i class="ri-refresh-line"></i>
-                            Reset
+                            Reset Form
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-6 py-4">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="max-w-7xl mx-auto px-8 py-10">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
                     <!-- Main Content -->
-                    <div class="lg:col-span-2 space-y-6">
+                    <div class="lg:col-span-2 space-y-8">
                         <!-- Header -->
-                        <div class="flex items-start gap-4">
-                            <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                                <i class="ri-user-add-line text-white text-2xl"></i>
+                        <div class="flex items-start gap-6 mb-10">
+                            <div class="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center flex-shrink-0 shadow-2xl shadow-slate-200">
+                                <i class="ri-user-add-fill text-white text-3xl"></i>
                             </div>
                             <div>
-                                <h1 class="text-3xl font-bold text-gray-900">Create Candidate</h1>
-                                <p class="text-gray-600 mt-1">Set up a new candidate to participate in elections</p>
+                                <h1 class="text-4xl font-black text-slate-900 uppercase tracking-tighter">Candidate Registration</h1>
+                                <p class="text-slate-500 font-bold text-sm uppercase tracking-widest mt-1">Onboarding new candidates to the secure voting platform</p>
                             </div>
                         </div>
 
                         <!-- Step Indicator -->
-                        <div class="flex items-center gap-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
-                                <span class="text-sm font-medium text-gray-900">Basic Information</span>
+                        <div class="flex items-center gap-6 bg-white p-4 rounded-[2rem] border border-slate-200 shadow-sm w-fit">
+                            <div class="flex items-center gap-3 px-6 py-3 bg-slate-900 text-white rounded-2xl shadow-lg">
+                                <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-xs font-black">1</div>
+                                <span class="text-xs font-black uppercase tracking-widest">General Information</span>
                             </div>
-                            <div class="flex items-center gap-3 opacity-40">
-                                <div class="w-8 h-8 rounded-lg bg-gray-200 text-gray-600 flex items-center justify-center text-sm font-semibold">2</div>
-                                <span class="text-sm font-medium text-gray-600">Review & Submit</span>
+                            <div class="flex items-center gap-3 px-6 py-3 text-slate-400 grayscale opacity-60">
+                                <div class="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-black">2</div>
+                                <span class="text-xs font-black uppercase tracking-widest">Verification</span>
                             </div>
                         </div>
 
-                        <form @submit.prevent="submitForm()" class="space-y-6">
+                        <form @submit.prevent="submitForm()" class="space-y-8">
                             <!-- Candidate Details Card -->
-                            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                                <div class="p-6 bg-indigo-50 border-b border-indigo-100">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center">
-                                            <i class="ri-user-settings-line text-white text-lg"></i>
+                            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-xl hover:shadow-slate-200/50">
+                                <div class="p-8 bg-slate-50 border-b border-slate-100">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-100">
+                                            <i class="ri-id-card-line text-white text-2xl"></i>
                                         </div>
                                         <div>
-                                            <h2 class="text-lg font-bold text-gray-900">Candidate Details</h2>
-                                            <p class="text-sm text-gray-600">Basic information about the candidate</p>
+                                            <h2 class="text-xl font-black text-slate-900 uppercase tracking-tight">Identity Details</h2>
+                                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Official name and contact credentials</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 @csrf
-                                <div class="p-6 space-y-6">
-                                    <!-- User Inputs (replaces Select User) -->
-                                    <div>
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
-                                            <i class="ri-user-line text-indigo-600"></i>
-                                            Candidate Name
-                                            <span class="text-red-500">*</span>
-                                        </label>
-                                        <input type="text"
-                                               x-model="formData.user_name"
-                                               placeholder="Enter full name..."
-                                               class="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                                        <div x-show="errors.user_name" class="mt-2 text-sm text-red-600 flex items-center gap-2">
-                                            <i class="ri-error-warning-line"></i>
-                                            <span x-text="errors.user_name?.[0]"></span>
+                                <div class="p-10 space-y-8">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div class="space-y-3">
+                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                                Full Legal Name
+                                                <span class="text-red-500">*</span>
+                                            </label>
+                                            <div class="relative group">
+                                                <i class="ri-user-3-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl"></i>
+                                                <input type="text" x-model="formData.user_name"
+                                                       placeholder="Enter full name..."
+                                                       class="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700">
+                                            </div>
+                                            <div x-show="errors.user_name" class="mt-2 text-[10px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                                <i class="ri-error-warning-fill"></i>
+                                                <span x-text="errors.user_name?.[0]"></span>
+                                            </div>
                                         </div>
 
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mt-4 mb-2">
-                                            <i class="ri-mail-line text-indigo-600"></i>
-                                            Candidate Email
-                                            <span class="text-red-500">*</span>
-                                        </label>
-                                        <input type="email"
-                                               x-model="formData.user_email"
-                                               placeholder="Enter email address..."
-                                               class="w-full pl-4 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                                        <div x-show="errors.user_email" class="mt-2 text-sm text-red-600 flex items-center gap-2">
-                                            <i class="ri-error-warning-line"></i>
-                                            <span x-text="errors.user_email?.[0]"></span>
+                                        <div class="space-y-3">
+                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                                Official Email
+                                                <span class="text-red-500">*</span>
+                                            </label>
+                                            <div class="relative group">
+                                                <i class="ri-mail-send-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl"></i>
+                                                <input type="email" x-model="formData.user_email"
+                                                       placeholder="Enter email address..."
+                                                       class="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700">
+                                            </div>
+                                            <div x-show="errors.user_email" class="mt-2 text-[10px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                                <i class="ri-error-warning-fill"></i>
+                                                <span x-text="errors.user_email?.[0]"></span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Organization -->
-                                    <div>
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
-                                            <i class="ri-building-line text-indigo-600"></i>
-                                            Organization
+                                    <div class="space-y-3">
+                                        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                            Affiliated Organization
                                             <span class="text-red-500">*</span>
                                         </label>
-                                        <select x-model="formData.organization_id"
-                                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none bg-white">
-                                            <option value="">Select organization</option>
-                                            <template x-for="org in organizations" :key="org.id">
-                                                <option :value="org.id" x-text="org.name"></option>
-                                            </template>
-                                        </select>
-                                        <div x-show="errors.organization_id" class="mt-2 text-sm text-red-600 flex items-center gap-2">
-                                            <i class="ri-error-warning-line"></i>
+                                        <div class="relative group">
+                                            <i class="ri-community-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl pointer-events-none"></i>
+                                            <select x-model="formData.organization_id"
+                                                    class="w-full pl-14 pr-10 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700 appearance-none">
+                                                <option value="">Select organization</option>
+                                                <template x-for="org in organizations" :key="org.id">
+                                                    <option :value="org.id" x-text="org.name"></option>
+                                                </template>
+                                            </select>
+                                            <i class="ri-arrow-down-s-line absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                        </div>
+                                        <div x-show="errors.organization_id" class="mt-2 text-[10px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                            <i class="ri-error-warning-fill"></i>
                                             <span x-text="errors.organization_id?.[0]"></span>
                                         </div>
                                     </div>
 
-                                    <!-- Election & Partylist Grid -->
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <!-- Election (optional, enhanced UI) -->
-                                        <div>
-                                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
-                                                <i class="ri-calendar-event-line text-indigo-600"></i>
-                                                Election
-                                                <span class="text-xs text-gray-500 font-normal">(Optional)</span>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div class="space-y-3">
+                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                                Election Session
                                             </label>
-                                            <div class="relative">
+                                            <div class="relative group">
+                                                <i class="ri-hand-coin-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl pointer-events-none"></i>
                                                 <select x-model="formData.election_id"
-                                                        class="w-full pl-10 pr-10 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none bg-white">
+                                                        class="w-full pl-14 pr-10 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700 appearance-none">
                                                     <option value="">Select election</option>
                                                     <template x-for="e in elections" :key="e.id">
                                                         <option :value="e.id" x-text="e.title"></option>
                                                     </template>
                                                 </select>
-                                                <i class="ri-calendar-event-line absolute left-3 top-1/2 -translate-y-1/2 text-indigo-600"></i>
-                                                <i class="ri-arrow-down-s-line absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                            </div>
-                                            <div x-show="errors.election_id" class="mt-2 text-sm text-red-600 flex items-center gap-2">
-                                                <i class="ri-error-warning-line"></i>
-                                                <span x-text="errors.election_id?.[0]"></span>
+                                                <i class="ri-arrow-down-s-line absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                                             </div>
                                         </div>
 
-                                        <!-- Partylist -->
-                                        <div>
-                                            <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
-                                                <i class="ri-team-line text-indigo-600"></i>
-                                                Partylist
-                                                <span class="text-xs text-gray-500 font-normal">(Optional)</span>
+                                        <div class="space-y-3">
+                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                                Political Affiliation
                                             </label>
-                                            <select x-model="formData.partylist_id"
-                                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none bg-white">
-                                                <option value="">Independent</option>
-                                                <template x-for="p in filteredPartylists" :key="p.id">
-                                                    <option :value="p.id" x-text="p.name"></option>
-                                                </template>
-                                            </select>
+                                            <div class="relative group">
+                                                <i class="ri-team-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl pointer-events-none"></i>
+                                                <select x-model="formData.partylist_id"
+                                                        class="w-full pl-14 pr-10 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700 appearance-none">
+                                                    <option value="">Independent</option>
+                                                    <template x-for="p in filteredPartylists" :key="p.id">
+                                                        <option :value="p.id" x-text="p.name"></option>
+                                                    </template>
+                                                </select>
+                                                <i class="ri-arrow-down-s-line absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Position -->
-                                    <div>
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
-                                            <i class="ri-briefcase-line text-indigo-600"></i>
-                                            Position
+                                    <div class="space-y-3">
+                                        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                            Designated Position
                                             <span class="text-red-500">*</span>
                                         </label>
-                                        <select x-model="formData.position_id"
-                                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none bg-white">
-                                            <option value="">Select position</option>
-                                            <optgroup label="Existing Positions">
-                                                <template x-for="p in existingPositions" :key="p.id">
-                                                    <option :value="p.id" x-text="p.name"></option>
-                                                </template>
-                                            </optgroup>
-                                            <option value="other">Other</option>
-                                            <optgroup label="Common Positions">
-                                                <template x-for="cp in commonPositions" :key="cp">
-                                                    <option :value="'preset:' + cp" x-text="cp"></option>
-                                                </template>
-                                            </optgroup>
-                                        </select>
+                                        <div class="relative group">
+                                            <i class="ri-briefcase-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl pointer-events-none"></i>
+                                            <select x-model="formData.position_id"
+                                                    class="w-full pl-14 pr-10 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700 appearance-none">
+                                                <option value="">Select position</option>
+                                                <optgroup label="Active Definitions" class="font-bold text-slate-900">
+                                                    <template x-for="p in existingPositions" :key="p.id">
+                                                        <option :value="p.id" x-text="p.name"></option>
+                                                    </template>
+                                                </optgroup>
+                                                <option value="other" class="font-black text-blue-600">+ CUSTOM POSITION</option>
+                                            </select>
+                                            <i class="ri-arrow-down-s-line absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                        </div>
 
                                         <div x-show="formData.position_id === 'other'"
                                              x-transition
-                                             class="mt-3">
+                                             class="mt-4">
                                             <input type="text"
                                                    x-model="formData.new_position_name"
-                                                   placeholder="Enter position name..."
-                                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                                            <div x-show="errors.new_position_name" class="mt-2 text-sm text-red-600 flex items-center gap-2">
-                                                <i class="ri-error-warning-line"></i>
+                                                   placeholder="Define new position title..."
+                                                   class="w-full px-6 py-4 bg-blue-50 border-2 border-blue-100 rounded-2xl focus:ring-0 focus:border-blue-600 transition-all font-bold text-blue-900 placeholder-blue-300">
+                                            <div x-show="errors.new_position_name" class="mt-2 text-[10px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                                <i class="ri-error-warning-fill"></i>
                                                 <span x-text="errors.new_position_name?.[0]"></span>
                                             </div>
                                         </div>
-
-                                        <div x-show="errors.position_id" class="mt-2 text-sm text-red-600 flex items-center gap-2">
-                                            <i class="ri-error-warning-line"></i>
-                                            <span x-text="errors.position_id?.[0]"></span>
-                                        </div>
                                     </div>
 
-                                    <!-- Platform -->
-                                    <div>
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
-                                            <i class="ri-file-text-line text-indigo-600"></i>
-                                            Description
-                                            <span class="text-xs text-gray-500 font-normal">(Optional)</span>
+                                    <div class="space-y-3">
+                                        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                            Platform Statement
                                         </label>
                                         <textarea x-model="formData.platform"
-                                                  rows="4"
+                                                  rows="6"
                                                   maxlength="500"
-                                                  placeholder="Describe the candidate's mission, goals, and activities..."
-                                                  class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"></textarea>
-                                        <div class="flex items-center justify-between mt-2">
-                                            <p class="text-xs text-amber-600 flex items-center gap-1">
-                                                <i class="ri-lightbulb-line"></i>
-                                                Help voters understand the candidate's vision and core values
+                                                  placeholder="Outline the candidate's core objectives and vision..."
+                                                  class="w-full px-6 py-5 bg-slate-50 border-2 border-slate-50 rounded-[2rem] focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700 resize-none"></textarea>
+                                        <div class="flex items-center justify-between mt-3 px-2">
+                                            <p class="text-[10px] text-blue-600 font-black uppercase tracking-widest flex items-center gap-2">
+                                                <i class="ri-lightbulb-flash-fill text-sm"></i>
+                                                Clearly defined platforms increase voter engagement by 40%
                                             </p>
-                                            <span class="text-xs text-gray-500" x-text="(formData.platform?.length || 0) + '/500'"></span>
+                                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest" :class="(formData.platform?.length || 0) > 450 ? 'text-orange-500' : ''" x-text="(formData.platform?.length || 0) + ' / 500'"></span>
                                         </div>
-                                    </div>
-
-                                    <!-- Status -->
-                                    <div>
-                                        <label class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-2">
-                                            <i class="ri-toggle-line text-indigo-600"></i>
-                                            Candidate Status
-                                            <span class="text-red-500">*</span>
-                                        </label>
-                                        <select x-model="formData.status"
-                                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all appearance-none bg-white">
-                                            <option value="active">Active</option>
-                                            <option value="inactive">Inactive</option>
-                                        </select>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Contact Information Card -->
-                            <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                                <div class="p-6 bg-emerald-50 border-b border-emerald-100">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center">
-                                            <i class="ri-image-line text-white text-lg"></i>
+                            <!-- Photo Upload Card -->
+                            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
+                                <div class="p-8 bg-slate-50 border-b border-slate-100">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg">
+                                            <i class="ri-camera-lens-line text-white text-2xl"></i>
                                         </div>
                                         <div>
-                                            <h2 class="text-lg font-bold text-gray-900">Candidate Photo</h2>
-                                            <p class="text-sm text-gray-600">Upload a professional photo of the candidate</p>
+                                            <h2 class="text-xl font-black text-slate-900 uppercase tracking-tight">Biometric Photo</h2>
+                                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">High-resolution portrait for the digital ballot</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="p-6">
-                                    <div class="relative">
-                                        <label class="block w-full h-48 border-2 border-dashed border-gray-300 rounded-xl hover:border-indigo-400 transition-all cursor-pointer overflow-hidden">
-                                            <div x-show="!photoPreview" class="h-full flex flex-col items-center justify-center text-gray-500">
-                                                <i class="ri-upload-cloud-2-line text-4xl mb-2"></i>
-                                                <span class="text-sm font-medium">Click to upload photo</span>
-                                                <span class="text-xs text-gray-400 mt-1">PNG, JPG up to 3MB</span>
+                                <div class="p-10">
+                                    <div class="relative group">
+                                        <label class="block w-full h-64 border-4 border-dashed border-slate-100 rounded-[2.5rem] hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer overflow-hidden relative group">
+                                            <div x-show="!photoPreview" class="h-full flex flex-col items-center justify-center text-slate-400">
+                                                <div class="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                                    <i class="ri-upload-cloud-2-line text-4xl text-slate-300 group-hover:text-blue-500 transition-colors"></i>
+                                                </div>
+                                                <span class="text-xs font-black uppercase tracking-widest">Select Portrait File</span>
+                                                <span class="text-[9px] font-bold text-slate-300 uppercase tracking-[0.2em] mt-2">Maximum resolution: 3000 x 3000 PX</span>
                                             </div>
                                             <img x-show="photoPreview" :src="photoPreview" class="w-full h-full object-cover">
                                             <input type="file" @change="handlePhotoUpload($event)" accept="image/*" class="hidden">
+
+                                            <div x-show="photoPreview" class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                                                <span class="text-white text-xs font-black uppercase tracking-[0.3em] bg-white/20 px-6 py-3 rounded-2xl border border-white/30">Replace Image</span>
+                                            </div>
                                         </label>
                                         <button x-show="photoPreview" @click="photoPreview=null; formData.photo=null;" type="button"
-                                                class="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
-                                            <i class="ri-close-line"></i>
+                                                class="absolute -top-3 -right-3 w-10 h-10 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition-all shadow-xl shadow-red-200 flex items-center justify-center z-10">
+                                            <i class="ri-close-line text-2xl font-black"></i>
                                         </button>
                                     </div>
-                                    <p class="mt-3 text-xs text-gray-500 flex items-center gap-1">
-                                        <i class="ri-information-line"></i>
-                                        This photo will be used for official communications and notifications
-                                    </p>
-                                    <div x-show="errors.photo" class="mt-2 text-sm text-red-600 flex items-center gap-2">
-                                        <i class="ri-error-warning-line"></i>
+                                    <div x-show="errors.photo" class="mt-4 text-[10px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                        <i class="ri-error-warning-fill"></i>
                                         <span x-text="errors.photo?.[0]"></span>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Bottom Action Bar -->
-                            <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                                <div class="flex items-start gap-4">
-                                    <div class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                                        <i class="ri-arrow-right-line text-indigo-600 text-lg"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <h3 class="text-base font-bold text-gray-900">Continue to Review</h3>
-                                        <p class="text-sm text-gray-600 mt-1">Proceed to review your information before creating</p>
-                                    </div>
-                                    <div class="flex gap-3">
-                                        <a href="{{ route('admin.candidates.index') }}"
-                                           class="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all font-medium flex items-center gap-2">
-                                            <i class="ri-arrow-left-line"></i>
-                                            Cancel
-                                        </a>
-                                        <button type="submit"
-                                                :disabled="loading"
-                                                class="px-8 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-all font-medium flex items-center gap-2">
-                                            <template x-if="loading">
-                                                <i class="ri-loader-4-line animate-spin"></i>
-                                            </template>
-                                            <template x-if="!loading">
-                                                <i class="ri-arrow-right-line"></i>
-                                            </template>
-                                            <span x-text="loading ? 'Creating...' : 'Review & Submit'"></span>
-                                        </button>
-                                    </div>
-                                </div>
+                            <!-- Final Action -->
+                            <div class="bg-white rounded-[2.5rem] border border-slate-200 p-8 flex items-center justify-between">
+                                <a href="{{ route('admin.candidates.index') }}"
+                                   class="px-8 py-4 text-slate-400 hover:text-slate-900 font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2">
+                                    <i class="ri-arrow-left-line"></i>
+                                    Discard
+                                </a>
+                                <button type="submit"
+                                        :disabled="loading"
+                                        class="px-12 py-5 bg-slate-900 text-white rounded-2xl hover:bg-blue-600 hover:shadow-2xl hover:shadow-blue-200 disabled:opacity-50 transition-all font-black text-xs uppercase tracking-[0.2em] flex items-center gap-3 group">
+                                    <template x-if="loading">
+                                        <i class="ri-loader-4-line animate-spin text-lg"></i>
+                                    </template>
+                                    <template x-if="!loading">
+                                        <i class="ri-send-plane-fill text-lg group-hover:translate-x-1 transition-transform"></i>
+                                    </template>
+                                    <span x-text="loading ? 'Submitting Registry...' : 'Register Candidate'"></span>
+                                </button>
                             </div>
                         </form>
                     </div>
 
-                    <!-- Right Sidebar -->
-                    <div class="lg:col-span-1 space-y-6">
-                        <!-- Progress Card -->
-                        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                            <h3 class="text-base font-bold text-gray-900 mb-4">Progress</h3>
-                            <div class="space-y-2">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-gray-600">Form Completion</span>
-                                    <span class="font-semibold text-gray-900" x-text="completionPercentage + '%'"></span>
+                    <!-- Sidebar -->
+                    <div class="lg:col-span-1 space-y-8">
+                        <div class="bg-white rounded-[2.5rem] border border-slate-200 p-10 shadow-sm relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16"></div>
+                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-8 relative z-10">Integrity Check</h3>
+                            <div class="space-y-6 relative z-10">
+                                <div class="flex justify-between items-end mb-2">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Completion Index</span>
+                                    <span class="text-2xl font-black text-slate-900" x-text="completionPercentage + '%'"></span>
                                 </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                                <div class="w-full bg-slate-50 h-3 rounded-full overflow-hidden p-0.5 border border-slate-100">
+                                    <div class="bg-slate-900 h-full rounded-full transition-all duration-1000 shadow-sm"
                                          :style="'width: ' + completionPercentage + '%'"></div>
                                 </div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase leading-relaxed tracking-wider">Ensure all required fields are populated with verified data to maintain system compliance.</p>
                             </div>
                         </div>
 
-                        <!-- Pro Tips Card -->
-                        <div class="bg-blue-50 rounded-2xl border border-blue-200 p-6">
-                            <div class="flex items-center gap-2 mb-4">
-                                <i class="ri-lightbulb-flash-line text-blue-600 text-xl"></i>
-                                <h3 class="text-base font-bold text-gray-900">Pro Tips</h3>
+                        <div class="bg-blue-600 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-blue-200 relative overflow-hidden">
+                            <div class="absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mb-16 blur-2xl"></div>
+                            <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mb-8 border border-white/20">
+                                <i class="ri-lightbulb-fill text-3xl text-blue-100"></i>
                             </div>
-                            <ul class="space-y-3 text-sm text-gray-700">
-                                <li class="flex items-start gap-2">
-                                    <i class="ri-checkbox-circle-line text-blue-600 mt-0.5 flex-shrink-0"></i>
-                                    <span>Use a clear, descriptive name for your organization</span>
+                            <h3 class="text-xl font-black uppercase tracking-tighter mb-4">Ballot Excellence</h3>
+                            <ul class="space-y-4">
+                                <li class="flex items-start gap-3">
+                                    <i class="ri-checkbox-circle-fill text-blue-200 mt-0.5"></i>
+                                    <span class="text-xs font-bold text-blue-50 leading-relaxed uppercase tracking-wide">Use professional studio portraits</span>
                                 </li>
-                                <li class="flex items-start gap-2">
-                                    <i class="ri-checkbox-circle-line text-blue-600 mt-0.5 flex-shrink-0"></i>
-                                    <span>Provide a professional email address for communications</span>
+                                <li class="flex items-start gap-3">
+                                    <i class="ri-checkbox-circle-fill text-blue-200 mt-0.5"></i>
+                                    <span class="text-xs font-bold text-blue-50 leading-relaxed uppercase tracking-wide">Cross-verify legal email addresses</span>
                                 </li>
-                                <li class="flex items-start gap-2">
-                                    <i class="ri-checkbox-circle-line text-blue-600 mt-0.5 flex-shrink-0"></i>
-                                    <span>Write a compelling description to attract members</span>
+                                <li class="flex items-start gap-3">
+                                    <i class="ri-checkbox-circle-fill text-blue-200 mt-0.5"></i>
+                                    <span class="text-xs font-bold text-blue-50 leading-relaxed uppercase tracking-wide">Summarize platform to key bullet points</span>
                                 </li>
                             </ul>
-                        </div>
-
-                        <!-- Quick Actions Card -->
-                        <div class="bg-white rounded-2xl border border-gray-200 p-6">
-                            <h3 class="text-base font-bold text-gray-900 mb-4">Quick Actions</h3>
-                            <div class="space-y-3">
-                                <button type="button" @click="saveDraft()"
-                                        class="w-full px-4 py-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl hover:bg-amber-100 transition-all font-medium text-sm flex items-center justify-center gap-2">
-                                    <i class="ri-save-line"></i>
-                                    Save as Draft
-                                </button>
-                                <button type="button" @click="loadDraft()"
-                                        class="w-full px-4 py-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl hover:bg-blue-100 transition-all font-medium text-sm flex items-center justify-center gap-2">
-                                    <i class="ri-download-line"></i>
-                                    Load Draft
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
             <!-- Success Modal -->
             <div x-show="showSuccess" x-cloak
-                 class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-                 @click.self="showSuccess = false">
+                 class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                 <div @click.away="showSuccess = false"
-                     class="bg-white rounded-2xl max-w-md w-full p-8 shadow-xl">
-                    <div class="text-center">
-                        <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="ri-checkbox-circle-fill text-emerald-600 text-3xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2" x-text="successTitle"></h3>
-                        <p class="text-gray-600 mb-6" x-text="successMessage"></p>
-                        <div class="flex gap-3">
-                            <button @click="window.location.href='{{ route('admin.candidates.index') }}'"
-                                    class="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all font-medium">
-                                View Candidates
-                            </button>
-                            <button @click="resetFormAfterSuccess()"
-                                    class="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium">
-                                Create Another
-                            </button>
-                        </div>
+                     class="bg-white rounded-[3rem] max-w-md w-full p-12 shadow-2xl text-center">
+                    <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
+                        <i class="ri-checkbox-circle-fill text-6xl"></i>
+                    </div>
+                    <h3 class="text-3xl font-black text-slate-900 mb-4 uppercase tracking-tighter" x-text="successTitle"></h3>
+                    <p class="text-slate-500 font-bold text-sm mb-10 leading-relaxed uppercase tracking-widest" x-text="successMessage"></p>
+                    <div class="flex flex-col gap-4">
+                        <button @click="window.location.href='{{ route('admin.candidates.index') }}'"
+                                class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-slate-200">
+                            View Candidate Registry
+                        </button>
+                        <button @click="resetFormAfterSuccess()"
+                                class="w-full py-5 bg-slate-100 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-200 transition-all">
+                            Add Another Entry
+                        </button>
                     </div>
                 </div>
             </div>
 
             <!-- Error Modal -->
             <div x-show="showError" x-cloak
-                 class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-                 @click.self="showError = false">
+                 class="fixed inset-0 bg-red-900/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                 <div @click.away="showError = false"
-                     class="bg-white rounded-2xl max-w-md w-full p-8 shadow-xl">
-                    <div class="text-center">
-                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="ri-close-circle-fill text-red-600 text-3xl"></i>
-                        </div>
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Unable to Create</h3>
-                        <p class="text-gray-600 mb-6" x-text="errorMessage"></p>
-                        <button @click="showError = false"
-                                class="w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium">
-                            Close & Retry
-                        </button>
+                     class="bg-white rounded-[3rem] max-w-md w-full p-12 shadow-2xl text-center">
+                    <div class="w-24 h-24 bg-red-100 text-red-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8">
+                        <i class="ri-error-warning-fill text-6xl"></i>
                     </div>
+                    <h3 class="text-3xl font-black text-slate-900 mb-4 uppercase tracking-tighter">Registry Error</h3>
+                    <p class="text-slate-500 font-bold text-sm mb-10 leading-relaxed uppercase tracking-widest" x-text="errorMessage"></p>
+                    <button @click="showError = false"
+                            class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-red-600 transition-all">
+                        Review & Correct
+                    </button>
                 </div>
             </div>
         </main>

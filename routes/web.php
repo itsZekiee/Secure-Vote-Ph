@@ -282,6 +282,7 @@ Route::prefix('voter')->name('voter.')->group(function () {
 
         // Step 5: Results page
         Route::get('/elections/{code}/results', [VoterElectionController::class, 'results'])->name('elections.results');
+        Route::get('/elections/{code}/results/votes', [VoterElectionController::class, 'getVotes'])->name('elections.results.votes');
 
         // Voter Profile & History
         Route::get('/profile', [VoterElectionController::class, 'profile'])->name('profile.index');

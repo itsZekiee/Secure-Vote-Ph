@@ -286,7 +286,14 @@ class CandidateController extends Controller
                 'created_by' => auth()->id(),
             ];
 
-            Candidate::create($candidateData);
+            Candidate::updateOrCreate(
+                [
+                    'user_id' => $userId,
+                    'election_id' => $validated['election_id'] ?? null,
+                    'position_id' => $validated['position_id'],
+                ],
+                $candidateData
+            );
 
             DB::commit();
 
@@ -333,7 +340,7 @@ class CandidateController extends Controller
 
         $candidate->load(['user', 'election', 'position', 'partylist', 'votes']);
 
-        return view('main-admin.candidates.show', compact('candidate'));
+        return view('main-admin.candidate.show', compact('candidate'));
     }
 
     /**
