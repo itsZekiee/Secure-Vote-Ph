@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -35,6 +36,20 @@ class AuthController extends Controller
         }
 
         Log::warning('Login failed - Invalid credentials', ['email' => $request->email]);
+
+        // Record failed login attempt for analytics (ghost registrations)
+        try {
+            DB::table('failed_logins')->insert([
+                'email' => $request->email,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'attempted_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to record failed_login', ['error' => $e->getMessage()]);
+        }
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',

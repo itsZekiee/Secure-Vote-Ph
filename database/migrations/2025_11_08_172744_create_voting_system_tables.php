@@ -127,10 +127,25 @@ return new class extends Migration
             $table->text('user_agent')->nullable();
             $table->timestamps();
         });
+
+        // Failed logins table
+        Schema::create('failed_logins', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('election_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('ip_address');
+            $table->timestamps();
+        });
+
+
+
     }
+
+
 
     public function down(): void
     {
+        Schema::dropIfExists('failed_logins');
         Schema::dropIfExists('audit_logs');
         Schema::dropIfExists('votes');
         Schema::dropIfExists('voters');

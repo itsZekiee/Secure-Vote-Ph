@@ -92,9 +92,29 @@ class VoterRegistrationController extends Controller
             }
         }
 
+        // Split full name into first/middle/last like candidate creation logic
+        $userNameForCandidate = $request->name;
+        $nameParts = preg_split('/\s+/', trim($userNameForCandidate));
+        if (count($nameParts) === 1) {
+            $firstName = $nameParts[0];
+            $middleName = null;
+            $lastName = $nameParts[0];
+        } elseif (count($nameParts) === 2) {
+            $firstName = $nameParts[0];
+            $middleName = null;
+            $lastName = $nameParts[1];
+        } else {
+            $firstName = array_shift($nameParts);
+            $lastName = array_pop($nameParts);
+            $middleName = implode(' ', $nameParts);
+        }
+
         $voter = Voter::create([
             'election_id' => $election->id,
             'name' => $request->name,
+            'first_name' => $firstName,
+            'middle_name' => $middleName,
+            'last_name' => $lastName,
             'email' => $request->email,
             'student_id' => $request->student_id ?? null,
             'password' => Hash::make($request->password),

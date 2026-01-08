@@ -273,7 +273,7 @@ class CandidateController extends Controller
             $candidateData = [
                 'user_id' => $userId,
                 'first_name' => $firstName,
-                'middle_name' => $middleName,
+                 'middle_name' => $middleName,
                 'last_name' => $lastName,
                 'name' => $userNameForCandidate,
                 'organization_id' => $validated['organization_id'],

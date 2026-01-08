@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Election;
 use App\Models\Organization;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -48,15 +50,7 @@ class DashboardController extends Controller
                     'turnoutRate' => $registeredVoters > 0
                         ? round(($totalVotes / $registeredVoters) * 100, 1)
                         : 0,
-                    'realtimeMetrics' => [
-                        'votesPerMinute' => array_fill(0, 10, 0),
-                        'avgTimeToVote' => 0,
-                        'activeSessions' => 0,
-                        'failedLogins' => 0,
-                        'suspiciousIPs' => 0,
-                        'verificationSuccessRate' => 100,
-                        'ghostRegistrations' => 0,
-                    ],
+                    'realtimeMetrics' => $this->computeRealtimeMetrics($election),
                     'demographicData' => [
                         'ageGroups' => [],
                         'regions' => [],
@@ -66,6 +60,72 @@ class DashboardController extends Controller
             });
 
         return view('main-admin.dashboard', compact('elections'));
+    }
+
+    /**
+     * Compute realtime metrics for an election.
+     */
+    private function computeRealtimeMetrics(Election $election): array
+    {
+        // Active sessions (last 30 minutes)
+        $thirtyMinutesAgo = Carbon::now()->subMinutes(30)->timestamp;
+        $activeSessionsTotal = DB::table('sessions')
+            ->where('last_activity', '>=', $thirtyMinutesAgo)
+            ->count();
+
+        $activeAuthenticated = DB::table('sessions')
+            ->where('last_activity', '>=', $thirtyMinutesAgo)
+            ->whereNotNull('user_id')
+            ->count();
+
+        // Average time to vote: avg difference between voter.created_at and votes.voted_at (seconds)
+        $avgSeconds = DB::table('votes')
+            ->join('voters', 'votes.voter_id', '=', 'voters.id')
+            ->where('votes.election_id', $election->id)
+            ->whereNotNull('votes.voted_at')
+            ->avg(DB::raw('TIMESTAMPDIFF(SECOND, voters.created_at, votes.voted_at)'));
+
+        $avgTimeToVote = $avgSeconds ? round($avgSeconds) : 0; // seconds
+
+        // Failed login attempts (ghost registrations): count in last 24 hours and total
+        $failedLast24 = DB::table('failed_logins')
+            ->where('attempted_at', '>=', Carbon::now()->subDay())
+            ->count();
+
+        $failedTotal = DB::table('failed_logins')->count();
+
+        // suspicious IPs: number of distinct IPs with > X failed attempts in last 24h
+        $suspiciousIPs = DB::table('failed_logins')
+            ->select('ip_address', DB::raw('COUNT(*) as cnt'))
+            ->where('attempted_at', '>=', Carbon::now()->subDay())
+            ->groupBy('ip_address')
+            ->having('cnt', '>', 5)
+            ->count();
+
+        // verification success rate: if elections require verification, compute ratio
+        $verificationSuccessRate = 100;
+        if ($election->require_verification ?? false) {
+            $totalVerificationAttempts = DB::table('voters')->where('election_id', $election->id)->count();
+            $verified = DB::table('voters')->where('election_id', $election->id)->where('is_verified', true)->count();
+            $verificationSuccessRate = $totalVerificationAttempts > 0 ? round(($verified / $totalVerificationAttempts) * 100, 1) : 100;
+        }
+
+        return [
+            'votesPerMinute' => [],
+            'avgTimeToVote' => $avgTimeToVote, // seconds
+            'activeSessions' => [
+                'total' => $activeSessionsTotal,
+                'authenticated' => $activeAuthenticated,
+                'guest' => max(0, $activeSessionsTotal - $activeAuthenticated),
+            ],
+            'failedLogins' => [
+                'last24h' => $failedLast24,
+                'total' => $failedTotal,
+            ],
+            'suspiciousIPs' => $suspiciousIPs,
+            'verificationSuccessRate' => $verificationSuccessRate,
+            'ghostRegistrations' => $failedLast24,
+        ];
     }
 
     private function getElectionStatus(Election $election): string
