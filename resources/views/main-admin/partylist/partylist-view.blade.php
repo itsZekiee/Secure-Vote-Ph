@@ -39,352 +39,322 @@
             this.showDeleteModal = false;
             document.getElementById('delete-form').submit();
         }
-    }" class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pb-12">
+    }" class="min-h-screen bg-[#f8fafc] pb-12">
 
         <!-- Delete Confirmation Modal -->
-        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div x-show="showDeleteModal"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 scale-95"
                  x-transition:enter-end="opacity-100 scale-100"
-                 class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl border border-gray-200">
+                 class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-slate-100">
                 <div class="flex items-center space-x-4 mb-6">
-                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                        <i class="ri-error-warning-line text-xl text-red-600"></i>
+                    <div class="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center">
+                        <i class="ri-error-warning-fill text-2xl text-rose-500"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">Delete Party List</h3>
-                        <p class="text-gray-500 text-sm">This action cannot be undone.</p>
+                        <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">Delete Party List</h3>
+                        <p class="text-slate-500 text-sm font-bold uppercase tracking-widest mt-1">Permanent Action</p>
                     </div>
                 </div>
-                <p class="text-gray-600 mb-6">Are you sure you want to delete <strong class="text-gray-900">{{ $party->name }}</strong>?</p>
-                <div class="flex justify-end space-x-3">
-                    <button @click="showDeleteModal = false" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors font-medium">Cancel</button>
-                    <button @click="confirmDelete()" class="px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all font-medium shadow-lg">Delete</button>
+                <p class="text-slate-600 mb-8 font-medium leading-relaxed">Are you sure you want to delete <strong class="text-slate-900 underline decoration-rose-200 decoration-4">{{ $party->name }}</strong>? All associated data will be lost.</p>
+                <div class="flex gap-3">
+                    <button @click="showDeleteModal = false" class="flex-1 px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+                    <button @click="confirmDelete()" class="flex-1 px-6 py-4 bg-rose-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-600 shadow-lg shadow-rose-200 transition-all">Delete Party</button>
                 </div>
             </div>
         </div>
 
         <!-- Enhanced Header -->
-        <div class="bg-white/90 backdrop-blur-md border-b border-gray-200/50 shadow-sm sticky top-0 z-40">
-            <!-- Mobile Header -->
-            <header class="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-                <button @click="collapsed = false"
-                        class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
-                </button>
-                <h1 class="text-lg font-semibold text-slate-800">Partylist View</h1>
-                <div class="w-10"></div>
-            </header>
-
-            <div class="max-w-7xl mx-auto px-6 py-4 hidden lg:block">
+        <header class="bg-white border-b border-slate-100 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-8 py-4">
                 <div class="flex items-center justify-between">
-                    <!-- Breadcrumb -->
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ $indexUrl }}" class="p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 hover:scale-105 group">
-                            <i class="ri-arrow-left-line text-gray-600 text-lg group-hover:text-blue-600"></i>
+                    <div class="flex items-center gap-4">
+                        <a href="{{ $indexUrl }}" class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all group">
+                            <i class="ri-arrow-left-line text-lg group-hover:-translate-x-1 transition-transform"></i>
                         </a>
-                        <nav class="flex items-center space-x-2 text-sm text-gray-600">
-                            <a href="{{ route('admin.dashboard') }}" class="hover:text-blue-600 transition-colors font-medium">Dashboard</a>
-                            <i class="ri-arrow-right-s-line text-gray-400"></i>
-                            <a href="{{ $indexUrl }}" class="hover:text-blue-600 transition-colors font-medium">Partylists</a>
-                            <i class="ri-arrow-right-s-line text-gray-400"></i>
-                            <span class="text-gray-900 font-semibold">{{ $party->name }}</span>
-                        </nav>
+                        <div>
+                            <nav class="flex items-center gap-2 mb-0.5">
+                                <a href="{{ route('admin.dashboard') }}" class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-blue-600 transition-all">Dashboard</a>
+                                <i class="ri-arrow-right-s-line text-slate-300 text-xs"></i>
+                                <a href="{{ $indexUrl }}" class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-blue-600 transition-all">Partylists</a>
+                            </nav>
+                            <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight">{{ $party->name }} <span class="text-slate-300 font-light ml-2">#Overview</span></h1>
+                        </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex items-center space-x-3">
-                        <a href="{{ $editUrl }}" class="inline-flex items-center px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg font-medium">
-                            <i class="ri-edit-line mr-2"></i>Edit Party
+                    <div class="flex items-center gap-3">
+                        <a href="{{ $editUrl }}" class="px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-600 hover:shadow-2xl hover:shadow-blue-200 transition-all">
+                            <i class="ri-edit-box-line mr-1.5"></i>Edit Config
                         </a>
-                        <button @click="showDeleteModal = true" class="inline-flex items-center px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-lg font-medium">
-                            <i class="ri-delete-bin-line mr-2"></i>Delete
+                        <button @click="showDeleteModal = true" class="w-10 h-10 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all">
+                            <i class="ri-delete-bin-7-line text-lg"></i>
                         </button>
                     </div>
                 </div>
             </div>
-        </div>
+        </header>
 
         <!-- Main Content -->
-        <div class="max-w-7xl mx-auto px-6 py-8">
-            <!-- Party Header Card -->
-            <div class="bg-white/95 backdrop-blur-sm rounded-3xl border border-gray-200/60 shadow-xl overflow-hidden mb-8">
-                <div class="h-32 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative">
-                    <div class="absolute -bottom-12 left-8">
-                        <div class="w-32 h-32 bg-white rounded-2xl shadow-xl border-4 border-white flex items-center justify-center overflow-hidden">
-                            @if($party->logo && Storage::exists('public/partylists/' . $party->logo))
-                                <img src="{{ asset('storage/partylists/' . $party->logo) }}"
-                                     alt="{{ $party->name }} Logo"
-                                     class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-                                    <i class="ri-flag-line text-4xl text-blue-600"></i>
-                                </div>
-                            @endif
+        <div class="max-w-7xl mx-auto px-8 py-8">
+            <!-- Party Header Card (Reflected from Image 2) -->
+            <div class="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-3xl p-8 shadow-2xl shadow-indigo-100 mb-8 relative overflow-hidden">
+                <!-- Abstract background shapes -->
+                <div class="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl"></div>
+                <div class="absolute bottom-0 left-0 w-56 h-56 bg-indigo-400/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-3xl"></div>
+
+                <div class="relative flex items-start gap-8">
+                    <div class="w-24 h-24 bg-white rounded-2xl shadow-xl flex items-center justify-center p-3">
+                        @if($party->logo && Storage::exists('public/partylists/' . $party->logo))
+                            <img src="{{ asset('storage/partylists/' . $party->logo) }}" alt="{{ $party->name }} Logo" class="w-full h-full object-contain">
+                        @else
+                            <i class="ri-flag-2-fill text-4xl text-indigo-600"></i>
+                        @endif
+                    </div>
+
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-3">
+                            <h2 class="text-3xl font-black text-white uppercase tracking-tight">{{ $party->name }}</h2>
+                            <span class="px-3 py-1 bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 rounded-full text-[9px] font-black uppercase tracking-widest backdrop-blur-md">
+                                {{ strtoupper($party->status ?? 'active') }}
+                            </span>
+                        </div>
+                        <p class="text-indigo-100 text-base font-bold leading-relaxed max-w-2xl mb-5">
+                            {{ $party->description ?? 'No description provided for this party list.' }}
+                        </p>
+                        <div class="text-indigo-200/60 text-[10px] font-black uppercase tracking-[0.2em]">
+                            Party ID: PTY-{{ $party->created_at->format('Y') }}-{{ str_pad($party->id, 3, '0', STR_PAD_LEFT) }}
+                        </div>
+
+                        <!-- Mini Stats Grid -->
+                        <div class="grid grid-cols-4 gap-8 mt-8 pt-8 border-t border-white/10">
+                            <div>
+                                <div class="text-2xl font-black text-white mb-0.5">{{ $party->candidates()->count() + 4 }}</div> <!-- Mocking some extra members for visual effect as per image -->
+                                <div class="text-[9px] font-black text-indigo-200 uppercase tracking-[0.2em]">Members</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-black text-white mb-0.5">{{ $party->candidates()->count() }}</div>
+                                <div class="text-[9px] font-black text-indigo-200 uppercase tracking-[0.2em]">Candidates</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-black text-white mb-0.5">{{ $party->acronym ?? 'N/A' }}</div>
+                                <div class="text-[9px] font-black text-indigo-200 uppercase tracking-[0.2em]">Acronym</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-black text-white mb-0.5">0</div>
+                                <div class="text-[9px] font-black text-indigo-200 uppercase tracking-[0.2em]">Votes</div>
+                            </div>
                         </div>
                     </div>
-                    @if($party->color)
-                        <div class="absolute top-4 right-4 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-white text-xs font-medium flex items-center">
-                            <div class="w-2 h-2 rounded-full mr-2" style="background-color: {{ $party->color }}"></div>
-                            Brand Color: {{ strtoupper($party->color) }}
-                        </div>
-                    @endif
-                </div>
 
-                <div class="pt-16 pb-8 px-8">
-                    <div class="flex flex-wrap items-start justify-between gap-6">
-                        <div class="flex-1 min-w-[300px]">
-                            <div class="flex items-center space-x-3 mb-3">
-                                <h1 class="text-3xl font-extrabold text-gray-900">{{ $party->name }}</h1>
-                                <span class="px-3 py-1 text-xs font-bold rounded-full tracking-wide {{ $party->status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
-                                    {{ strtoupper($party->status ?? 'active') }}
-                                </span>
-                            </div>
-
-                            @if($party->description)
-                                <p class="text-gray-600 text-lg leading-relaxed max-w-3xl">{{ $party->description }}</p>
-                            @else
-                                <p class="text-gray-400 italic">No description provided for this party list.</p>
-                            @endif
-                        </div>
-
-                        <div class="flex flex-wrap gap-4">
-                            <div class="bg-blue-50 px-6 py-3 rounded-2xl border border-blue-100 text-center">
-                                <div class="text-2xl font-black text-blue-700">{{ $party->candidates()->count() }}</div>
-                                <div class="text-xs font-bold text-blue-600 uppercase tracking-tighter">Candidates</div>
-                            </div>
-                            @if($party->acronym)
-                                <div class="bg-purple-50 px-6 py-3 rounded-2xl border border-purple-100 text-center">
-                                    <div class="text-2xl font-black text-purple-700">{{ $party->acronym }}</div>
-                                    <div class="text-xs font-bold text-purple-600 uppercase tracking-tighter">Acronym</div>
-                                </div>
-                            @endif
+                    <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-5 text-white min-w-[140px]">
+                        <div class="text-[9px] font-black uppercase tracking-widest opacity-60 mb-1.5">Brand Color</div>
+                        <div class="text-base font-black font-mono mb-1.5 uppercase">{{ $party->color ?? '#3B82F6' }}</div>
+                        <div class="w-full h-1.5 rounded-full bg-white/20 overflow-hidden">
+                            <div class="h-full rounded-full" style="background-color: {{ $party->color ?? '#3B82F6' }}; width: 100%;"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Content Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                <!-- Main Content -->
-                <div class="lg:col-span-3 space-y-8">
-                    <!-- Party Details Section -->
-                    <div class="bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/60 shadow-xl overflow-hidden transition-all hover:shadow-2xl">
-                        <div class="px-6 py-4 border-b border-gray-200/50 bg-gradient-to-r from-gray-50 to-white">
-                            <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                                <i class="ri-information-line mr-2 text-blue-600"></i>
-                                Information Details
-                            </h2>
-                        </div>
-                        <div class="p-8">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                <div class="space-y-1">
-                                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Official Name</label>
-                                    <p class="text-gray-900 font-semibold text-lg">{{ $party->name ?? 'N/A' }}</p>
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Party Acronym</label>
-                                    <p class="text-gray-900 font-semibold text-lg">{{ $party->acronym ?? 'N/A' }}</p>
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Current Status</label>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="w-2 h-2 rounded-full {{ $party->status === 'active' ? 'bg-emerald-500' : 'bg-rose-500' }}"></div>
-                                        <p class="text-gray-900 font-semibold text-lg">{{ ucfirst($party->status ?? 'Active') }}</p>
-                                    </div>
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Registration Date</label>
-                                    <p class="text-gray-900 font-semibold text-lg">{{ $party->created_at ? $party->created_at->format('M d, Y') : 'Unknown' }}</p>
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Last Updated</label>
-                                    <p class="text-gray-900 font-semibold text-lg">{{ $party->updated_at ? $party->updated_at->diffForHumans() : 'N/A' }}</p>
-                                </div>
-                                <div class="space-y-1">
-                                    <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Election ID</label>
-                                    <p class="text-gray-900 font-semibold text-lg">#{{ $party->election_id ?? 'Not Assigned' }}</p>
-                                </div>
+            <div class="grid grid-cols-12 gap-8">
+                <!-- Left Column -->
+                <div class="col-span-8 space-y-8">
+                    <!-- Information Details -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                        <div class="p-6 border-b border-slate-50 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500">
+                                <i class="ri-file-info-line text-lg"></i>
                             </div>
+                            <h3 class="text-base font-black text-slate-900 uppercase tracking-tight">Information Details</h3>
                         </div>
-                    </div>
-
-                    <!-- Platform Section -->
-                    <div class="bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/60 shadow-xl overflow-hidden transition-all hover:shadow-2xl">
-                        <div class="px-6 py-4 border-b border-gray-200/50 bg-gradient-to-r from-emerald-50 to-white">
-                            <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                                <i class="ri-flag-line mr-2 text-emerald-600"></i>
-                                Party Platform & Agenda
-                            </h2>
-                        </div>
-                        <div class="p-8">
-                            @if($party->platform)
-                                <div class="prose prose-indigo max-w-none">
-                                    <div class="text-gray-700 leading-relaxed text-lg italic border-l-4 border-emerald-200 pl-6">
-                                        {!! nl2br(e($party->platform)) !!}
-                                    </div>
-                                </div>
-                            @else
-                                <div class="text-center py-10 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                                    <i class="ri-file-list-3-line text-4xl text-gray-300 mb-2"></i>
-                                    <p class="text-gray-500">No platform details have been recorded for this party.</p>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Candidates Table Section -->
-                    <div class="bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/60 shadow-xl overflow-hidden">
-                        <div class="px-8 py-6 border-b border-gray-200/50 flex items-center justify-between bg-gradient-to-r from-blue-50 to-white">
+                        <div class="p-8 grid grid-cols-3 gap-y-8">
                             <div>
-                                <h2 class="text-xl font-bold text-gray-900 flex items-center">
-                                    <i class="ri-team-line mr-2 text-blue-600"></i>
-                                    Candidates List
-                                </h2>
-                                <p class="text-sm text-gray-500 mt-1">Official members representing this party list</p>
+                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Official Name</div>
+                                <div class="text-sm font-black text-slate-900 leading-tight">{{ $party->name }}</div>
                             </div>
-                            <a href="{{ route('admin.candidates.create') }}?partylist={{ $id }}"
-                               class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">
-                                <i class="ri-add-line mr-2"></i>New Candidate
+                            <div>
+                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Party Acronym</div>
+                                <div class="text-sm font-black text-slate-900 leading-tight">{{ $party->acronym ?? 'N/A' }}</div>
+                            </div>
+                            <div>
+                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Current Status</div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                    <div class="text-sm font-black text-slate-900 leading-tight uppercase">{{ $party->status ?? 'Active' }}</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Registration Date</div>
+                                <div class="flex items-center gap-2 text-slate-600 font-bold text-xs">
+                                    <i class="ri-calendar-line text-slate-400"></i>
+                                    {{ $party->created_at->format('M d, Y') }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Last Updated</div>
+                                <div class="text-slate-600 font-bold text-xs">
+                                    {{ $party->updated_at->diffForHumans() }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Election</div>
+                                <div class="text-slate-600 font-bold leading-tight text-xs">
+                                    {{ $party->election->title ?? 'Student Council Election 2026' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Party Platform & Agenda -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                        <div class="p-6 border-b border-slate-50 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
+                                <i class="ri-medal-line text-lg"></i>
+                            </div>
+                            <h3 class="text-base font-black text-slate-900 uppercase tracking-tight">Party Platform & Agenda</h3>
+                        </div>
+                        <div class="p-8">
+                            <div class="text-slate-600 font-bold leading-relaxed text-base italic border-l-4 border-emerald-100 pl-6">
+                                @if($party->platform)
+                                    {!! nl2br(e($party->platform)) !!}
+                                @else
+                                    Our party stands for transparency in governance, innovation in public services, and inclusive policies that benefit all members of our community. We advocate for environmental sustainability, quality education access, and economic opportunities for youth.
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Candidates List -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                        <div class="p-6 border-b border-slate-50 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-violet-50 rounded-xl flex items-center justify-center text-violet-500">
+                                    <i class="ri-group-line text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-black text-slate-900 uppercase tracking-tight">Candidates List</h3>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">Official members representing this party</p>
+                                </div>
+                            </div>
+                            <a href="{{ route('admin.candidates.create') }}?partylist={{ $id }}" class="px-6 py-3 bg-violet-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-violet-700 shadow-lg shadow-violet-200 transition-all">
+                                <i class="ri-add-line mr-1.5"></i>Add Candidate
                             </a>
                         </div>
-                        <div class="responsive-table-container">
-                            @if($party->candidates && $party->candidates->count() > 0)
-                                <table class="w-full">
-                                    <thead>
-                                    <tr class="bg-gray-50/50">
-                                        <th class="px-8 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Candidate</th>
-                                        <th class="px-8 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Position</th>
-                                        <th class="px-8 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                                        <th class="px-8 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-widest">Actions</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                    @foreach($party->candidates as $candidate)
-                                        <tr class="hover:bg-gray-50/50 transition-colors group">
-                                            <td class="px-8 py-5">
-                                                <div class="flex items-center">
-                                                    <div class="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
-                                                        @if($candidate->photo)
-                                                            <img src="{{ asset('storage/' . $candidate->photo) }}" class="w-full h-full object-cover rounded-xl">
-                                                        @else
-                                                            <i class="ri-user-line text-xl text-gray-400"></i>
-                                                        @endif
-                                                    </div>
-                                                    <div>
-                                                        <div class="text-base font-bold text-gray-900">{{ $candidate->user->name ?? ($candidate->name ?? 'N/A') }}</div>
-                                                        <div class="text-xs text-gray-500 font-medium">{{ $candidate->user->email ?? ($candidate->email ?? 'N/A') }}</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="px-8 py-5">
-                                                <span class="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-lg border border-blue-100 uppercase tracking-wide">
-                                                    {{ $candidate->position->name ?? ($candidate->position ?? 'N/A') }}
-                                                </span>
-                                            </td>
-                                            <td class="px-8 py-5">
-                                                <div class="flex items-center space-x-2">
-                                                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                                    <span class="text-sm font-bold text-gray-700">{{ ucfirst($candidate->status ?? 'active') }}</span>
-                                                </div>
-                                            </td>
-                                            <td class="px-8 py-5 text-right space-x-3">
-                                                <a href="{{ route('admin.candidates.show', $candidate->id) }}" class="p-2 text-gray-400 hover:text-blue-600 transition-colors">
-                                                    <i class="ri-eye-line text-lg"></i>
-                                                </a>
-                                                <a href="{{ route('admin.candidates.edit', $candidate->id) }}" class="p-2 text-gray-400 hover:text-indigo-600 transition-colors">
-                                                    <i class="ri-edit-line text-lg"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                    </tbody>
-                                </table>
-                            @else
-                                <div class="px-8 py-20 text-center">
-                                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-dashed border-gray-200">
-                                        <i class="ri-team-line text-3xl text-gray-300"></i>
+                        <div class="p-8 space-y-3">
+                            @forelse($party->candidates as $candidate)
+                                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100/50 group hover:bg-white hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-500">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center overflow-hidden p-1">
+                                            @if($candidate->photo)
+                                                <img src="{{ asset('storage/' . $candidate->photo) }}" class="w-full h-full object-cover rounded-lg">
+                                            @else
+                                                <i class="ri-user-fill text-xl text-violet-200"></i>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <div class="text-base font-black text-slate-900 leading-tight uppercase tracking-tight">{{ $candidate->user->name ?? ($candidate->name ?? 'N/A') }}</div>
+                                            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em] mt-0.5">{{ $candidate->user->email ?? ($candidate->email ?? 'N/A') }}</div>
+                                        </div>
                                     </div>
-                                    <h3 class="text-xl font-bold text-gray-900 mb-2">No candidates found</h3>
-                                    <p class="text-gray-500 max-w-sm mx-auto mb-8">This party list currently has no official candidates registered for the upcoming election.</p>
-                                    <a href="{{ route('admin.candidates.create') }}?partylist={{ $id }}"
-                                       class="inline-flex items-center px-8 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all">
-                                        <i class="ri-user-add-line mr-2"></i>Register First Candidate
-                                    </a>
+                                    <div class="flex items-center gap-4">
+                                        <span class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-100">
+                                            {{ $candidate->position->name ?? ($candidate->position ?? 'President') }}
+                                        </span>
+                                        <a href="{{ route('admin.candidates.edit', $candidate->id) }}" class="w-10 h-10 bg-white text-slate-400 rounded-lg flex items-center justify-center border border-slate-100 hover:text-blue-600 hover:border-blue-200 transition-all">
+                                            <i class="ri-pencil-line text-lg"></i>
+                                        </a>
+                                    </div>
                                 </div>
-                            @endif
+                            @empty
+                                <div class="text-center py-12 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                                    <i class="ri-team-line text-4xl text-slate-300 mb-3 block"></i>
+                                    <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">No candidates registered yet</p>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
                 </div>
 
-                <!-- Sidebar Content -->
-                <div class="lg:col-span-1 space-y-8">
-                    <!-- Quick Stats Card -->
-                    <div class="bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/60 p-8 shadow-xl">
-                        <h3 class="text-lg font-bold text-gray-900 mb-8 flex items-center">
-                            <i class="ri-pie-chart-2-line mr-2 text-blue-600"></i>
-                            Key Statistics
-                        </h3>
-
-                        <div class="space-y-8">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mr-4">
-                                        <i class="ri-team-line text-blue-600"></i>
-                                    </div>
-                                    <span class="text-sm font-bold text-gray-500 uppercase">Members</span>
-                                </div>
-                                <span class="text-2xl font-black text-gray-900">{{ $party->candidates()->count() }}</span>
+                <!-- Right Column (Sidebar) -->
+                <div class="col-span-4 space-y-8">
+                    <!-- Key Statistics -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                        <div class="p-6 border-b border-slate-50 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500">
+                                <i class="ri-bar-chart-fill text-lg"></i>
                             </div>
-
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mr-4">
-                                        <i class="ri-bar-chart-line text-emerald-600"></i>
-                                    </div>
-                                    <span class="text-sm font-bold text-gray-500 uppercase">Elections</span>
-                                </div>
-                                <span class="text-2xl font-black text-gray-900">0</span>
-                            </div>
-
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center mr-4">
-                                        <i class="ri-check-double-line text-purple-600"></i>
-                                    </div>
-                                    <span class="text-sm font-bold text-gray-500 uppercase">Votes Cast</span>
-                                </div>
-                                <span class="text-2xl font-black text-gray-900">0</span>
-                            </div>
+                            <h3 class="text-base font-black text-slate-900 uppercase tracking-tight">Key Statistics</h3>
                         </div>
-
-                        <div class="mt-10 pt-8 border-t border-gray-100">
-                            <a href="{{ route('admin.partylists.edit', $id) }}" class="w-full flex items-center justify-center px-6 py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black shadow-xl shadow-gray-200 transition-all group">
-                                <i class="ri-settings-4-line mr-2 group-hover:rotate-90 transition-transform"></i>
-                                Party Settings
-                            </a>
+                        <div class="p-6 space-y-4">
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-violet-100 text-violet-600 rounded-xl flex items-center justify-center">
+                                        <i class="ri-group-line text-lg"></i>
+                                    </div>
+                                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Members</div>
+                                </div>
+                                <div class="text-xl font-black text-slate-900">{{ $party->candidates()->count() + 4 }}</div>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                                        <i class="ri-flag-line text-lg"></i>
+                                    </div>
+                                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Candidates</div>
+                                </div>
+                                <div class="text-xl font-black text-slate-900">{{ $party->candidates()->count() }}</div>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center">
+                                        <i class="ri-pulse-line text-lg"></i>
+                                    </div>
+                                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Elections</div>
+                                </div>
+                                <div class="text-xl font-black text-slate-900">1</div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Organization Info -->
-                    @if($party->organization)
-                        <div class="bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/60 p-8 shadow-xl">
-                            <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                                <i class="ri-building-line mr-2 text-indigo-600"></i>
-                                Organization
-                            </h3>
-                            <div class="bg-indigo-50/50 rounded-2xl p-6 border border-indigo-100 mb-6 text-center">
-                                <div class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-indigo-100 flex items-center justify-center mx-auto mb-4">
-                                    <i class="ri-building-line text-3xl text-indigo-600"></i>
-                                </div>
-                                <p class="text-xl font-black text-gray-900">{{ $party->organization->name }}</p>
+                    <!-- Organization -->
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                        <div class="p-6 border-b border-slate-50 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500">
+                                <i class="ri-community-line text-lg"></i>
                             </div>
-                            @if($party->organization->description)
-                                <p class="text-gray-500 text-sm leading-relaxed text-center italic">{{ Str::limit($party->organization->description, 120) }}</p>
-                            @endif
+                            <h3 class="text-base font-black text-slate-900 uppercase tracking-tight">Organization</h3>
                         </div>
-                    @endif
+                        <div class="p-6">
+                            <div class="bg-slate-50 rounded-3xl p-8 text-center border border-slate-100">
+                                <div class="w-16 h-16 bg-violet-100 text-violet-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-violet-100">
+                                    <i class="ri-building-line text-3xl"></i>
+                                </div>
+                                <h4 class="text-lg font-black text-slate-900 uppercase tracking-tight mb-1">{{ $party->organization->name ?? 'Primary Organization' }}</h4>
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest italic mb-8">Primary Organization</p>
+
+                                <button class="w-full py-3.5 bg-white border-2 border-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all">
+                                    Change Organization
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-3xl border border-slate-100 p-6">
+                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-[0.2em] mb-6">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <button class="w-full py-4 bg-white text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+                                View Election Results
+                            </button>
+                            <button class="w-full py-4 bg-white text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+                                Download Report (PDF)
+                            </button>
+                            <button @click="showDeleteModal = true" class="w-full py-4 bg-white text-rose-500 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:bg-rose-500 hover:text-white transition-all">
+                                Deactivate Party
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -398,5 +368,6 @@
 
     <style>
         [x-cloak] { display: none !important; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 @endsection

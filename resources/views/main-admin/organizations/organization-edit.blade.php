@@ -198,7 +198,7 @@
         </div>
 
         <!-- Enhanced Navigation Bar -->
-        <div class="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-40">
+        <div class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
             <!-- Mobile Header -->
             <header class="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
                 <button @click="collapsed = false"
@@ -212,46 +212,46 @@
             <div class="px-8 py-4 hidden lg:block">
                 <div class="flex items-center justify-between">
                     <!-- Left Section: Back Button & Breadcrumb -->
-                    <div class="flex items-center space-x-6">
+                    <div class="flex items-center space-x-4">
                         <a href="{{ $indexUrl }}"
-                           class="flex items-center justify-center w-12 h-12 rounded-2xl bg-white hover:bg-slate-50 transition-all duration-300 border border-slate-200 shadow-sm group">
+                           class="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all duration-300 border border-slate-200 hover:border-slate-300 group">
                             <i class="ri-arrow-left-line text-slate-600 group-hover:-translate-x-1 transition-transform"></i>
                         </a>
 
-                        <div class="h-8 w-px bg-slate-200"></div>
+                        <div class="h-6 w-px bg-slate-200"></div>
 
                         <nav class="flex" aria-label="Breadcrumb">
-                            <ol class="inline-flex items-center space-x-3">
+                            <ol class="inline-flex items-center space-x-2">
                                 <li class="inline-flex items-center">
-                                    <span class="text-slate-400 text-xs font-black uppercase tracking-widest">Admin</span>
+                                    <span class="text-slate-400 text-[9px] font-black uppercase tracking-widest">Admin</span>
                                 </li>
                                 <li>
                                     <i class="ri-arrow-right-s-line text-slate-300"></i>
                                 </li>
                                 <li>
-                                    <a href="{{ $indexUrl }}" class="text-slate-500 hover:text-indigo-600 text-xs font-black uppercase tracking-widest transition-colors">Organizations</a>
+                                    <a href="{{ $indexUrl }}" class="text-slate-500 hover:text-indigo-600 text-[9px] font-black uppercase tracking-widest transition-colors">Organizations</a>
                                 </li>
                                 <li>
                                     <i class="ri-arrow-right-s-line text-slate-300"></i>
                                 </li>
                                 <li class="flex items-center">
-                                    <span class="text-slate-900 text-xs font-black uppercase tracking-widest">Edit</span>
+                                    <span class="text-indigo-700 text-[9px] font-black uppercase tracking-widest">Edit</span>
                                 </li>
                             </ol>
                         </nav>
                     </div>
 
                     <!-- Right Section: Action Buttons -->
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-3">
                         <button @click="loadDraft()"
-                                class="inline-flex items-center px-6 py-3 text-xs font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-xl hover:bg-indigo-100 transition-all duration-300">
-                            <i class="ri-download-2-line mr-2"></i>
+                                class="inline-flex items-center px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-xl hover:bg-indigo-100 transition-all duration-300">
+                            <i class="ri-download-2-line mr-1.5"></i>
                             Load Draft
                         </button>
 
                         <button @click="resetForm()"
-                                class="inline-flex items-center px-6 py-3 text-xs font-black uppercase tracking-widest text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all duration-300">
-                            <i class="ri-refresh-line mr-2"></i>
+                                class="inline-flex items-center px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all duration-300">
+                            <i class="ri-refresh-line mr-1.5"></i>
                             Reset
                         </button>
                     </div>
@@ -260,95 +260,95 @@
         </div>
 
         <!-- Header Section -->
-        <div class="px-8 py-12">
+        <div class="px-8 py-8">
             <div class="max-w-7xl mx-auto">
-                <div class="flex items-start justify-between mb-12">
-                    <div class="flex items-center space-x-8">
+                <div class="flex items-start justify-between mb-8">
+                    <div class="flex items-center space-x-6">
                         <!-- Organization Icon -->
                         <div class="flex-shrink-0">
-                            <div class="w-20 h-20 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-indigo-200 transform hover:scale-105 transition-all duration-500">
-                                <i class="ri-building-2-fill text-white text-4xl"></i>
+                            <div class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 transform hover:scale-105 transition-all duration-500">
+                                <i class="ri-building-2-fill text-white text-3xl"></i>
                             </div>
                         </div>
 
                         <div>
-                            <h1 class="text-5xl font-black text-slate-900 mb-2 tracking-tight uppercase">Edit Organization</h1>
-                            <p class="text-sm text-slate-500 font-bold tracking-widest uppercase">Identity & Core Settings</p>
+                            <h1 class="text-3xl font-black text-slate-900 mb-1 tracking-tight uppercase">Edit Organization</h1>
+                            <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Identity & Core Settings</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Form Container -->
-                <form action="{{ $updateAction }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-4 gap-12">
+                <form action="{{ $updateAction }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-12 gap-8">
                     @csrf
                     @method('PUT')
 
                     <!-- Main Form Content -->
-                    <div class="lg:col-span-3 space-y-12">
+                    <div class="col-span-12 lg:col-span-8 space-y-8">
                         <!-- Basic Information Card -->
-                        <div class="bg-white rounded-[3rem] border border-slate-200/60 shadow-2xl shadow-slate-200/40 overflow-hidden">
-                            <div class="px-10 py-8 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-50">
-                                        <i class="ri-building-line text-2xl"></i>
+                        <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
+                            <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-50">
+                                        <i class="ri-building-line text-xl"></i>
                                     </div>
                                     <div>
-                                        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Basic Information</h2>
-                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Primary Identity Settings</p>
+                                        <h2 class="text-base font-black text-slate-800 uppercase tracking-tight">Basic Information</h2>
+                                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Primary Identity Settings</p>
                                     </div>
                                 </div>
-                                <span class="px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest">Section 01</span>
+                                <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[9px] font-black uppercase tracking-widest">Section 01</span>
                             </div>
 
-                            <div class="p-10 space-y-10">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div class="p-8 space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <!-- Organization Name -->
-                                    <div class="space-y-3">
-                                        <label for="name" class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Organization Name <span class="text-rose-500">*</span></label>
+                                    <div class="space-y-2">
+                                        <label for="name" class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Organization Name <span class="text-rose-500">*</span></label>
                                         <div class="relative group">
-                                            <i class="ri-building-4-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors z-10"></i>
+                                            <i class="ri-building-4-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors z-10"></i>
                                             <input type="text"
                                                    id="name"
                                                    name="name"
                                                    x-model="formData.name"
                                                    @input="generateSlug()"
-                                                   class="block w-full pl-14 pr-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 font-bold text-slate-700 shadow-sm @error('name') ring-2 ring-rose-500 @enderror"
+                                                   class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm @error('name') ring-2 ring-rose-500 @enderror"
                                                    placeholder="e.g. Supreme Student Council"
                                                    required>
                                         </div>
                                         @error('name')
-                                        <p class="mt-2 text-[10px] font-bold text-rose-500 uppercase tracking-wider flex items-center ml-1"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
+                                        <p class="mt-1 text-[9px] font-bold text-rose-500 uppercase tracking-wider flex items-center ml-1"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <!-- Organization Slug -->
-                                    <div class="space-y-3">
-                                        <label for="slug" class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Unique Slug</label>
+                                    <div class="space-y-2">
+                                        <label for="slug" class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Unique Slug</label>
                                         <div class="relative group">
-                                            <i class="ri-link absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors z-10"></i>
+                                            <i class="ri-link absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors z-10"></i>
                                             <input type="text"
                                                    id="slug"
                                                    name="slug"
                                                    x-model="formData.slug"
-                                                   class="block w-full pl-14 pr-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 font-bold text-slate-700 shadow-sm @error('slug') ring-2 ring-rose-500 @enderror"
+                                                   class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm @error('slug') ring-2 ring-rose-500 @enderror"
                                                    placeholder="auto-generated-slug">
                                         </div>
                                         @error('slug')
-                                        <p class="mt-2 text-[10px] font-bold text-rose-500 uppercase tracking-wider flex items-center ml-1"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
+                                        <p class="mt-1 text-[9px] font-bold text-rose-500 uppercase tracking-wider flex items-center ml-1"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <!-- Description -->
                                     <div class="md:col-span-2 space-y-2">
-                                        <label for="description" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">About Organization</label>
+                                        <label for="description" class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">About Organization</label>
                                         <textarea id="description"
                                                   name="description"
                                                   x-model="formData.description"
                                                   rows="5"
-                                                  class="block w-full px-5 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-300 font-medium text-gray-900 @error('description') ring-red-500 @enderror"
+                                                  class="block w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm resize-none @error('description') ring-2 ring-rose-500 @enderror"
                                                   placeholder="Tell us about your organization's mission and goals..."></textarea>
                                         @error('description')
-                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
+                                        <p class="mt-1 text-[9px] font-bold text-rose-500 uppercase tracking-wider flex items-center ml-1"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
                                 </div>
@@ -356,71 +356,70 @@
                         </div>
 
                         <!-- Contact Information Card -->
-                        <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/50 border border-white overflow-hidden">
-                            <div class="px-8 py-6 bg-gradient-to-r from-emerald-600 to-teal-600">
-                                <h2 class="text-xl font-bold text-white flex items-center">
-                                    <i class="ri-contacts-line mr-3"></i>
-                                    Communication Hub
-                                </h2>
-                                <p class="text-emerald-100 text-sm mt-1">Keep your contact details up to date</p>
+                        <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
+                            <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-slate-50">
+                                        <i class="ri-contacts-line text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-base font-black text-slate-800 uppercase tracking-tight">Communication Hub</h2>
+                                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Contact & Location Settings</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-widest">Section 02</span>
                             </div>
 
-                            <div class="p-8 space-y-8">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="p-8 space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <!-- Email -->
                                     <div class="space-y-2">
-                                        <label for="email" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Official Email</label>
+                                        <label for="email" class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Official Email</label>
                                         <div class="relative group">
-                                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-emerald-600">
-                                                <i class="ri-mail-line text-gray-400"></i>
-                                            </div>
+                                            <i class="ri-mail-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors z-10"></i>
                                             <input type="email"
                                                    id="email"
                                                    name="email"
                                                    x-model="formData.email"
-                                                   class="block w-full pl-12 pr-4 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all duration-300 font-medium text-gray-900 @error('email') ring-red-500 @enderror"
+                                                   class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm @error('email') ring-2 ring-rose-500 @enderror"
                                                    placeholder="hello@org.com">
                                         </div>
                                         @error('email')
-                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
+                                        <p class="mt-1 text-[9px] font-bold text-rose-500 uppercase tracking-wider flex items-center ml-1"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <!-- Phone -->
                                     <div class="space-y-2">
-                                        <label for="phone" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Phone Number</label>
+                                        <label for="phone" class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
                                         <div class="relative group">
-                                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-emerald-600">
-                                                <i class="ri-phone-line text-gray-400"></i>
-                                            </div>
+                                            <i class="ri-phone-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors z-10"></i>
                                             <input type="tel"
                                                    id="phone"
                                                    name="phone"
                                                    x-model="formData.phone"
-                                                   class="block w-full pl-12 pr-4 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all duration-300 font-medium text-gray-900 @error('phone') ring-red-500 @enderror"
+                                                   class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm @error('phone') ring-2 ring-rose-500 @enderror"
                                                    placeholder="+63 900 000 0000">
                                         </div>
                                         @error('phone')
-                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
+                                        <p class="mt-1 text-[9px] font-bold text-rose-500 uppercase tracking-wider flex items-center ml-1"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <!-- Address -->
                                     <div class="md:col-span-2 space-y-2">
-                                        <label for="address" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Physical Address</label>
+                                        <label for="address" class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Physical Address</label>
                                         <div class="relative group">
-                                            <div class="absolute top-4 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-emerald-600">
-                                                <i class="ri-map-pin-line text-gray-400"></i>
-                                            </div>
+                                            <i class="ri-map-pin-line absolute left-4 top-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors z-10"></i>
                                             <textarea id="address"
                                                       name="address"
                                                       x-model="formData.address"
-                                                      rows="3"
-                                                      class="block w-full pl-12 pr-4 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all duration-300 font-medium text-gray-900 @error('address') ring-red-500 @enderror"
+                                                      rows="2"
+                                                      class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm resize-none @error('address') ring-2 ring-rose-500 @enderror"
                                                       placeholder="Enter full business address..."></textarea>
                                         </div>
                                         @error('address')
-                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
+                                        <p class="mt-1 text-[9px] font-bold text-rose-500 uppercase tracking-wider flex items-center ml-1"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
                                 </div>
@@ -428,39 +427,40 @@
                         </div>
 
                         <!-- Settings Card -->
-                        <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl shadow-gray-200/50 border border-white overflow-hidden">
-                            <div class="px-8 py-6 bg-gradient-to-r from-purple-600 to-indigo-600">
-                                <h2 class="text-xl font-bold text-white flex items-center">
-                                    <i class="ri-settings-3-line mr-3"></i>
-                                    Operational Status
-                                </h2>
-                                <p class="text-purple-100 text-sm mt-1">Manage the organization's current activity level</p>
+                        <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
+                            <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-purple-600 shadow-sm border border-slate-50">
+                                        <i class="ri-settings-3-line text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-base font-black text-slate-800 uppercase tracking-tight">Operational Status</h2>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Manage Activity Level</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[9px] font-black uppercase tracking-widest">Section 03</span>
                             </div>
 
                             <div class="p-8">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <!-- Status -->
                                     <div class="space-y-2">
-                                        <label for="status" class="text-sm font-bold text-gray-700 uppercase tracking-wider ml-1">Activity Status</label>
+                                        <label for="status" class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Activity Status</label>
                                         <div class="relative group">
-                                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-purple-600">
-                                                <i class="ri-toggle-line text-gray-400"></i>
-                                            </div>
+                                            <i class="ri-toggle-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors z-10"></i>
                                             <select id="status"
                                                     name="status"
                                                     x-model="formData.status"
-                                                    class="block w-full pl-12 pr-10 py-4 bg-gray-50 border-0 ring-1 ring-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all duration-300 font-bold text-gray-900 appearance-none @error('status') ring-red-500 @enderror">
+                                                    class="block w-full pl-12 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-purple-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm appearance-none @error('status') ring-2 ring-rose-500 @enderror">
                                                 <option value="active">Active & Operational</option>
                                                 <option value="inactive">Inactive / Archived</option>
                                                 <option value="pending">Awaiting Verification</option>
                                                 <option value="suspended">Suspended</option>
                                             </select>
-                                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                                <i class="ri-arrow-down-s-line text-gray-400"></i>
-                                            </div>
+                                            <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                         </div>
                                         @error('status')
-                                        <p class="mt-2 text-sm text-red-600 flex items-center"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
+                                        <p class="mt-1 text-[9px] font-bold text-rose-500 uppercase tracking-wider flex items-center ml-1"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>
                                 </div>
@@ -468,30 +468,30 @@
                         </div>
 
                         <!-- Sticky Bottom Action Bar -->
-                        <div class="bg-white/90 backdrop-blur-xl border border-white rounded-3xl p-6 shadow-2xl sticky bottom-8 z-30 flex flex-wrap items-center justify-between gap-6">
-                            <div class="flex items-center space-x-4">
+                        <div class="bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-3xl p-6 shadow-2xl sticky bottom-8 z-30 flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex items-center space-x-3">
                                 <button type="button"
                                         @click="confirmDelete()"
-                                        class="inline-flex items-center px-6 py-3.5 bg-rose-50 text-rose-600 rounded-2xl font-bold hover:bg-rose-100 transition-all duration-200 border border-rose-100">
+                                        class="inline-flex items-center px-6 py-3 bg-rose-50 text-rose-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100">
                                     <i class="ri-delete-bin-line mr-2"></i>
                                     Delete
                                 </button>
                                 <button type="button"
                                         @click="saveDraft()"
-                                        class="inline-flex items-center px-6 py-3.5 bg-blue-50 text-blue-600 rounded-2xl font-bold hover:bg-blue-100 transition-all duration-200 border border-blue-100">
+                                        class="inline-flex items-center px-6 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100 transition-all border border-indigo-100">
                                     <i class="ri-save-line mr-2"></i>
                                     Save Draft
                                 </button>
                             </div>
 
-                            <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-3">
                                 <a href="{{ $indexUrl }}"
-                                   class="px-8 py-3.5 text-gray-600 font-bold hover:text-gray-900 transition-colors">
+                                   class="px-6 py-3 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:text-slate-900 transition-colors">
                                     Cancel
                                 </a>
                                 <button type="submit"
-                                        class="inline-flex items-center px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-black shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-                                    <i class="ri-check-line mr-2 text-xl"></i>
+                                        class="inline-flex items-center px-10 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                                    <i class="ri-check-line mr-2 text-lg"></i>
                                     Save Changes
                                 </button>
                             </div>
@@ -499,91 +499,102 @@
                     </div>
 
                     <!-- Enhanced Sidebar -->
-                    <div class="space-y-6">
+                    <div class="col-span-12 lg:col-span-4 space-y-6">
                         <!-- Logo Upload -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                            <div class="px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-gray-200/60">
-                                <h3 class="text-lg font-bold text-gray-900 flex items-center">
-                                    <i class="ri-image-line text-indigo-600 mr-2"></i>
-                                    Organization Logo
+                        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/60 overflow-hidden">
+                            <div class="px-6 py-4 bg-slate-50/50 border-b border-slate-100">
+                                <h3 class="text-xs font-black text-slate-900 flex items-center uppercase tracking-widest">
+                                    <i class="ri-image-line text-indigo-600 mr-2 text-lg"></i>
+                                    Identity Logo
                                 </h3>
                             </div>
 
                             <div class="p-6">
                                 <div class="text-center mb-6">
                                     @if($organizationLogo)
-                                        <img src="{{ $organizationLogo }}" alt="Current Logo" class="w-24 h-24 rounded-xl object-cover mx-auto border-4 border-white shadow-lg">
+                                        <div class="relative inline-block group">
+                                            <img src="{{ $organizationLogo }}" alt="Current Logo" class="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-xl transition-transform group-hover:scale-105">
+                                            <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow-lg border-2 border-white">
+                                                <i class="ri-check-line"></i>
+                                            </div>
+                                        </div>
                                     @else
-                                        <div class="w-24 h-24 bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl flex items-center justify-center mx-auto shadow-lg">
-                                            <i class="ri-building-line text-white text-3xl"></i>
+                                        <div class="w-24 h-24 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto shadow-inner border border-slate-100">
+                                            <i class="ri-building-line text-slate-300 text-3xl"></i>
                                         </div>
                                     @endif
                                 </div>
 
                                 <div class="space-y-4">
-                                    <input type="file"
-                                           name="logo"
-                                           id="logo"
-                                           accept="image/*"
-                                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                    <p class="text-xs text-gray-500">Max file size: 2MB. Supported: JPG, PNG, SVG</p>
+                                    <div class="relative">
+                                        <input type="file"
+                                               name="logo"
+                                               id="logo"
+                                               accept="image/*"
+                                               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                        <div class="flex items-center justify-center w-full px-4 py-3 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 border-dashed border-indigo-200 group-hover:bg-indigo-100 transition-all">
+                                            <i class="ri-upload-2-line mr-2 text-lg"></i>
+                                            Change Logo
+                                        </div>
+                                    </div>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest text-center leading-relaxed">Max file size: 2MB.<br>Supported: JPG, PNG, SVG</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Organization Info -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                            <div class="px-6 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200/60">
-                                <h3 class="text-lg font-bold text-gray-900 flex items-center">
-                                    <i class="ri-information-line text-emerald-600 mr-2"></i>
-                                    Organization Info
+                        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/60 overflow-hidden">
+                            <div class="px-6 py-4 bg-slate-50/50 border-b border-slate-100">
+                                <h3 class="text-xs font-black text-slate-900 flex items-center uppercase tracking-widest">
+                                    <i class="ri-information-line text-emerald-600 mr-2 text-lg"></i>
+                                    Audit & Stats
                                 </h3>
                             </div>
 
                             <div class="p-6 space-y-4">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">Organization ID</span>
-                                    <span class="text-sm font-medium text-gray-900">#{{ $id }}</span>
+                                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Unique ID</span>
+                                    <span class="text-xs font-black text-slate-900">#{{ $id }}</span>
                                 </div>
 
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">Members</span>
-                                    <span class="text-sm font-medium text-gray-900">{{ number_format($membersCount) }}</span>
+                                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Members</span>
+                                    <span class="text-xs font-black text-slate-900">{{ number_format($membersCount) }}</span>
                                 </div>
 
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-gray-600">Elections</span>
-                                    <span class="text-sm font-medium text-gray-900">{{ number_format($electionsCount) }}</span>
+                                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Active Elections</span>
+                                    <span class="text-xs font-black text-slate-900">{{ number_format($electionsCount) }}</span>
                                 </div>
 
                                 @if($organization->created_at ?? false)
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-600">Created</span>
-                                        <span class="text-sm font-medium text-gray-900">{{ $organization->created_at->format('M d, Y') }}</span>
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">System Created</span>
+                                        <span class="text-xs font-black text-slate-900">{{ $organization->created_at->format('M d, Y') }}</span>
                                     </div>
                                 @endif
                             </div>
                         </div>
 
                         <!-- Quick Actions -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200/60 overflow-hidden">
-                            <div class="px-6 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-gray-200/60">
-                                <h3 class="text-lg font-bold text-gray-900 flex items-center">
-                                    <i class="ri-flash-line text-amber-600 mr-2"></i>
-                                    Quick Actions
+                        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/60 overflow-hidden">
+                            <div class="px-6 py-4 bg-slate-50/50 border-b border-slate-100">
+                                <h3 class="text-xs font-black text-slate-900 flex items-center uppercase tracking-widest">
+                                    <i class="ri-flash-line text-amber-600 mr-2 text-lg"></i>
+                                    Quick Links
                                 </h3>
                             </div>
 
                             <div class="p-6 space-y-3">
                                 <a href="{{ $showUrl }}"
-                                   class="w-full inline-flex items-center justify-center px-4 py-3 bg-blue-50 text-blue-700 rounded-xl text-sm font-medium hover:bg-blue-100 transition-all duration-200">
-                                    <i class="ri-eye-line mr-2"></i>
-                                    View Organization
+                                   class="w-full inline-flex items-center justify-center px-4 py-3 bg-blue-50 text-blue-700 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-100 transition-all">
+                                    <i class="ri-eye-line mr-2 text-base"></i>
+                                    View Live Profile
                                 </a>
 
                                 <a href="{{ $indexUrl }}"
-                                   class="w-full inline-flex items-center justify-center px-4 py-3 bg-gray-50 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-100 transition-all duration-200">
-                                    <i class="ri-list-check mr-2"></i>
+                                   class="w-full inline-flex items-center justify-center px-4 py-3 bg-slate-50 text-slate-700 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-100 transition-all">
+                                    <i class="ri-list-check mr-2 text-base"></i>
                                     All Organizations
                                 </a>
                             </div>
