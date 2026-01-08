@@ -7,7 +7,7 @@
         showSuccessToast: false,
         positions: @js($election->positions->map(fn($p) => [
             'id' => $p->id,
-            'name' => $p->name,
+            'name' => $p->title,
             'candidates' => $p->candidates->map(fn($c) => [
                 'id' => $c->id,
                 'name' => $c->name,
@@ -23,8 +23,13 @@
             max_votes: @js($election->max_votes),
             auto_approve_voters: @js((bool)$election->auto_approve_voters),
             enable_geo_location: @js((bool)$election->require_geo_verification),
-            enable_geo_registration: @js((bool)$election->require_geo_registration)
+            enable_geo_registration: @js((bool)$election->require_geo_registration),
+            geo_latitude: @js($election->geo_latitude),
+            geo_longitude: @js($election->geo_longitude),
+            geo_radius: @js($election->geo_radius_meters)
         },
+        radiusValue: @js($election->geo_radius_meters ?? 50),
+        radiusUnit: 'meters',
         addPosition() {
             this.positions.push({ name: '', candidates: [{ name: '', first_name: '', middle_name: '', last_name: '', partylist_id: '' }] });
         },
@@ -144,9 +149,6 @@
                     <input type="hidden" name="start_date" value="{{ $election->start_date->format('Y-m-d\TH:i') }}">
                     <input type="hidden" name="end_date" value="{{ $election->end_date->format('Y-m-d\TH:i') }}">
                     <input type="hidden" name="status" value="{{ $election->status }}">
-                    <input type="hidden" name="geo_latitude" value="{{ $election->geo_latitude }}">
-                    <input type="hidden" name="geo_longitude" value="{{ $election->geo_longitude }}">
-                    <input type="hidden" name="geo_radius" value="{{ $election->geo_radius_meters }}">
 
                     <div class="space-y-8">
                         <!-- Basic Info & Settings Tab -->
@@ -193,6 +195,92 @@
                                             <i class="ri-list-ordered absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl"></i>
                                             <input type="number" name="max_votes" x-model="formData.max_votes" min="1"
                                                    class="w-full bg-slate-50 border-2 border-slate-100 rounded-[1.25rem] px-16 py-5 text-sm font-bold text-slate-700 focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all shadow-sm">
+                                        </div>
+                                    </div>
+
+                                    <!-- Enhanced Geo Configuration -->
+                                    <div x-show="formData.enable_geo_location || formData.enable_geo_registration"
+                                         x-transition:enter="transition ease-out duration-300"
+                                         x-transition:enter-start="opacity-0 transform translate-y-4"
+                                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                                         class="bg-white border-2 border-slate-100 rounded-3xl p-8 space-y-8 shadow-xl shadow-slate-200/40">
+                                        <div class="flex items-center gap-4 mb-6">
+                                            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200/50">
+                                                <i class="ri-map-pin-2-line text-white text-2xl"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-xl font-black text-slate-900 uppercase tracking-tighter">Location Configuration</h3>
+                                                <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Set the voting location and radius</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Location Search -->
+                                        <div class="space-y-4">
+                                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Search Location</label>
+                                            <div class="flex flex-col sm:flex-row gap-4">
+                                                <div class="flex-1 relative group">
+                                                    <i class="ri-search-line absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl"></i>
+                                                    <input type="text" id="locationSearch" placeholder="Search for a location..."
+                                                           class="w-full bg-slate-50 border-2 border-slate-100 rounded-[1.25rem] px-16 py-5 text-sm font-bold text-slate-700 focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all shadow-sm">
+                                                </div>
+                                                <button type="button" id="useMyLocation"
+                                                        class="px-8 py-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-[1.25rem] font-black text-xs uppercase tracking-widest hover:shadow-xl hover:shadow-blue-200 transition-all flex items-center justify-center gap-3">
+                                                    <i class="ri-focus-3-line text-xl"></i>
+                                                    Use My Location
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Radius Control -->
+                                        <div class="space-y-4">
+                                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Voting Radius</label>
+                                            <div class="flex flex-col sm:flex-row gap-4">
+                                                <div class="flex-1 flex gap-4">
+                                                    <div class="flex-1 relative group">
+                                                        <i class="ri-compass-3-line absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl"></i>
+                                                        <input type="number" id="geoRadius" x-model="radiusValue" min="10" max="10000"
+                                                               class="w-full bg-slate-50 border-2 border-slate-100 rounded-[1.25rem] px-16 py-5 text-sm font-bold text-slate-700 focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all shadow-sm"
+                                                               placeholder="Radius">
+                                                    </div>
+                                                    <div class="w-40">
+                                                        <select x-model="radiusUnit"
+                                                                class="w-full bg-slate-50 border-2 border-slate-100 rounded-[1.25rem] px-6 py-5 text-sm font-bold text-slate-700 focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all shadow-sm appearance-none cursor-pointer">
+                                                            <option value="meters">Meters</option>
+                                                            <option value="kilometers">Km</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <button type="button" onclick="updateRadius()"
+                                                        class="px-8 py-5 bg-slate-900 text-white rounded-[1.25rem] font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all">
+                                                    Apply Radius
+                                                </button>
+                                                <input type="hidden" id="computedRadius" name="geo_radius" :value="radiusUnit === 'kilometers' ? radiusValue * 1000 : radiusValue">
+                                            </div>
+                                            <div class="flex items-center gap-2 text-blue-600 font-bold text-[10px] uppercase tracking-widest ml-1">
+                                                <i class="ri-information-line"></i>
+                                                <span x-text="radiusUnit === 'kilometers' ? (radiusValue * 1000) + ' meters' : radiusValue + ' meters'"></span> from the center point
+                                            </div>
+                                        </div>
+
+                                        <!-- Interactive Map -->
+                                        <div class="space-y-4">
+                                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Set Voting Zone</label>
+                                            <div id="geoMap" class="w-full h-[400px] rounded-[2.5rem] border-4 border-slate-50 overflow-hidden shadow-2xl relative z-10"></div>
+                                            <input type="hidden" id="geoLatitude" name="geo_latitude" x-model="formData.geo_latitude">
+                                            <input type="hidden" id="geoLongitude" name="geo_longitude" x-model="formData.geo_longitude">
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest ml-1 mt-2">Click on the map to set the center of your voting zone</p>
+                                        </div>
+
+                                        <!-- Coordinate Display -->
+                                        <div class="grid grid-cols-2 gap-4 p-6 bg-slate-50 rounded-[1.25rem] border-2 border-slate-100">
+                                            <div class="flex flex-col gap-1">
+                                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Latitude</span>
+                                                <span id="latDisplay" class="text-sm font-bold text-slate-900 font-mono" x-text="formData.geo_latitude || 'Not set'"></span>
+                                            </div>
+                                            <div class="flex flex-col gap-1">
+                                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Longitude</span>
+                                                <span id="lngDisplay" class="text-sm font-bold text-slate-900 font-mono" x-text="formData.geo_longitude || 'Not set'"></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -351,4 +439,100 @@
             </div>
         </main>
     </div>
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ env('GOOGLE_MAPS_API_KEY') }}&libraries=places"></script>
+
+    <script>
+        let map, marker, circle;
+
+        function initGeoMap() {
+            const lat = parseFloat(@js($election->geo_latitude)) || 14.5995;
+            const lng = parseFloat(@js($election->geo_longitude)) || 120.9842;
+            const defaultPos = { lat, lng };
+
+            map = new google.maps.Map(document.getElementById('geoMap'), {
+                zoom: @js($election->geo_latitude ? 17 : 13),
+                center: defaultPos,
+                styles: [
+                    { "featureType": "poi", "stylers": [{ "visibility": "off" }] },
+                    { "featureType": "transit", "stylers": [{ "visibility": "off" }] }
+                ]
+            });
+
+            if (@js((bool)$election->geo_latitude)) {
+                setLocation(lat, lng);
+            }
+
+            map.addListener('click', function(e) {
+                setLocation(e.latLng.lat(), e.latLng.lng());
+            });
+
+            const input = document.getElementById('locationSearch');
+            const autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.bindTo('bounds', map);
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (!place.geometry || !place.geometry.location) return;
+                if (place.geometry.viewport) map.fitBounds(place.geometry.viewport);
+                else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);
+                }
+                setLocation(place.geometry.location.lat(), place.geometry.location.lng());
+            });
+
+            document.getElementById('useMyLocation').addEventListener('click', function() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
+                        map.setCenter(pos);
+                        map.setZoom(17);
+                        setLocation(pos.lat, pos.lng);
+                    }, () => alert('Error: The Geolocation service failed.'));
+                } else alert("Error: Your browser doesn't support geolocation.");
+            });
+        }
+
+        function setLocation(lat, lng) {
+            const pos = { lat, lng };
+            if (marker) marker.setMap(null);
+            if (circle) circle.setMap(null);
+
+            marker = new google.maps.Marker({ position: pos, map: map, animation: google.maps.Animation.DROP });
+
+            const radiusInput = document.getElementById('geoRadius');
+            const radiusValue = parseFloat(radiusInput.value) || 50;
+            const radiusUnit = document.querySelector('[x-model="radiusUnit"]').value;
+            let radius = radiusUnit === 'kilometers' ? radiusValue * 1000 : radiusValue;
+
+            circle = new google.maps.Circle({
+                strokeColor: '#4F46E5', strokeOpacity: 0.8, strokeWeight: 2,
+                fillColor: '#818CF8', fillOpacity: 0.35, map: map, center: pos, radius: radius
+            });
+
+            document.getElementById('geoLatitude').value = lat;
+            document.getElementById('geoLongitude').value = lng;
+            document.getElementById('latDisplay').textContent = lat.toFixed(6);
+            document.getElementById('lngDisplay').textContent = lng.toFixed(6);
+            document.getElementById('computedRadius').value = radius;
+
+            // Update Alpine data if available
+            const form = document.getElementById('edit-election-form');
+            if (form && Alpine.$data(form)) {
+                Alpine.$data(form).formData.geo_latitude = lat;
+                Alpine.$data(form).formData.geo_longitude = lng;
+                Alpine.$data(form).formData.geo_radius = radius;
+            }
+        }
+
+        function updateRadius() {
+            const lat = parseFloat(document.getElementById('geoLatitude').value);
+            const lng = parseFloat(document.getElementById('geoLongitude').value);
+            if (!isNaN(lat) && !isNaN(lng)) setLocation(lat, lng);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initGeoMap();
+        });
+    </script>
 @endsection
