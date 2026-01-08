@@ -34,6 +34,7 @@ class Election extends Model
         'geo_radius_meters',
         'accepted_domains',
         'max_votes',
+        'auto_approve_voters',
     ];
 
     protected $casts = [
@@ -46,6 +47,7 @@ class Election extends Model
         'geo_longitude' => 'decimal:8',
         'geo_radius_meters' => 'integer',
         'max_votes' => 'integer',
+        'auto_approve_voters' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',

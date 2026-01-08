@@ -18,10 +18,22 @@ class VoterAuth
         }
 
         // Check for approval status
-        $voterModel = \App\Models\Voter::find($voter['id']);
-        if (!$voterModel || $voterModel->registration_status !== 'approved') {
+        $voterModel = \App\Models\Voter::with('election')->find($voter['id']);
+
+        if (!$voterModel) {
             $request->session()->forget('voter');
-            $msg = $voterModel && $voterModel->registration_status === 'declined'
+            return redirect()->route('voter.elections.access')
+                ->withErrors(['session' => 'Voter not found.']);
+        }
+
+        $isApproved = $voterModel->registration_status === 'approved';
+        $isPendingWithAutoApprove = $voterModel->registration_status === 'pending' &&
+                                   $voterModel->election &&
+                                   $voterModel->election->auto_approve_voters;
+
+        if (!$isApproved && !$isPendingWithAutoApprove) {
+            $request->session()->forget('voter');
+            $msg = $voterModel->registration_status === 'declined'
                 ? 'Your registration has been declined.'
                 : 'Your registration is pending approval.';
             return redirect()->route('voter.elections.access')

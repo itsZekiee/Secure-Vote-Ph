@@ -239,6 +239,7 @@ document.addEventListener('alpine:init', () => {
                               accepted_domains: '',
                               registration_deadline: '',
                               max_votes: 1,
+                              auto_approve_voters: false,
                               enable_geo_registration: false
                           },
                           validateBasicInfo() {
@@ -842,7 +843,7 @@ document.addEventListener('alpine:init', () => {
                                                 </div>
                                             </div>
                                             <div class="relative flex-shrink-0">
-                                                <input type="checkbox" x-model="enableGeo" name="enable_geo_location" class="sr-only peer" id="geoToggle">
+                                                <input type="checkbox" x-model="enableGeo" name="enable_geo_location" class="sr-only peer" id="geoToggle" value="1">
                                                 <div :class="enableGeo ? 'bg-gradient-to-r from-blue-500 to-indigo-500' : 'bg-gray-300'"
                                                      class="block w-14 h-8 rounded-full transition-all duration-300 cursor-pointer relative shadow-inner">
                                                     <div :class="enableGeo ? 'translate-x-7' : 'translate-x-1'"
@@ -871,12 +872,41 @@ document.addEventListener('alpine:init', () => {
                                                 </div>
                                             </div>
                                             <div class="relative flex-shrink-0">
-                                                <input type="checkbox" x-model="formData.enable_geo_registration" name="enable_geo_registration" class="sr-only peer" id="geoRegToggle">
+                                                <input type="checkbox" x-model="formData.enable_geo_registration" name="enable_geo_registration" class="sr-only peer" id="geoRegToggle" value="1">
                                                 <div :class="formData.enable_geo_registration ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 'bg-gray-300'"
                                                      class="block w-14 h-8 rounded-full transition-all duration-300 cursor-pointer relative shadow-inner">
                                                     <div :class="formData.enable_geo_registration ? 'translate-x-7' : 'translate-x-1'"
                                                          class="absolute top-1 left-0 w-6 h-6 bg-white rounded-full shadow-lg transition-transform duration-300 flex items-center justify-center">
                                                         <svg x-show="formData.enable_geo_registration" class="w-3 h-3 text-amber-600" viewBox="0 0 24 24" fill="none">
+                                                            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <!-- Auto Approve Voters Toggle Switch -->
+                                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
+                                        <label class="flex items-start justify-between cursor-pointer gap-4">
+                                            <div class="flex items-start gap-4">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-lg font-bold text-gray-900">Auto Approve Voters</h3>
+                                                    <p class="text-sm text-gray-600 mt-1">Automatically approve voters upon registration. They can sign in immediately without waiting for admin approval.</p>
+                                                </div>
+                                            </div>
+                                            <div class="relative flex-shrink-0">
+                                                <input type="checkbox" x-model="formData.auto_approve_voters" name="auto_approve_voters" class="sr-only peer" id="autoApproveToggle" value="1">
+                                                <div :class="formData.auto_approve_voters ? 'bg-gradient-to-r from-green-500 to-emerald-500' : 'bg-gray-300'"
+                                                     class="block w-14 h-8 rounded-full transition-all duration-300 cursor-pointer relative shadow-inner">
+                                                    <div :class="formData.auto_approve_voters ? 'translate-x-7' : 'translate-x-1'"
+                                                         class="absolute top-1 left-0 w-6 h-6 bg-white rounded-full shadow-lg transition-transform duration-300 flex items-center justify-center">
+                                                        <svg x-show="formData.auto_approve_voters" class="w-3 h-3 text-green-600" viewBox="0 0 24 24" fill="none">
                                                             <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                                         </svg>
                                                     </div>
