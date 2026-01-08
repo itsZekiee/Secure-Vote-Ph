@@ -187,7 +187,8 @@ class VoterRegistrationController extends Controller
             'id' => $voter->id,
             'name' => $voter->name,
             'email' => $voter->email,
-            'election_id' => $election->id
+            'election_id' => $election->id,
+            'role' => 'voter'
         ]]);
 
         return redirect()->route('voter.elections.welcome', $election->code);
