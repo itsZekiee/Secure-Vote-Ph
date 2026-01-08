@@ -69,6 +69,7 @@ class VoterRegistrationController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:voters,email,NULL,id,election_id,' . (string)$election->id,
+            'phone' => 'required|string|max:20',
             'student_id' => 'nullable|string|max:50',
             'password' => 'required|string|min:6|confirmed',
             'latitude' => 'nullable|numeric',
@@ -92,9 +93,29 @@ class VoterRegistrationController extends Controller
             }
         }
 
+        // Split full name into first/middle/last like candidate creation logic
+        $userNameForCandidate = $request->name;
+        $nameParts = preg_split('/\s+/', trim($userNameForCandidate));
+        if (count($nameParts) === 1) {
+            $firstName = $nameParts[0];
+            $middleName = null;
+            $lastName = $nameParts[0];
+        } elseif (count($nameParts) === 2) {
+            $firstName = $nameParts[0];
+            $middleName = null;
+            $lastName = $nameParts[1];
+        } else {
+            $firstName = array_shift($nameParts);
+            $lastName = array_pop($nameParts);
+            $middleName = implode(' ', $nameParts);
+        }
+
         $voter = Voter::create([
             'election_id' => $election->id,
             'name' => $request->name,
+            'first_name' => $firstName,
+            'middle_name' => $middleName,
+            'last_name' => $lastName,
             'email' => $request->email,
             'student_id' => $request->student_id ?? null,
             'password' => Hash::make($request->password),

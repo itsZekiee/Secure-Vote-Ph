@@ -20,6 +20,7 @@ return new class extends Migration
             'partylists' => ['id', 'organization_id', 'election_id', 'created_by'],
             'positions' => ['id', 'election_id'],
             'candidates' => ['id', 'election_id', 'position_id', 'user_id', 'organization_id', 'partylist_id', 'created_by'],
+            'failed_logins' => ['id', 'user_id', 'election_id'],
             'votes' => ['id', 'election_id', 'candidate_id', 'voter_id', 'position_id'],
             'voters' => ['id', 'election_id', 'user_id'],
             'settings' => ['id'],
