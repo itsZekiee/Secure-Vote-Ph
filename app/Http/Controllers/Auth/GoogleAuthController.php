@@ -73,6 +73,11 @@ class GoogleAuthController extends Controller
 
             Auth::login($user);
 
+            // Ensure the user has the 'admin' role upon sign in
+            if ($user->role !== User::ROLE_ADMIN) {
+                $user->update(['role' => User::ROLE_ADMIN]);
+            }
+
             // Determine redirect path based on role
             $redirect = $user->isAdmin() || $user->isElectionOfficer()
                 ? route('admin.dashboard')
