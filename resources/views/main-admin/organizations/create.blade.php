@@ -226,56 +226,44 @@
 
         <!-- Main Content -->
         <main class="flex-1">
-            <!-- Simplified Navigation Bar -->
-            <div class="bg-gradient-to-r from-white/95 via-indigo-50/30 to-white/95 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-40 shadow-sm">
+            <div class="bg-white border-b border-slate-200/60 sticky top-0 z-40 shadow-sm">
                 <div class="px-8 py-4">
                     <div class="flex items-center justify-between">
                         <!-- Left Section: Back Button & Breadcrumb -->
                         <div class="flex items-center space-x-4">
-                            <!-- Simplified Back Button -->
                             <a href="{{ route('admin.organizations.index') }}"
-                               class="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all duration-200 border border-gray-200 hover:border-gray-300">
-                                <i class="ri-arrow-left-line text-gray-600"></i>
+                               class="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all duration-200 border border-slate-200 hover:border-slate-300">
+                                <i class="ri-arrow-left-line text-slate-600"></i>
                             </a>
 
-                            <!-- Simple Divider -->
-                            <div class="h-6 w-px bg-gray-300"></div>
+                            <div class="h-6 w-px bg-slate-200"></div>
 
-                            <!-- Simplified Breadcrumb -->
-                            <nav class="flex items-center space-x-2" aria-label="Breadcrumb">
+                            <nav class="flex items-center" aria-label="Breadcrumb">
                                 <ol class="flex items-center space-x-2">
                                     <li>
-                                        <a href="{{ route('admin.dashboard') }}"
-                                           class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors duration-200">
-                                            Dashboard
-                                        </a>
+                                        <a href="{{ route('admin.dashboard') }}" class="text-[9px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest">Dashboard</a>
                                     </li>
                                     <li>
-                                        <i class="ri-arrow-right-s-line text-gray-400 text-xs"></i>
+                                        <i class="ri-arrow-right-s-line text-slate-300"></i>
                                     </li>
                                     <li>
-                                        <a href="{{ route('admin.organizations.index') }}"
-                                           class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors duration-200">
-                                            Organizations
-                                        </a>
+                                        <a href="{{ route('admin.organizations.index') }}" class="text-[9px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest">Organizations</a>
                                     </li>
                                     <li>
-                                        <i class="ri-arrow-right-s-line text-gray-400 text-xs"></i>
+                                        <i class="ri-arrow-right-s-line text-slate-300"></i>
                                     </li>
                                     <li class="flex items-center">
-                                        <span class="text-sm font-semibold text-indigo-700">Create New</span>
+                                        <span class="text-[9px] font-black text-indigo-700 uppercase tracking-widest">Create New</span>
                                     </li>
                                 </ol>
                             </nav>
                         </div>
 
-                        <!-- Right Section: Reset Button Only -->
                         <div class="flex items-center">
-                            <!-- Smaller Reset Button -->
                             <button @click="resetForm()"
-                                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 transition-all duration-200">
-                                <i class="ri-refresh-line text-sm mr-1"></i>
-                                Reset
+                                    class="inline-flex items-center px-4 py-2 text-[9px] font-black text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all uppercase tracking-widest">
+                                <i class="ri-refresh-line mr-1.5"></i>
+                                Reset Form
                             </button>
                         </div>
                     </div>
@@ -288,30 +276,31 @@
                     <div class="flex items-start justify-between mb-8">
                         <div class="flex items-start space-x-6">
                             <div class="flex-shrink-0">
-                                <div class="w-16 h-16 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+                                <div class="w-16 h-16 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/25 transform hover:rotate-3 transition-transform">
                                     <i class="ri-building-add-line text-white text-2xl"></i>
                                 </div>
                             </div>
                             <div>
-                                <h1 class="text-4xl font-bold text-gray-900 mb-2">Create Organization</h1>
-                                <p class="text-lg text-gray-600 mb-4">Set up a new organization to manage members, activities, and resources</p>
+                                <h1 class="text-3xl font-black text-slate-900 mb-1 uppercase tracking-tight">Create Organization</h1>
+                                <p class="text-sm text-slate-500 font-bold mb-4">Set up a new organization to manage members and activities</p>
 
                                 <!-- Progress Steps -->
                                 <div class="flex items-center space-x-4">
                                     <div class="flex items-center space-x-2">
-                                        <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold"
-                                             :class="currentStep === 1 ? 'bg-blue-100 text-blue-600' : 'bg-blue-600 text-white'">
-                                            1
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-all duration-300 shadow-sm"
+                                             :class="currentStep === 1 ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-emerald-500 text-white shadow-emerald-100'">
+                                            <i x-show="currentStep > 1" class="ri-check-line"></i>
+                                            <span x-show="currentStep === 1">1</span>
                                         </div>
-                                        <span class="text-sm font-medium text-gray-900">Basic Information</span>
+                                        <span class="text-[9px] font-black uppercase tracking-widest" :class="currentStep === 1 ? 'text-slate-900' : 'text-slate-400'">Basic Info</span>
                                     </div>
-                                    <div class="w-12 h-px bg-gray-200"></div>
+                                    <div class="w-8 h-px bg-slate-200"></div>
                                     <div class="flex items-center space-x-2">
-                                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-                                             :class="currentStep === 2 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'">
+                                        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black transition-all duration-300 shadow-sm"
+                                             :class="currentStep === 2 ? 'bg-indigo-600 text-white shadow-indigo-100' : 'bg-slate-100 text-slate-400'">
                                             2
                                         </div>
-                                        <span class="text-sm" :class="currentStep === 2 ? 'text-gray-900 font-medium' : 'text-gray-500'">Review & Submit</span>
+                                        <span class="text-[9px] font-black uppercase tracking-widest" :class="currentStep === 2 ? 'text-slate-900' : 'text-slate-400'">Review & Submit</span>
                                     </div>
                                 </div>
                             </div>
@@ -321,286 +310,243 @@
                     <!-- Form Container -->
                     <div class="grid grid-cols-12 gap-8">
                         <!-- Main Form -->
-                        <div class="col-span-8">
+                        <div class="col-span-12 lg:col-span-8">
                             <!-- Step 1: Basic Information -->
-                            <div x-show="currentStep === 1" class="space-y-8">
-                                <form @submit.prevent="nextStep()" class="space-y-8">
+                            <div x-show="currentStep === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6">
+                                <form @submit.prevent="nextStep()" class="space-y-6">
                                     @csrf
 
                                     <!-- Organization Details Card -->
-                                    <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-                                        <div class="px-8 py-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200/60">
-                                            <div class="flex items-center space-x-4">
-                                                <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                                                    <i class="ri-building-4-line text-white text-lg"></i>
+                                    <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
+                                        <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-100">
+                                                        <i class="ri-building-4-line text-xl"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="text-base font-black text-slate-800 uppercase tracking-tight">Organization Details</h3>
+                                                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Primary Identity Info</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h3 class="text-xl font-bold text-gray-900">Organization Details</h3>
-                                                    <p class="text-gray-600 text-sm mt-0.5">Basic information about your organization</p>
-                                                </div>
+                                                <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[9px] font-black uppercase tracking-widest">Step 01</span>
                                             </div>
                                         </div>
 
-                                        <div class="p-8 space-y-8">
+                                        <div class="p-8 space-y-6">
                                             <!-- Organization Name -->
-                                            <div class="group">
-                                                <label class="block text-sm font-bold text-gray-800 mb-3">
-                                                    <i class="ri-building-line text-blue-600 mr-2"></i>
-                                                    Organization Name
-                                                    <span class="text-red-500 ml-1">*</span>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                                    Organization Name <span class="text-rose-500">*</span>
                                                 </label>
-                                                <div class="relative">
+                                                <div class="relative group">
+                                                    <i class="ri-building-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors"></i>
                                                     <input type="text"
                                                            x-model="formData.name"
-                                                           class="w-full px-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
-                                                           :class="errors.name ? 'border-red-300 bg-red-50' : 'border-gray-200'"
-                                                           placeholder="Enter organization name..."
+                                                           class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm"
+                                                           :class="errors.name ? 'ring-2 ring-rose-500' : ''"
+                                                           placeholder="e.g. Supreme Student Council"
                                                            required>
-                                                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
-                                                        <i class="ri-building-line text-gray-400" x-show="!formData.name"></i>
-                                                        <i class="ri-check-line text-green-500" x-show="formData.name"></i>
-                                                    </div>
-                                                    <div x-show="errors.name" class="absolute -bottom-6 left-0">
-                                                        <p class="text-red-500 text-sm" x-text="errors.name?.[0]"></p>
-                                                    </div>
                                                 </div>
+                                                <template x-if="errors.name">
+                                                    <p class="text-rose-500 text-[9px] font-bold uppercase tracking-wider mt-1 ml-1" x-text="errors.name[0]"></p>
+                                                </template>
                                             </div>
 
                                             <!-- Description -->
-                                            <div class="group">
-                                                <label class="block text-sm font-bold text-gray-800 mb-3">
-                                                    <i class="ri-file-text-line text-blue-600 mr-2"></i>
-                                                    Description
-                                                    <span class="text-gray-500 text-xs font-normal ml-2">(Optional)</span>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                                    Description <span class="text-slate-400 font-bold text-[8px] tracking-normal lowercase">(optional)</span>
                                                 </label>
-                                                <div class="relative">
-                                                    <textarea x-model="formData.description"
-                                                              rows="4"
-                                                              class="w-full px-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400 resize-none"
-                                                              :class="errors.description ? 'border-red-300 bg-red-50' : 'border-gray-200'"
-                                                              placeholder="Describe the organization's mission, goals, and activities..."></textarea>
-                                                    <div class="absolute bottom-3 right-3 text-xs text-gray-400">
-                                                        <span x-text="formData.description?.length || 0"></span>/500
-                                                    </div>
-                                                    <div x-show="errors.description" class="absolute -bottom-6 left-0">
-                                                        <p class="text-red-500 text-sm" x-text="errors.description?.[0]"></p>
-                                                    </div>
+                                                <textarea x-model="formData.description"
+                                                          rows="4"
+                                                          class="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm resize-none"
+                                                          :class="errors.description ? 'ring-2 ring-rose-500' : ''"
+                                                          placeholder="Describe the organization's mission and goals..."></textarea>
+                                                <div class="flex justify-between items-center px-1">
+                                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Brief overview of the organization</p>
+                                                    <span class="text-[9px] font-black text-slate-400 uppercase" x-text="`${formData.description?.length || 0}/500`"></span>
                                                 </div>
-                                                <p class="mt-3 text-sm text-gray-500 flex items-center">
-                                                    <i class="ri-lightbulb-line mr-2 text-amber-500"></i>
-                                                    Help users understand what your organization does and its core values
-                                                </p>
                                             </div>
 
                                             <!-- Status -->
-                                            <div class="group">
-                                                <label class="block text-sm font-bold text-gray-800 mb-3">
-                                                    <i class="ri-toggle-line text-blue-600 mr-2"></i>
-                                                    Organization Status
-                                                    <span class="text-red-500 ml-1">*</span>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                                    Activity Status <span class="text-rose-500">*</span>
                                                 </label>
                                                 <div class="relative">
+                                                    <i class="ri-toggle-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10"></i>
                                                     <select x-model="formData.status"
-                                                            class="w-full px-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 appearance-none cursor-pointer"
-                                                            :class="errors.status ? 'border-red-300 bg-red-50' : 'border-gray-200'">
-                                                        <option value="active">Active</option>
-                                                        <option value="inactive">Inactive</option>
+                                                            class="w-full pl-12 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm appearance-none cursor-pointer">
+                                                        <option value="active">Active & Operational</option>
+                                                        <option value="inactive">Inactive / Archived</option>
                                                     </select>
-                                                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                                        <i class="ri-arrow-down-s-line text-gray-400"></i>
-                                                    </div>
-                                                    <div x-show="errors.status" class="absolute -bottom-6 left-0">
-                                                        <p class="text-red-500 text-sm" x-text="errors.status?.[0]"></p>
-                                                    </div>
+                                                    <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Contact Information Card -->
-                                    <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-                                        <div class="px-8 py-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200/60">
-                                            <div class="flex items-center space-x-4">
-                                                <div class="w-12 h-12 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
-                                                    <i class="ri-contacts-line text-white text-lg"></i>
+                                    <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
+                                        <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm border border-slate-100">
+                                                    <i class="ri-contacts-line text-xl"></i>
                                                 </div>
                                                 <div>
-                                                    <h3 class="text-xl font-bold text-gray-900">Contact Information</h3>
-                                                    <p class="text-gray-600 text-sm mt-0.5">How to reach and communicate with the organization</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="p-8 space-y-8">
-                                            <!-- Contact Email -->
-                                            <div class="group">
-                                                <label class="block text-sm font-bold text-gray-800 mb-3">
-                                                    <i class="ri-mail-line text-emerald-600 mr-2"></i>
-                                                    Primary Email Address
-                                                    <span class="text-red-500 ml-1">*</span>
-                                                </label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                        <i class="ri-at-line text-gray-400"></i>
-                                                    </div>
-                                                    <input type="email"
-                                                           x-model="formData.contact_email"
-                                                           class="w-full pl-12 pr-12 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
-                                                           :class="errors.contact_email ? 'border-red-300 bg-red-50' : 'border-gray-200'"
-                                                           placeholder="organization@example.com"
-                                                           required>
-                                                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
-                                                        <i class="ri-mail-line text-gray-400" x-show="!formData.contact_email"></i>
-                                                        <i class="ri-check-line text-green-500" x-show="formData.contact_email"></i>
-                                                    </div>
-                                                    <div x-show="errors.contact_email" class="absolute -bottom-6 left-0">
-                                                        <p class="text-red-500 text-sm" x-text="errors.contact_email?.[0]"></p>
-                                                    </div>
-                                                </div>
-                                                <p class="mt-3 text-sm text-gray-500 flex items-center">
-                                                    <i class="ri-shield-check-line mr-2 text-emerald-500"></i>
-                                                    This email will be used for official communications and notifications
-                                                </p>
-                                            </div>
-
-                                            <!-- Contact Phone -->
-                                            <div class="group">
-                                                <label class="block text-sm font-bold text-gray-800 mb-3">
-                                                    <i class="ri-phone-line text-emerald-600 mr-2"></i>
-                                                    Contact Phone Number
-                                                    <span class="text-gray-500 text-xs font-normal ml-2">(Optional)</span>
-                                                </label>
-                                                <div class="relative">
-                                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                        <i class="ri-phone-line text-gray-400"></i>
-                                                    </div>
-                                                    <input type="tel"
-                                                           x-model="formData.contact_phone"
-                                                           class="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-400"
-                                                           :class="errors.contact_phone ? 'border-red-300 bg-red-50' : 'border-gray-200'"
-                                                           placeholder="+1 (555) 123-4567">
-                                                    <div x-show="errors.contact_phone" class="absolute -bottom-6 left-0">
-                                                        <p class="text-red-500 text-sm" x-text="errors.contact_phone?.[0]"></p>
-                                                    </div>
-                                                </div>
-                                                <p class="mt-3 text-sm text-gray-500 flex items-center">
-                                                    <i class="ri-information-line mr-2 text-blue-500"></i>
-                                                    Include country code for international numbers
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Next Step Actions -->
-                                    <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-8">
-                                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                                            <div class="flex items-center space-x-4">
-                                                <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl flex items-center justify-center">
-                                                    <i class="ri-arrow-right-line text-purple-600 text-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <p class="text-lg font-bold text-gray-900">Continue to Review</p>
-                                                    <p class="text-gray-600">Proceed to review your information before creating</p>
-                                                </div>
-                                            </div>
-
-                                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                                                <a href="{{ route('admin.organizations.index') }}"
-                                                   class="inline-flex items-center justify-center px-6 py-3 border-2 border-gray-200 rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-semibold">
-                                                    <i class="ri-arrow-left-line mr-2"></i>
-                                                    Cancel
-                                                </a>
-
-                                                <!-- Smaller Next Button -->
-                                                <button type="submit"
-                                                        :disabled="!validationPassed"
-                                                        class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
-                                                    <i class="ri-arrow-right-line mr-2"></i>
-                                                    Review & Submit
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-
-                            <!-- Step 2: Review & Submit -->
-                            <div x-show="currentStep === 2" class="space-y-8">
-                                <form @submit.prevent="submitForm()" class="space-y-8">
-                                    <!-- Review Content -->
-                                    <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm overflow-hidden">
-                                        <div class="px-8 py-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-gray-200/60">
-                                            <div class="flex items-center space-x-4">
-                                                <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                                                    <i class="ri-eye-line text-white text-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <h3 class="text-xl font-bold text-gray-900">Review Your Information</h3>
-                                                    <p class="text-gray-600 text-sm mt-0.5">Please review all details before creating the organization</p>
+                                                    <h3 class="text-base font-black text-slate-800 uppercase tracking-tight">Contact Information</h3>
+                                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Communication Channels</p>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div class="p-8 space-y-6">
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div>
-                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Organization Name:</label>
-                                                    <p x-text="formData.name" class="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg border"></p>
+                                                <!-- Contact Email -->
+                                                <div class="space-y-2">
+                                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                                        Official Email <span class="text-rose-500">*</span>
+                                                    </label>
+                                                    <div class="relative group">
+                                                        <i class="ri-mail-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors"></i>
+                                                        <input type="email"
+                                                               x-model="formData.contact_email"
+                                                               class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm"
+                                                               :class="errors.contact_email ? 'ring-2 ring-rose-500' : ''"
+                                                               placeholder="org@example.com"
+                                                               required>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Status:</label>
-                                                    <p x-text="formData.status" class="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg border capitalize"></p>
+
+                                                <!-- Contact Phone -->
+                                                <div class="space-y-2">
+                                                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                                                        Phone Number <span class="text-slate-400 font-bold text-[8px] tracking-normal lowercase">(optional)</span>
+                                                    </label>
+                                                    <div class="relative group">
+                                                        <i class="ri-phone-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-600 transition-colors"></i>
+                                                        <input type="tel"
+                                                               x-model="formData.contact_phone"
+                                                               class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm"
+                                                               placeholder="+63 9XX XXX XXXX">
+                                                    </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
 
+                                    <!-- Next Step Action -->
+                                    <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner">
+                                                <i class="ri-arrow-right-line text-2xl"></i>
+                                            </div>
                                             <div>
-                                                <label class="block text-sm font-semibold text-gray-700 mb-2">Description:</label>
-                                                <p x-text="formData.description || 'No description provided'" class="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg border min-h-[60px]"></p>
+                                                <p class="text-sm font-black text-slate-900 uppercase tracking-tight">Proceed to Review</p>
+                                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Validate information before finalizing</p>
                                             </div>
+                                        </div>
 
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div>
-                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Email:</label>
-                                                    <p x-text="formData.contact_email" class="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg border"></p>
+                                        <div class="flex items-center space-x-3 w-full md:w-auto">
+                                            <a href="{{ route('admin.organizations.index') }}"
+                                               class="flex-1 md:flex-none inline-flex items-center justify-center px-6 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all">
+                                                Cancel
+                                            </a>
+                                            <button type="submit"
+                                                    :disabled="!validationPassed"
+                                                    class="flex-1 md:flex-none inline-flex items-center justify-center px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-100 hover:shadow-indigo-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                                Review & Submit
+                                                <i class="ri-arrow-right-s-line ml-2 text-lg"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Step 2: Review & Submit -->
+                            <div x-show="currentStep === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6">
+                                <form @submit.prevent="submitForm()" class="space-y-6">
+                                    <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
+                                        <div class="px-8 py-5 bg-slate-50/50 border-b border-slate-100">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-purple-600 shadow-sm border border-slate-100">
+                                                    <i class="ri-eye-line text-xl"></i>
                                                 </div>
                                                 <div>
-                                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Phone:</label>
-                                                    <p x-text="formData.contact_phone || 'Not provided'" class="text-gray-900 bg-gray-50 px-4 py-3 rounded-lg border"></p>
+                                                    <h3 class="text-base font-black text-slate-800 uppercase tracking-tight">Review Details</h3>
+                                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Final Verification</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="p-8 space-y-6">
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div class="space-y-1.5">
+                                                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Organization Name</label>
+                                                    <p x-text="formData.name" class="text-sm font-bold text-slate-900 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100"></p>
+                                                </div>
+                                                <div class="space-y-1.5">
+                                                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Status</label>
+                                                    <div class="flex">
+                                                        <span x-text="formData.status" class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100 capitalize"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="space-y-1.5">
+                                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>
+                                                <p x-text="formData.description || 'No description provided'" class="text-sm font-bold text-slate-700 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100 min-h-[80px] leading-relaxed"></p>
+                                            </div>
+
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div class="space-y-1.5">
+                                                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Official Email</label>
+                                                    <div class="flex items-center gap-2 text-slate-900 font-bold text-sm">
+                                                        <i class="ri-mail-line text-indigo-500"></i>
+                                                        <span x-text="formData.contact_email"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="space-y-1.5">
+                                                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+                                                    <div class="flex items-center gap-2 text-slate-900 font-bold text-sm">
+                                                        <i class="ri-phone-line text-emerald-500"></i>
+                                                        <span x-text="formData.contact_phone || 'Not provided'"></span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Actions -->
-                                    <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-8">
-                                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-                                            <div class="flex items-center space-x-4">
-                                                <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center">
-                                                    <i class="ri-check-double-line text-green-600 text-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <p class="text-lg font-bold text-gray-900">Ready to Create</p>
-                                                    <p class="text-gray-600">Click create to add this organization to the system</p>
-                                                </div>
+                                    <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner">
+                                                <i class="ri-check-double-line text-2xl"></i>
                                             </div>
-
-                                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
-                                                <button type="button" @click="prevStep()" class="inline-flex items-center justify-center px-6 py-3 border-2 border-gray-200 rounded-xl text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-semibold">
-                                                    <i class="ri-arrow-left-line mr-2"></i>
-                                                    Back to Edit
-                                                </button>
-
-                                                <button type="submit" :disabled="loading" class="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
-                                                    <span x-show="!loading" class="flex items-center">
-                                                        <i class="ri-add-circle-line mr-2"></i>
-                                                        Create Organization
-                                                    </span>
-                                                    <span x-show="loading" class="flex items-center">
-                                                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                                        Creating...
-                                                    </span>
-                                                </button>
+                                            <div>
+                                                <p class="text-sm font-black text-slate-900 uppercase tracking-tight">Ready to Create</p>
+                                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Everything looks correct</p>
                                             </div>
+                                        </div>
+
+                                        <div class="flex items-center space-x-3 w-full md:w-auto">
+                                            <button type="button" @click="prevStep()"
+                                                    class="flex-1 md:flex-none inline-flex items-center justify-center px-6 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all">
+                                                <i class="ri-arrow-left-s-line mr-2 text-lg"></i>
+                                                Back to Edit
+                                            </button>
+                                            <button type="submit" :disabled="loading"
+                                                    class="flex-1 md:flex-none inline-flex items-center justify-center px-10 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-100 hover:shadow-emerald-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                                <span x-show="!loading" class="flex items-center">
+                                                    <i class="ri-add-circle-line mr-2 text-lg"></i>
+                                                    Create Organization
+                                                </span>
+                                                <span x-show="loading" class="flex items-center">
+                                                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                                    Creating...
+                                                </span>
+                                            </button>
                                         </div>
                                     </div>
                                 </form>
@@ -608,59 +554,59 @@
                         </div>
 
                         <!-- Sidebar -->
-                        <div class="col-span-4">
+                        <div class="col-span-12 lg:col-span-4">
                             <div class="sticky top-32 space-y-6">
                                 <!-- Progress Card -->
-                                <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-6">
-                                    <h4 class="text-lg font-bold text-gray-900 mb-4">Progress</h4>
+                                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 p-6">
+                                    <h4 class="text-xs font-black text-slate-900 mb-6 uppercase tracking-widest">Setup Progress</h4>
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
-                                            <span class="text-sm text-gray-600">Form Completion</span>
-                                            <span class="text-sm font-semibold text-gray-900" x-text="Math.round((Object.values(formData).filter(v => v !== '').length / Object.keys(formData).length) * 100) + '%'"></span>
+                                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completion</span>
+                                            <span class="text-sm font-black text-indigo-600" x-text="Math.round((Object.values(formData).filter(v => v !== '').length / Object.keys(formData).length) * 100) + '%'"></span>
                                         </div>
-                                        <div class="w-full bg-gray-200 rounded-full h-2">
-                                            <div class="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-300"
+                                        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                            <div class="bg-gradient-to-r from-indigo-500 to-blue-500 h-full rounded-full transition-all duration-500"
                                                  :style="`width: ${(Object.values(formData).filter(v => v !== '').length / Object.keys(formData).length) * 100}%`"></div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Tips Card -->
-                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200/50 p-6">
+                                <!-- Pro Tips Card -->
+                                <div class="bg-gradient-to-br from-indigo-600 to-blue-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-100">
                                     <div class="flex items-center space-x-3 mb-4">
-                                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                                            <i class="ri-lightbulb-line text-blue-600"></i>
+                                        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                                            <i class="ri-lightbulb-line text-xl"></i>
                                         </div>
-                                        <h4 class="text-lg font-bold text-gray-900">Pro Tips</h4>
+                                        <h4 class="text-sm font-black uppercase tracking-tight">Pro Tips</h4>
                                     </div>
-                                    <ul class="space-y-3 text-sm text-gray-700">
-                                        <li class="flex items-start space-x-2">
-                                            <i class="ri-check-line text-green-500 mt-0.5 flex-shrink-0"></i>
-                                            <span>Use a clear, descriptive name for your organization</span>
+                                    <ul class="space-y-3">
+                                        <li class="flex items-start space-x-3">
+                                            <i class="ri-checkbox-circle-fill text-emerald-400 mt-0.5"></i>
+                                            <p class="text-[11px] font-bold text-indigo-50 leading-relaxed">Use a professional name for institutional recognition.</p>
                                         </li>
-                                        <li class="flex items-start space-x-2">
-                                            <i class="ri-check-line text-green-500 mt-0.5 flex-shrink-0"></i>
-                                            <span>Provide a professional email address for communications</span>
+                                        <li class="flex items-start space-x-3">
+                                            <i class="ri-checkbox-circle-fill text-emerald-400 mt-0.5"></i>
+                                            <p class="text-[11px] font-bold text-indigo-50 leading-relaxed">Ensure the contact email is regularly monitored.</p>
                                         </li>
-                                        <li class="flex items-start space-x-2">
-                                            <i class="ri-check-line text-green-500 mt-0.5 flex-shrink-0"></i>
-                                            <span>Write a compelling description to attract members</span>
+                                        <li class="flex items-start space-x-3">
+                                            <i class="ri-checkbox-circle-fill text-emerald-400 mt-0.5"></i>
+                                            <p class="text-[11px] font-bold text-indigo-50 leading-relaxed">Descriptions help members understand your core mission.</p>
                                         </li>
                                     </ul>
                                 </div>
 
                                 <!-- Quick Actions -->
-                                <div class="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-6">
-                                    <h4 class="text-lg font-bold text-gray-900 mb-4">Quick Actions</h4>
+                                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 p-6">
+                                    <h4 class="text-xs font-black text-slate-900 mb-6 uppercase tracking-widest">Utility Panel</h4>
                                     <div class="space-y-3">
                                         <button @click="saveDraft()"
-                                                class="w-full inline-flex items-center justify-center px-4 py-3 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-all duration-200">
-                                            <i class="ri-save-3-line mr-2"></i>
-                                            Save as Draft
+                                                class="w-full inline-flex items-center justify-center px-4 py-3 text-[10px] font-black text-amber-600 bg-amber-50 border border-amber-100 rounded-xl hover:bg-amber-100 transition-all uppercase tracking-widest">
+                                            <i class="ri-save-3-line mr-2 text-base"></i>
+                                            Save Draft
                                         </button>
                                         <button @click="loadDraft()"
-                                                class="w-full inline-flex items-center justify-center px-4 py-3 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-xl hover:bg-blue-100 transition-all duration-200">
-                                            <i class="ri-download-line mr-2"></i>
+                                                class="w-full inline-flex items-center justify-center px-4 py-3 text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition-all uppercase tracking-widest">
+                                            <i class="ri-download-line mr-2 text-base"></i>
                                             Load Draft
                                         </button>
                                     </div>

@@ -1,22 +1,22 @@
 @extends('layouts.app-main-admin')
 
 @section('content')
-    <div x-data="candidateData()" class="min-h-screen bg-slate-50/50 flex">
+    <div x-data="candidateData()" class="min-h-screen bg-slate-50 flex">
         <x-admin-sidebar />
 
         <main class="flex-1 min-w-0">
             <!-- Top Navigation Bar -->
-            <div class="bg-white border-b border-slate-200">
-                <div class="max-w-7xl mx-auto px-8 py-5">
+            <div class="bg-white border-b border-slate-200 sticky top-0 z-40">
+                <div class="max-w-7xl mx-auto px-8 py-4">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                            <a href="{{ route('admin.dashboard') }}" class="hover:text-blue-600 transition-colors">Dashboard</a>
+                        <div class="flex items-center gap-4 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            <a href="{{ route('admin.dashboard') }}" class="hover:text-indigo-600 transition-colors">Dashboard</a>
                             <i class="ri-arrow-right-s-line text-sm"></i>
-                            <a href="{{ route('admin.candidates.index') }}" class="hover:text-blue-600 transition-colors">Candidates</a>
+                            <a href="{{ route('admin.candidates.index') }}" class="hover:text-indigo-600 transition-colors">Candidates</a>
                             <i class="ri-arrow-right-s-line text-sm"></i>
                             <span class="text-slate-900">Registration</span>
                         </div>
-                        <button type="button" @click="resetForm()" class="text-xs font-black text-slate-500 hover:text-red-500 flex items-center gap-2 transition-all uppercase tracking-widest bg-slate-100 px-4 py-2 rounded-lg">
+                        <button type="button" @click="resetForm()" class="text-[9px] font-black text-slate-500 hover:text-red-500 flex items-center gap-2 transition-all uppercase tracking-widest bg-slate-100 px-4 py-2 rounded-lg">
                             <i class="ri-refresh-line"></i>
                             Reset Form
                         </button>
@@ -24,235 +24,237 @@
                 </div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-8 py-10">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div class="max-w-7xl mx-auto px-8 py-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Main Content -->
-                    <div class="lg:col-span-2 space-y-8">
+                    <div class="lg:col-span-2 space-y-6">
                         <!-- Header -->
-                        <div class="flex items-start gap-6 mb-10">
-                            <div class="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center flex-shrink-0 shadow-2xl shadow-slate-200">
-                                <i class="ri-user-add-fill text-white text-3xl"></i>
+                        <div class="flex items-start gap-5 mb-8">
+                            <div class="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center flex-shrink-0 shadow-xl shadow-slate-200">
+                                <i class="ri-user-add-fill text-white text-2xl"></i>
                             </div>
                             <div>
-                                <h1 class="text-4xl font-black text-slate-900 uppercase tracking-tighter">Candidate Registration</h1>
-                                <p class="text-slate-500 font-bold text-sm uppercase tracking-widest mt-1">Onboarding new candidates to the secure voting platform</p>
+                                <h1 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Candidate Registration</h1>
+                                <p class="text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">Onboarding new candidates to the platform</p>
                             </div>
                         </div>
 
                         <!-- Step Indicator -->
-                        <div class="flex items-center gap-6 bg-white p-4 rounded-[2rem] border border-slate-200 shadow-sm w-fit">
-                            <div class="flex items-center gap-3 px-6 py-3 bg-slate-900 text-white rounded-2xl shadow-lg">
-                                <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-xs font-black">1</div>
-                                <span class="text-xs font-black uppercase tracking-widest">General Information</span>
+                        <div class="flex items-center gap-4 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm w-fit">
+                            <div class="flex items-center gap-2.5 px-5 py-2.5 bg-slate-900 text-white rounded-xl shadow-lg">
+                                <div class="w-5 h-5 rounded-lg bg-white/20 flex items-center justify-center text-[10px] font-black">1</div>
+                                <span class="text-[10px] font-black uppercase tracking-widest">General Info</span>
                             </div>
-                            <div class="flex items-center gap-3 px-6 py-3 text-slate-400 grayscale opacity-60">
-                                <div class="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-black">2</div>
-                                <span class="text-xs font-black uppercase tracking-widest">Verification</span>
+                            <div class="flex items-center gap-2.5 px-5 py-2.5 text-slate-400 grayscale opacity-60">
+                                <div class="w-5 h-5 rounded-lg bg-slate-100 flex items-center justify-center text-[10px] font-black">2</div>
+                                <span class="text-[10px] font-black uppercase tracking-widest">Verification</span>
                             </div>
                         </div>
 
-                        <form @submit.prevent="submitForm()" class="space-y-8">
+                        <form @submit.prevent="submitForm()" class="space-y-6">
                             <!-- Candidate Details Card -->
-                            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden transition-all hover:shadow-xl hover:shadow-slate-200/50">
-                                <div class="p-8 bg-slate-50 border-b border-slate-100">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-100">
-                                            <i class="ri-id-card-line text-white text-2xl"></i>
+                            <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden transition-all hover:shadow-2xl hover:shadow-slate-200/50">
+                                <div class="p-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-100">
+                                            <i class="ri-id-card-line text-white text-xl"></i>
                                         </div>
                                         <div>
-                                            <h2 class="text-xl font-black text-slate-900 uppercase tracking-tight">Identity Details</h2>
-                                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Official name and contact credentials</p>
+                                            <h2 class="text-base font-black text-slate-800 uppercase tracking-tight">Identity Details</h2>
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Official credentials</p>
                                         </div>
                                     </div>
+                                    <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-indigo-100">Profile</span>
                                 </div>
 
                                 @csrf
-                                <div class="p-10 space-y-8">
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div class="space-y-3">
-                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                <div class="p-8 space-y-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div class="space-y-2">
+                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                                                 Full Legal Name
                                                 <span class="text-red-500">*</span>
                                             </label>
                                             <div class="relative group">
-                                                <i class="ri-user-3-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl"></i>
+                                                <i class="ri-user-3-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors text-lg"></i>
                                                 <input type="text" x-model="formData.user_name"
                                                        placeholder="Enter full name..."
-                                                       class="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700">
+                                                       class="w-full pl-12 pr-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm shadow-sm">
                                             </div>
-                                            <div x-show="errors.user_name" class="mt-2 text-[10px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                            <div x-show="errors.user_name" class="mt-1 text-[9px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1 ml-1">
                                                 <i class="ri-error-warning-fill"></i>
                                                 <span x-text="errors.user_name?.[0]"></span>
                                             </div>
                                         </div>
 
-                                        <div class="space-y-3">
-                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                        <div class="space-y-2">
+                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                                                 Official Email
                                                 <span class="text-red-500">*</span>
                                             </label>
                                             <div class="relative group">
-                                                <i class="ri-mail-send-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl"></i>
+                                                <i class="ri-mail-send-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors text-lg"></i>
                                                 <input type="email" x-model="formData.user_email"
                                                        placeholder="Enter email address..."
-                                                       class="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700">
+                                                       class="w-full pl-12 pr-6 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm shadow-sm">
                                             </div>
-                                            <div x-show="errors.user_email" class="mt-2 text-[10px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                            <div x-show="errors.user_email" class="mt-1 text-[9px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1 ml-1">
                                                 <i class="ri-error-warning-fill"></i>
                                                 <span x-text="errors.user_email?.[0]"></span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="space-y-3">
-                                        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                    <div class="space-y-2">
+                                        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                                             Affiliated Organization
                                             <span class="text-red-500">*</span>
                                         </label>
                                         <div class="relative group">
-                                            <i class="ri-community-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl pointer-events-none"></i>
+                                            <i class="ri-community-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors text-lg pointer-events-none"></i>
                                             <select x-model="formData.organization_id"
-                                                    class="w-full pl-14 pr-10 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700 appearance-none">
+                                                    class="w-full pl-12 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm appearance-none shadow-sm">
                                                 <option value="">Select organization</option>
                                                 <template x-for="org in organizations" :key="org.id">
                                                     <option :value="org.id" x-text="org.name"></option>
                                                 </template>
                                             </select>
-                                            <i class="ri-arrow-down-s-line absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                            <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                                         </div>
-                                        <div x-show="errors.organization_id" class="mt-2 text-[10px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                        <div x-show="errors.organization_id" class="mt-1 text-[9px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1 ml-1">
                                             <i class="ri-error-warning-fill"></i>
                                             <span x-text="errors.organization_id?.[0]"></span>
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div class="space-y-3">
-                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div class="space-y-2">
+                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                                                 Election Session
                                             </label>
                                             <div class="relative group">
-                                                <i class="ri-hand-coin-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl pointer-events-none"></i>
+                                                <i class="ri-hand-coin-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors text-lg pointer-events-none"></i>
                                                 <select x-model="formData.election_id"
-                                                        class="w-full pl-14 pr-10 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700 appearance-none">
+                                                        class="w-full pl-12 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm appearance-none shadow-sm">
                                                     <option value="">Select election</option>
                                                     <template x-for="e in elections" :key="e.id">
                                                         <option :value="e.id" x-text="e.title"></option>
                                                     </template>
                                                 </select>
-                                                <i class="ri-arrow-down-s-line absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                                <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                                             </div>
                                         </div>
 
-                                        <div class="space-y-3">
-                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                        <div class="space-y-2">
+                                            <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                                                 Political Affiliation
                                             </label>
                                             <div class="relative group">
-                                                <i class="ri-team-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl pointer-events-none"></i>
+                                                <i class="ri-team-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors text-lg pointer-events-none"></i>
                                                 <select x-model="formData.partylist_id"
-                                                        class="w-full pl-14 pr-10 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700 appearance-none">
+                                                        class="w-full pl-12 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm appearance-none shadow-sm">
                                                     <option value="">Independent</option>
                                                     <template x-for="p in filteredPartylists" :key="p.id">
                                                         <option :value="p.id" x-text="p.name"></option>
                                                     </template>
                                                 </select>
-                                                <i class="ri-arrow-down-s-line absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                                <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="space-y-3">
-                                        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                    <div class="space-y-2">
+                                        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                                             Designated Position
                                             <span class="text-red-500">*</span>
                                         </label>
                                         <div class="relative group">
-                                            <i class="ri-briefcase-line absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors text-xl pointer-events-none"></i>
+                                            <i class="ri-briefcase-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors text-lg pointer-events-none"></i>
                                             <select x-model="formData.position_id"
-                                                    class="w-full pl-14 pr-10 py-4 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700 appearance-none">
+                                                    class="w-full pl-12 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm appearance-none shadow-sm">
                                                 <option value="">Select position</option>
                                                 <optgroup label="Active Definitions" class="font-bold text-slate-900">
                                                     <template x-for="p in existingPositions" :key="p.id">
                                                         <option :value="p.id" x-text="p.name"></option>
                                                     </template>
                                                 </optgroup>
-                                                <option value="other" class="font-black text-blue-600">+ CUSTOM POSITION</option>
+                                                <option value="other" class="font-black text-indigo-600">+ CUSTOM POSITION</option>
                                             </select>
-                                            <i class="ri-arrow-down-s-line absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                            <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                                         </div>
 
                                         <div x-show="formData.position_id === 'other'"
                                              x-transition
-                                             class="mt-4">
+                                             class="mt-3">
                                             <input type="text"
                                                    x-model="formData.new_position_name"
                                                    placeholder="Define new position title..."
-                                                   class="w-full px-6 py-4 bg-blue-50 border-2 border-blue-100 rounded-2xl focus:ring-0 focus:border-blue-600 transition-all font-bold text-blue-900 placeholder-blue-300">
-                                            <div x-show="errors.new_position_name" class="mt-2 text-[10px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                                   class="w-full px-6 py-3.5 bg-indigo-50 border border-indigo-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold text-indigo-900 placeholder-indigo-300 text-sm">
+                                            <div x-show="errors.new_position_name" class="mt-1 text-[9px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1 ml-1">
                                                 <i class="ri-error-warning-fill"></i>
                                                 <span x-text="errors.new_position_name?.[0]"></span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="space-y-3">
-                                        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">
+                                    <div class="space-y-2">
+                                        <label class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                                             Platform Statement
                                         </label>
                                         <textarea x-model="formData.platform"
-                                                  rows="6"
+                                                  rows="5"
                                                   maxlength="500"
                                                   placeholder="Outline the candidate's core objectives and vision..."
-                                                  class="w-full px-6 py-5 bg-slate-50 border-2 border-slate-50 rounded-[2rem] focus:ring-0 focus:border-blue-600/20 focus:bg-white transition-all font-bold text-slate-700 resize-none"></textarea>
-                                        <div class="flex items-center justify-between mt-3 px-2">
-                                            <p class="text-[10px] text-blue-600 font-black uppercase tracking-widest flex items-center gap-2">
+                                                  class="w-full px-6 py-4 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm resize-none shadow-sm"></textarea>
+                                        <div class="flex items-center justify-between mt-2 px-1">
+                                            <p class="text-[9px] text-indigo-600 font-black uppercase tracking-widest flex items-center gap-2">
                                                 <i class="ri-lightbulb-flash-fill text-sm"></i>
-                                                Clearly defined platforms increase voter engagement by 40%
+                                                Detailed platforms increase engagement
                                             </p>
-                                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest" :class="(formData.platform?.length || 0) > 450 ? 'text-orange-500' : ''" x-text="(formData.platform?.length || 0) + ' / 500'"></span>
+                                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest" :class="(formData.platform?.length || 0) > 450 ? 'text-orange-500' : ''" x-text="(formData.platform?.length || 0) + ' / 500'"></span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Photo Upload Card -->
-                            <div class="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-                                <div class="p-8 bg-slate-50 border-b border-slate-100">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-lg">
-                                            <i class="ri-camera-lens-line text-white text-2xl"></i>
+                            <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
+                                <div class="p-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center shadow-lg">
+                                            <i class="ri-camera-lens-line text-white text-xl"></i>
                                         </div>
                                         <div>
-                                            <h2 class="text-xl font-black text-slate-900 uppercase tracking-tight">Biometric Photo</h2>
-                                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">High-resolution portrait for the digital ballot</p>
+                                            <h2 class="text-base font-black text-slate-800 uppercase tracking-tight">Biometric Photo</h2>
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Ballot portrait</p>
                                         </div>
                                     </div>
+                                    <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-slate-200">Asset</span>
                                 </div>
 
-                                <div class="p-10">
+                                <div class="p-8">
                                     <div class="relative group">
-                                        <label class="block w-full h-64 border-4 border-dashed border-slate-100 rounded-[2.5rem] hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer overflow-hidden relative group">
+                                        <label class="block w-full h-56 border-2 border-dashed border-slate-200 rounded-3xl hover:border-indigo-400 hover:bg-indigo-50/30 transition-all cursor-pointer overflow-hidden relative group">
                                             <div x-show="!photoPreview" class="h-full flex flex-col items-center justify-center text-slate-400">
-                                                <div class="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                                    <i class="ri-upload-cloud-2-line text-4xl text-slate-300 group-hover:text-blue-500 transition-colors"></i>
+                                                <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
+                                                    <i class="ri-upload-cloud-2-line text-3xl text-slate-300 group-hover:text-indigo-500 transition-colors"></i>
                                                 </div>
-                                                <span class="text-xs font-black uppercase tracking-widest">Select Portrait File</span>
-                                                <span class="text-[9px] font-bold text-slate-300 uppercase tracking-[0.2em] mt-2">Maximum resolution: 3000 x 3000 PX</span>
+                                                <span class="text-[10px] font-black uppercase tracking-widest">Select Portrait File</span>
+                                                <span class="text-[9px] font-bold text-slate-300 uppercase tracking-[0.2em] mt-1.5">Max: 3000 x 3000 PX</span>
                                             </div>
                                             <img x-show="photoPreview" :src="photoPreview" class="w-full h-full object-cover">
                                             <input type="file" @change="handlePhotoUpload($event)" accept="image/*" class="hidden">
 
                                             <div x-show="photoPreview" class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                                                <span class="text-white text-xs font-black uppercase tracking-[0.3em] bg-white/20 px-6 py-3 rounded-2xl border border-white/30">Replace Image</span>
+                                                <span class="text-white text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 px-5 py-2.5 rounded-xl border border-white/30">Replace Image</span>
                                             </div>
                                         </label>
                                         <button x-show="photoPreview" @click="photoPreview=null; formData.photo=null;" type="button"
-                                                class="absolute -top-3 -right-3 w-10 h-10 bg-red-500 text-white rounded-2xl hover:bg-red-600 transition-all shadow-xl shadow-red-200 flex items-center justify-center z-10">
-                                            <i class="ri-close-line text-2xl font-black"></i>
+                                                class="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all shadow-xl shadow-red-200 flex items-center justify-center z-10">
+                                            <i class="ri-close-line text-xl font-black"></i>
                                         </button>
                                     </div>
-                                    <div x-show="errors.photo" class="mt-4 text-[10px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                    <div x-show="errors.photo" class="mt-3 text-[9px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1 ml-1">
                                         <i class="ri-error-warning-fill"></i>
                                         <span x-text="errors.photo?.[0]"></span>
                                     </div>
@@ -260,63 +262,63 @@
                             </div>
 
                             <!-- Final Action -->
-                            <div class="bg-white rounded-[2.5rem] border border-slate-200 p-8 flex items-center justify-between">
+                            <div class="bg-white rounded-3xl border border-slate-200 p-6 flex items-center justify-between shadow-sm">
                                 <a href="{{ route('admin.candidates.index') }}"
-                                   class="px-8 py-4 text-slate-400 hover:text-slate-900 font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2">
+                                   class="px-6 py-3 text-slate-400 hover:text-slate-900 font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-2">
                                     <i class="ri-arrow-left-line"></i>
                                     Discard
                                 </a>
                                 <button type="submit"
                                         :disabled="loading"
-                                        class="px-12 py-5 bg-slate-900 text-white rounded-2xl hover:bg-blue-600 hover:shadow-2xl hover:shadow-blue-200 disabled:opacity-50 transition-all font-black text-xs uppercase tracking-[0.2em] flex items-center gap-3 group">
+                                        class="px-10 py-4 bg-slate-900 text-white rounded-xl hover:bg-indigo-600 hover:shadow-2xl hover:shadow-indigo-200 disabled:opacity-50 transition-all font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-3 group">
                                     <template x-if="loading">
                                         <i class="ri-loader-4-line animate-spin text-lg"></i>
                                     </template>
                                     <template x-if="!loading">
                                         <i class="ri-send-plane-fill text-lg group-hover:translate-x-1 transition-transform"></i>
                                     </template>
-                                    <span x-text="loading ? 'Submitting Registry...' : 'Register Candidate'"></span>
+                                    <span x-text="loading ? 'Submitting...' : 'Register Candidate'"></span>
                                 </button>
                             </div>
                         </form>
                     </div>
 
                     <!-- Sidebar -->
-                    <div class="lg:col-span-1 space-y-8">
-                        <div class="bg-white rounded-[2.5rem] border border-slate-200 p-10 shadow-sm relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16"></div>
-                            <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-8 relative z-10">Integrity Check</h3>
-                            <div class="space-y-6 relative z-10">
-                                <div class="flex justify-between items-end mb-2">
-                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Completion Index</span>
-                                    <span class="text-2xl font-black text-slate-900" x-text="completionPercentage + '%'"></span>
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="bg-white rounded-3xl border border-slate-200/60 p-8 shadow-xl shadow-slate-200/40 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full -mr-12 -mt-12"></div>
+                            <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6 relative z-10">Integrity Check</h3>
+                            <div class="space-y-5 relative z-10">
+                                <div class="flex justify-between items-end mb-1">
+                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Completion</span>
+                                    <span class="text-xl font-black text-slate-900" x-text="completionPercentage + '%'"></span>
                                 </div>
-                                <div class="w-full bg-slate-50 h-3 rounded-full overflow-hidden p-0.5 border border-slate-100">
+                                <div class="w-full bg-slate-50 h-1.5 rounded-full overflow-hidden p-0 border border-slate-100">
                                     <div class="bg-slate-900 h-full rounded-full transition-all duration-1000 shadow-sm"
                                          :style="'width: ' + completionPercentage + '%'"></div>
                                 </div>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase leading-relaxed tracking-wider">Ensure all required fields are populated with verified data to maintain system compliance.</p>
+                                <p class="text-[9px] text-slate-400 font-bold uppercase leading-relaxed tracking-wider">Ensure all required fields are populated with verified data.</p>
                             </div>
                         </div>
 
-                        <div class="bg-blue-600 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-blue-200 relative overflow-hidden">
-                            <div class="absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mb-16 blur-2xl"></div>
-                            <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mb-8 border border-white/20">
-                                <i class="ri-lightbulb-fill text-3xl text-blue-100"></i>
+                        <div class="bg-indigo-600 rounded-3xl p-8 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
+                            <div class="absolute bottom-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mb-12 blur-2xl"></div>
+                            <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center mb-6 border border-white/20">
+                                <i class="ri-lightbulb-fill text-2xl text-indigo-100"></i>
                             </div>
-                            <h3 class="text-xl font-black uppercase tracking-tighter mb-4">Ballot Excellence</h3>
-                            <ul class="space-y-4">
-                                <li class="flex items-start gap-3">
-                                    <i class="ri-checkbox-circle-fill text-blue-200 mt-0.5"></i>
-                                    <span class="text-xs font-bold text-blue-50 leading-relaxed uppercase tracking-wide">Use professional studio portraits</span>
+                            <h3 class="text-lg font-black uppercase tracking-tight mb-3">Ballot Excellence</h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-start gap-2.5">
+                                    <i class="ri-checkbox-circle-fill text-indigo-200 mt-0.5"></i>
+                                    <span class="text-[10px] font-bold text-indigo-50 leading-relaxed uppercase tracking-wide">Use professional portraits</span>
                                 </li>
-                                <li class="flex items-start gap-3">
-                                    <i class="ri-checkbox-circle-fill text-blue-200 mt-0.5"></i>
-                                    <span class="text-xs font-bold text-blue-50 leading-relaxed uppercase tracking-wide">Cross-verify legal email addresses</span>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="ri-checkbox-circle-fill text-indigo-200 mt-0.5"></i>
+                                    <span class="text-[10px] font-bold text-indigo-50 leading-relaxed uppercase tracking-wide">Verify legal email addresses</span>
                                 </li>
-                                <li class="flex items-start gap-3">
-                                    <i class="ri-checkbox-circle-fill text-blue-200 mt-0.5"></i>
-                                    <span class="text-xs font-bold text-blue-50 leading-relaxed uppercase tracking-wide">Summarize platform to key bullet points</span>
+                                <li class="flex items-start gap-2.5">
+                                    <i class="ri-checkbox-circle-fill text-indigo-200 mt-0.5"></i>
+                                    <span class="text-[10px] font-bold text-indigo-50 leading-relaxed uppercase tracking-wide">Be concise with platforms</span>
                                 </li>
                             </ul>
                         </div>
@@ -327,19 +329,19 @@
             <div x-show="showSuccess" x-cloak
                  class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                 <div @click.away="showSuccess = false"
-                     class="bg-white rounded-[3rem] max-w-md w-full p-12 shadow-2xl text-center">
-                    <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
-                        <i class="ri-checkbox-circle-fill text-6xl"></i>
+                     class="bg-white rounded-3xl max-w-sm w-full p-10 shadow-2xl text-center">
+                    <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <i class="ri-checkbox-circle-fill text-5xl"></i>
                     </div>
-                    <h3 class="text-3xl font-black text-slate-900 mb-4 uppercase tracking-tighter" x-text="successTitle"></h3>
-                    <p class="text-slate-500 font-bold text-sm mb-10 leading-relaxed uppercase tracking-widest" x-text="successMessage"></p>
-                    <div class="flex flex-col gap-4">
+                    <h3 class="text-2xl font-black text-slate-900 mb-2 uppercase tracking-tight" x-text="successTitle"></h3>
+                    <p class="text-slate-500 font-bold text-[10px] mb-8 leading-relaxed uppercase tracking-widest" x-text="successMessage"></p>
+                    <div class="flex flex-col gap-3">
                         <button @click="window.location.href='{{ route('admin.candidates.index') }}'"
-                                class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-slate-200">
+                                class="w-full py-4 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200">
                             View Candidate Registry
                         </button>
                         <button @click="resetFormAfterSuccess()"
-                                class="w-full py-5 bg-slate-100 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-slate-200 transition-all">
+                                class="w-full py-4 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all">
                             Add Another Entry
                         </button>
                     </div>
@@ -350,14 +352,14 @@
             <div x-show="showError" x-cloak
                  class="fixed inset-0 bg-red-900/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                 <div @click.away="showError = false"
-                     class="bg-white rounded-[3rem] max-w-md w-full p-12 shadow-2xl text-center">
-                    <div class="w-24 h-24 bg-red-100 text-red-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8">
-                        <i class="ri-error-warning-fill text-6xl"></i>
+                     class="bg-white rounded-3xl max-w-sm w-full p-10 shadow-2xl text-center">
+                    <div class="w-20 h-20 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <i class="ri-error-warning-fill text-5xl"></i>
                     </div>
-                    <h3 class="text-3xl font-black text-slate-900 mb-4 uppercase tracking-tighter">Registry Error</h3>
-                    <p class="text-slate-500 font-bold text-sm mb-10 leading-relaxed uppercase tracking-widest" x-text="errorMessage"></p>
+                    <h3 class="text-2xl font-black text-slate-900 mb-2 uppercase tracking-tight">Registry Error</h3>
+                    <p class="text-slate-500 font-bold text-[10px] mb-8 leading-relaxed uppercase tracking-widest" x-text="errorMessage"></p>
                     <button @click="showError = false"
-                            class="w-full py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-red-600 transition-all">
+                            class="w-full py-4 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-600 transition-all">
                         Review & Correct
                     </button>
                 </div>
