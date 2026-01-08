@@ -43,7 +43,6 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->header('User-Agent'),
-                'attempted_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

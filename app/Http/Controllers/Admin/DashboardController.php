@@ -88,8 +88,9 @@ class DashboardController extends Controller
         $avgTimeToVote = $avgSeconds ? round($avgSeconds) : 0; // seconds
 
         // Failed login attempts (ghost registrations): count in last 24 hours and total
+        // failed_logins table uses `created_at` timestamp
         $failedLast24 = DB::table('failed_logins')
-            ->where('attempted_at', '>=', Carbon::now()->subDay())
+            ->where('created_at', '>=', Carbon::now()->subDay())
             ->count();
 
         $failedTotal = DB::table('failed_logins')->count();
@@ -97,7 +98,7 @@ class DashboardController extends Controller
         // suspicious IPs: number of distinct IPs with > X failed attempts in last 24h
         $suspiciousIPs = DB::table('failed_logins')
             ->select('ip_address', DB::raw('COUNT(*) as cnt'))
-            ->where('attempted_at', '>=', Carbon::now()->subDay())
+            ->where('created_at', '>=', Carbon::now()->subDay())
             ->groupBy('ip_address')
             ->having('cnt', '>', 5)
             ->count();

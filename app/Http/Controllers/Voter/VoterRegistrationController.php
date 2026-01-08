@@ -69,6 +69,7 @@ class VoterRegistrationController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:voters,email,NULL,id,election_id,' . (string)$election->id,
+            'phone' => 'required|string|max:20',
             'student_id' => 'nullable|string|max:50',
             'password' => 'required|string|min:6|confirmed',
             'latitude' => 'nullable|numeric',
