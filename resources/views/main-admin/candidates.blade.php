@@ -93,31 +93,40 @@
         <main class="flex-1 min-h-screen">
             <!-- Top Navigation Bar -->
             <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-40">
-                <div class="px-8 py-4">
-                    <div class="flex items-center justify-between">
+                <!-- Mobile Header Toggle -->
+                <div class="lg:hidden flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                    <button @click="collapsed = false" class="p-2 -ml-2 text-gray-600">
+                        <i class="ri-menu-2-fill text-xl"></i>
+                    </button>
+                    <h1 class="text-lg font-bold text-gray-900">Candidates</h1>
+                    <div class="w-8"></div>
+                </div>
+
+                <div class="px-4 lg:px-8 py-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div class="flex items-center space-x-4">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                                     <i class="ri-user-star-line text-white text-lg"></i>
                                 </div>
-                                <div>
-                                    <h2 class="text-xl font-bold text-gray-900">Candidates</h2>
-                                    <p class="text-sm text-gray-600">Election nominees & profiles</p>
+                                <div class="min-w-0">
+                                    <h2 class="text-xl font-bold text-gray-900 truncate">Candidates</h2>
+                                    <p class="text-sm text-gray-600 hidden sm:block">Nominees & profiles</p>
                                 </div>
                             </div>
-                            <div class="h-8 w-px bg-gray-200"></div>
-                            <nav class="flex items-center space-x-2 text-sm">
+                            <div class="h-8 w-px bg-gray-200 hidden md:block"></div>
+                            <nav class="hidden md:flex items-center space-x-2 text-sm">
                                 <span class="text-gray-500">Admin</span>
                                 <i class="ri-arrow-right-s-line text-gray-400"></i>
                                 <span class="text-gray-900 font-semibold">Candidates</span>
                             </nav>
                         </div>
 
-                        <div class="flex items-center space-x-3">
+                        <div class="hidden sm:flex items-center space-x-3">
                             <div class="flex items-center space-x-6 text-sm">
                                 <div class="flex items-center space-x-2">
                                     <span class="font-semibold text-gray-900" x-text="filteredCandidates.length"></span>
-                                    <span class="text-gray-600">Total</span>
+                                    <span class="text-gray-600 uppercase text-[10px] font-bold tracking-tight">Total</span>
                                 </div>
                             </div>
                         </div>
@@ -126,13 +135,13 @@
             </div>
 
             <!-- Content -->
-            <div class="px-6 py-6">
+            <div class="px-4 sm:px-6 py-6">
                 <div class="max-w-7xl mx-auto">
                     <!-- Search and Filter Section -->
                     <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden mb-6">
                         <!-- Header with Action Button -->
                         <div class="px-6 py-4 border-b border-gray-200/60 bg-gradient-to-r from-purple-50/50 via-indigo-50/50 to-slate-50/50">
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-10 h-10 bg-white/80 rounded-lg flex items-center justify-center shadow-sm border border-gray-200/50">
                                         <i class="ri-filter-2-line text-gray-600"></i>
@@ -143,7 +152,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.candidates.create') }}"
-                                   class="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-700 transition-all shadow-sm">
+                                   class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-700 transition-all shadow-sm">
                                     <i class="ri-user-add-line mr-1.5"></i>
                                     New Candidate
                                 </a>
@@ -151,8 +160,8 @@
                         </div>
 
                         <!-- Filter Controls -->
-                        <div class="p-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="p-4 sm:p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                                 <div class="md:col-span-2">
                                     <label class="block text-xs font-bold text-gray-800 mb-2">Search Candidate</label>
                                     <div class="relative">
@@ -206,9 +215,10 @@
                         </div>
                     </div>
 
-                    <!-- Candidates Table -->
+                    <!-- Candidates Table (Desktop) / Cards (Mobile) -->
                     <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden">
-                        <div class="responsive-table-container">
+                        <!-- Desktop View -->
+                        <div class="hidden md:block overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-slate-50/50">
                                 <tr>
@@ -261,6 +271,47 @@
                                 </template>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Mobile View (Cards) -->
+                        <div class="md:hidden divide-y divide-gray-100">
+                            <template x-for="candidate in filteredCandidates" :key="candidate.id">
+                                <div class="p-4 space-y-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 shadow-sm border border-purple-100">
+                                            <i class="ri-user-3-fill text-xl"></i>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="font-bold text-slate-900 text-base truncate" x-text="candidate.user?.name || candidate.name || '—'"></p>
+                                            <p class="text-xs text-slate-500 truncate" x-text="candidate.user?.email || candidate.email || ''"></p>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <a :href="`/admin/candidates/${candidate.id}/edit`"
+                                               class="w-9 h-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500">
+                                                <i class="ri-edit-line text-sm"></i>
+                                            </a>
+                                            <button type="button" @click="if (confirm('Delete this candidate profile?')) { deleteCandidate(candidate.id) }"
+                                                    class="w-9 h-9 bg-red-50 text-red-600 rounded-lg flex items-center justify-center">
+                                                <i class="ri-delete-bin-line text-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Position</p>
+                                            <p class="text-xs font-bold text-slate-700 truncate" x-text="candidate.position?.title || candidate.position?.name || '—'"></p>
+                                        </div>
+                                        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Affiliation</p>
+                                            <p class="text-xs font-bold text-slate-700 truncate" x-text="candidate.partylist?.name || 'Independent'"></p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-purple-50/50 p-2.5 rounded-lg border border-purple-100">
+                                        <p class="text-[9px] font-black text-purple-400 uppercase tracking-widest mb-1">Election</p>
+                                        <p class="text-xs font-bold text-purple-700 truncate" x-text="candidate.election?.name || candidate.election?.title || '—'"></p>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>

@@ -86,15 +86,15 @@
 {{-- Insert this block after your header and before your main form content (e.g., inside .max-w-5xl container) --}}
 
 <div x-data="multiStepper()" class="max-w-5xl mx-auto mb-10 px-4 sm:px-6">
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2 sm:gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
         <template x-for="(position, index) in positions" :key="position.id">
-            <div class="flex items-center flex-1">
+            <div class="flex items-center flex-shrink-0">
                 <div
                     @click="toggleStep(index)"
                     :class="selectedSteps.includes(index) ?
                         'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' :
                         'bg-gray-200 text-gray-600'"
-                    class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300 cursor-pointer select-none"
+                    class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-sm sm:text-lg transition-all duration-300 cursor-pointer select-none flex-shrink-0"
                     x-tooltip="position.name"
                     role="checkbox"
                     :aria-checked="selectedSteps.includes(index)"
@@ -111,18 +111,13 @@
                         <span x-text="index + 1"></span>
                     </template>
                 </div>
-                <div class="ml-4">
-                    <p :class="selectedSteps.includes(index) ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors" x-text="position.name"></p>
-                    <p class="text-xs text-gray-500" x-text="position.max_votes > 1 ? `Select up to ${position.max_votes} candidates` : `Select 1 candidate`"></p>
+                <div class="ml-3 sm:ml-4 whitespace-nowrap">
+                    <p :class="selectedSteps.includes(index) ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-xs sm:text-sm transition-colors" x-text="position.name"></p>
+                    <p class="text-[10px] sm:text-xs text-gray-500" x-text="position.max_votes > 1 ? `Up to ${position.max_votes}` : `Select 1`"></p>
                 </div>
 
                 <template x-if="index < positions.length - 1">
-                    <div class="flex-1 h-1 bg-gray-200 rounded-full mx-4 relative overflow-hidden">
-                        <div
-                            :class="selectedSteps.includes(index) && selectedSteps.includes(index + 1) ? 'w-full' : 'w-0'"
-                            class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"
-                        ></div>
-                    </div>
+                    <div class="w-8 sm:w-12 h-1 bg-gray-200 rounded-full mx-3 sm:mx-4 flex-shrink-0"></div>
                 </template>
             </div>
         </template>
@@ -163,13 +158,13 @@ document.addEventListener('alpine:init', () => {
         <!-- Main Content -->
         <main class="flex-1">
             <!-- Enhanced Page Header -->
-            <header class="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm sticky top-0 z-10 lg:hidden">
-                <div class="px-6 py-4 flex items-center justify-between">
-                    <button @click="collapsed = false" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                        <i class="ri-menu-fold-line text-lg rotate-180"></i>
+            <header class="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm sticky top-0 z-40 lg:hidden">
+                <div class="px-4 py-4 flex items-center justify-between">
+                    <button @click="collapsed = false" class="p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                        <i class="ri-menu-2-fill text-xl"></i>
                     </button>
-                    <h1 class="text-lg font-bold text-slate-800">Elections</h1>
-                    <div class="w-10"></div>
+                    <h1 class="text-lg font-bold text-slate-800">New Election</h1>
+                    <div class="w-8"></div>
                 </div>
             </header>
 
@@ -230,6 +225,7 @@ document.addEventListener('alpine:init', () => {
                           electionCode: null,
                           registrationUrl: null,
                           isSubmitting: false,
+                          automationMode: false,
                           positions: [{ name: '', candidates: [''] }],
                           selectedOrganization: '',
                           formData: {
@@ -309,79 +305,79 @@ document.addEventListener('alpine:init', () => {
                     @csrf
 
                     <!-- Enhanced Progress Stepper -->
-                    <div class="mb-10 overflow-x-auto no-scrollbar">
-                        <div class="bg-white/80 backdrop-blur-sm p-4 sm:p-8 border border-gray-200/50 rounded-2xl shadow-xl shadow-gray-200/50 min-w-[800px] lg:min-w-0">
+                    <div class="mb-10 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+                        <div class="bg-white/80 backdrop-blur-sm p-4 sm:p-8 border border-gray-200/50 rounded-2xl shadow-xl shadow-gray-200/50 min-w-[700px] md:min-w-0">
                             <div class="flex items-center justify-between">
-                                <div class="flex-1 flex items-center gap-8">
+                                <div class="flex-1 flex items-center gap-4 sm:gap-8">
                                     <!-- Step 1 -->
-                                    <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="activeTab = 'basic'">
+                                    <div class="flex items-center gap-3 sm:gap-4 flex-1 cursor-pointer" @click="activeTab = 'basic'">
                                         <div :class="activeTab === 'basic' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
-                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
+                                             class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-base sm:text-lg transition-all duration-300 flex-shrink-0">
                                             <span x-show="!(activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share')">1</span>
-                                            <svg x-show="activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share'" class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                                            <svg x-show="activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share'" class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
                                                 <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
-                                        <div>
-                                            <p :class="activeTab === 'basic' ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors">Basic Info</p>
-                                            <p class="text-xs text-gray-500">Election details</p>
+                                        <div class="min-w-0">
+                                            <p :class="activeTab === 'basic' ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-xs sm:text-sm transition-colors truncate">Basic Info</p>
+                                            <p class="text-[10px] sm:text-xs text-gray-500 truncate">Election details</p>
                                         </div>
                                     </div>
 
-                                    <div class="flex-1 h-1 bg-gray-200 rounded-full mx-4 relative overflow-hidden">
+                                    <div class="flex-shrink-0 w-8 sm:flex-1 h-1 bg-gray-200 rounded-full mx-1 sm:mx-4 relative overflow-hidden hidden xs:block">
                                         <div :class="activeTab === 'candidates' || activeTab === 'settings' || activeTab === 'share' ? 'w-full' : 'w-0'"
                                              class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"></div>
                                     </div>
 
                                     <!-- Step 2 -->
-                                    <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="if(validateBasicInfo()) activeTab = 'candidates'">
+                                    <div class="flex items-center gap-3 sm:gap-4 flex-1 cursor-pointer" @click="if(validateBasicInfo()) activeTab = 'candidates'">
                                         <div :class="activeTab === 'candidates' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'settings' || activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
-                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
+                                             class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-base sm:text-lg transition-all duration-300 flex-shrink-0">
                                             <span x-show="!(activeTab === 'settings' || activeTab === 'share')">2</span>
-                                            <svg x-show="activeTab === 'settings' || activeTab === 'share'" class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                                            <svg x-show="activeTab === 'settings' || activeTab === 'share'" class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
                                                 <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
-                                        <div>
-                                            <p :class="activeTab === 'candidates' ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors">Positions</p>
-                                            <p class="text-xs text-gray-500">Add candidates</p>
+                                        <div class="min-w-0">
+                                            <p :class="activeTab === 'candidates' ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-xs sm:text-sm transition-colors truncate">Positions</p>
+                                            <p class="text-[10px] sm:text-xs text-gray-500 truncate">Add candidates</p>
                                         </div>
                                     </div>
 
-                                    <div class="flex-1 h-1 bg-gray-200 rounded-full mx-4 relative overflow-hidden">
+                                    <div class="flex-shrink-0 w-8 sm:flex-1 h-1 bg-gray-200 rounded-full mx-1 sm:mx-4 relative overflow-hidden hidden xs:block">
                                         <div :class="activeTab === 'settings' || activeTab === 'share' ? 'w-full' : 'w-0'"
                                              class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"></div>
                                     </div>
 
                                     <!-- Step 3 -->
-                                    <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="if(validateBasicInfo() && validatePositions()) activeTab = 'settings'">
+                                    <div class="flex items-center gap-3 sm:gap-4 flex-1 cursor-pointer" @click="if(validateBasicInfo() && validatePositions()) activeTab = 'settings'">
                                         <div :class="activeTab === 'settings' ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : (activeTab === 'share' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600')"
-                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
+                                             class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-base sm:text-lg transition-all duration-300 flex-shrink-0">
                                             <span x-show="activeTab !== 'share'">3</span>
-                                            <svg x-show="activeTab === 'share'" class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                                            <svg x-show="activeTab === 'share'" class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
                                                 <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </div>
-                                        <div>
-                                            <p :class="activeTab === 'settings' ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors">Settings</p>
-                                            <p class="text-xs text-gray-500">Configure options</p>
+                                        <div class="min-w-0">
+                                            <p :class="activeTab === 'settings' ? 'text-indigo-600 font-bold' : 'text-gray-900 font-semibold'" class="text-xs sm:text-sm transition-colors truncate">Settings</p>
+                                            <p class="text-[10px] sm:text-xs text-gray-500 truncate">Configure options</p>
                                         </div>
                                     </div>
 
-                                    <div class="flex-1 h-1 bg-gray-200 rounded-full mx-4 relative overflow-hidden">
+                                    <div class="flex-shrink-0 w-8 sm:flex-1 h-1 bg-gray-200 rounded-full mx-1 sm:mx-4 relative overflow-hidden hidden xs:block">
                                         <div :class="activeTab === 'share' ? 'w-full' : 'w-0'"
                                              class="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-500"></div>
                                     </div>
 
                                     <!-- Step 4 -->
-                                    <div class="flex items-center gap-4 flex-1" :class="electionCreated ? 'cursor-pointer' : 'opacity-50'" @click="if(electionCreated) activeTab = 'share'">
+                                    <div class="flex items-center gap-3 sm:gap-4 flex-1" :class="electionCreated ? 'cursor-pointer' : 'opacity-50'" @click="if(electionCreated) activeTab = 'share'">
                                         <div :class="activeTab === 'share' ? 'bg-gradient-to-br from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/30' : 'bg-gray-200 text-gray-600'"
-                                             class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300">
+                                             class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-base sm:text-lg transition-all duration-300 flex-shrink-0">
                                             4
                                         </div>
-                                        <div>
-                                            <p :class="activeTab === 'share' ? 'text-green-600 font-bold' : 'text-gray-900 font-semibold'" class="text-sm transition-colors">Share</p>
-                                            <p class="text-xs text-gray-500">Distribute link</p>
+                                        <div class="min-w-0">
+                                            <p :class="activeTab === 'share' ? 'text-green-600 font-bold' : 'text-gray-900 font-semibold'" class="text-xs sm:text-sm transition-colors truncate">Share</p>
+                                            <p class="text-[10px] sm:text-xs text-gray-500 truncate">Distribute link</p>
                                         </div>
                                     </div>
                                 </div>
@@ -466,7 +462,6 @@ document.addEventListener('alpine:init', () => {
                                      x-transition:enter-start="opacity-0 transform translate-x-4"
                                      x-transition:enter-end="opacity-100 transform translate-x-0"
                                      x-data="{
-                                     automationMode: false,
                                      selectedPartylist: '',
                                      partylists: [],
                                      isFetching: false,
@@ -936,11 +931,11 @@ document.addEventListener('alpine:init', () => {
                                         <!-- Location Search -->
                                         <div class="space-y-4">
                                             <label class="block text-sm font-semibold text-gray-900">Search Location</label>
-                                            <div class="flex gap-3">
+                                            <div class="flex flex-col sm:flex-row gap-3">
                                                 <input type="text" id="locationSearch" placeholder="Search for a location..."
-                                                       class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent px-5 py-4 text-base transition-all">
+                                                       class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base transition-all">
                                                 <button type="button" id="useMyLocation"
-                                                        class="px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:shadow-lg font-semibold transition-all flex items-center gap-2">
+                                                        class="w-full sm:w-auto px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:shadow-lg font-semibold transition-all flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap">
                                                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
                                                         <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
@@ -952,26 +947,28 @@ document.addEventListener('alpine:init', () => {
                                         <!-- Radius Control -->
                                         <div class="space-y-4">
                                             <label class="block text-sm font-semibold text-gray-900">Voting Radius</label>
-                                            <div class="flex gap-4">
-                                                <div class="flex-1">
-                                                    <input type="number" id="geoRadius" name="geo_radius" x-model="radiusValue" min="10" max="10000"
-                                                           class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent px-5 py-4 text-base transition-all"
-                                                           placeholder="Enter radius">
-                                                </div>
-                                                <div class="w-40">
-                                                    <select x-model="radiusUnit"
-                                                            class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent px-5 py-4 text-base transition-all">
-                                                        <option value="meters">Meters</option>
-                                                        <option value="kilometers">Kilometers</option>
-                                                    </select>
+                                            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                                <div class="flex gap-3 flex-1">
+                                                    <div class="flex-1">
+                                                        <input type="number" id="geoRadius" name="geo_radius" x-model="radiusValue" min="10" max="10000"
+                                                               class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base transition-all"
+                                                               placeholder="Radius">
+                                                    </div>
+                                                    <div class="w-32 sm:w-40">
+                                                        <select x-model="radiusUnit"
+                                                                class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent px-3 py-3 sm:px-5 sm:py-4 text-sm sm:text-base transition-all">
+                                                            <option value="meters">Meters</option>
+                                                            <option value="kilometers">Km</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                                 <button type="button" @click="updateRadius()"
-                                                        class="px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:shadow-lg font-semibold transition-all">
+                                                        class="w-full sm:w-auto px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:shadow-lg font-semibold transition-all text-sm sm:text-base">
                                                     Apply
                                                 </button>
                                                 <input type="hidden" id="computedRadius" name="geo_radius_meters">
                                             </div>
-                                            <p class="text-sm text-gray-500 mt-2">
+                                            <p class="text-xs sm:text-sm text-gray-500 mt-2">
                                                 <span x-text="radiusUnit === 'kilometers' ? (radiusValue * 1000) + ' meters' : radiusValue + ' meters'"></span> from the center point
                                             </p>
                                         </div>
@@ -999,9 +996,9 @@ document.addEventListener('alpine:init', () => {
                                     </div>
 
                                     <!-- Additional Configuration Fields -->
-                                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-8 space-y-8 shadow-sm">
+                                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-5 sm:p-8 space-y-8 shadow-sm">
                                         <div class="flex items-center gap-3 mb-2">
-                                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
+                                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center flex-shrink-0">
                                                 <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none">
                                                     <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                 </svg>
@@ -1012,29 +1009,29 @@ document.addEventListener('alpine:init', () => {
                                             </div>
                                         </div>
 
-                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                                             <div class="lg:col-span-2">
                                                 <label for="accepted_domains" class="block text-sm font-semibold text-gray-900 mb-3">
                                                     Accepted Domains (e.g., @iskolarngbayan.edu.ph, @zdeveloper.org)
                                                 </label>
                                                 <input type="text" id="accepted_domains" name="accepted_domains" x-model="formData.accepted_domains"
-                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all"
+                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base transition-all"
                                                        placeholder="Comma separated domains (including @), leave empty for all">
-                                                <p class="mt-2 text-xs text-gray-500">Only users with these email domains will be allowed to register.</p>
+                                                <p class="mt-2 text-[10px] sm:text-xs text-gray-500">Only users with these email domains will be allowed to register.</p>
                                             </div>
 
                                             <div>
                                                 <label for="registration_deadline" class="block text-sm font-semibold text-gray-900 mb-3">Registration Deadline</label>
                                                 <input type="datetime-local" id="registration_deadline" name="registration_deadline" x-model="formData.registration_deadline"
-                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
-                                                <p class="mt-2 text-xs text-gray-500">Voters cannot register after this time.</p>
+                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base transition-all">
+                                                <p class="mt-2 text-[10px] sm:text-xs text-gray-500">Voters cannot register after this time.</p>
                                             </div>
 
                                             <div>
                                                 <label for="max_votes" class="block text-sm font-semibold text-gray-900 mb-3">Max Number of Votes</label>
                                                 <input type="number" id="max_votes" name="max_votes" x-model="formData.max_votes" min="1"
-                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
-                                                <p class="mt-2 text-xs text-gray-500">Number of times a user can submit a vote.</p>
+                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base transition-all">
+                                                <p class="mt-2 text-[10px] sm:text-xs text-gray-500">Number of times a user can submit a vote.</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1268,6 +1265,11 @@ document.addEventListener('alpine:init', () => {
 
             try {
                 const formData = new FormData(formEl);
+
+                // Ensure organization_id is NULL if automationMode is false
+                if (!alpineData.automationMode) {
+                    formData.set('organization_id', '');
+                }
 
                 const tokenMeta = document.querySelector('meta[name="csrf-token"]');
                 const csrfToken = tokenMeta ? tokenMeta.getAttribute('content') : null;

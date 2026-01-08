@@ -110,35 +110,38 @@
             <div class="w-10"></div>
         </header>
 
-            <main class="flex-1 p-6 pb-10">
-                <div class="max-w-7xl mx-auto space-y-8">
+            <main class="flex-1 p-4 sm:p-6 pb-10">
+                <div class="max-w-7xl mx-auto space-y-6 sm:space-y-8">
                     <section>
-                        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
-                            <div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 items-start lg:items-center justify-between gap-4 mb-4">
+                            <div class="md:col-span-2 lg:col-span-1">
                                 <h2 class="text-2xl font-extrabold text-slate-900">Election Overview</h2>
-                                <p class="text-sm text-slate-500 mt-1">Manage and inspect election analytics in one place</p>
+                                <p class="text-sm text-slate-500 mt-1 hidden sm:block">Manage and inspect election analytics in one place</p>
                             </div>
-                            <div class="flex items-center gap-3 w-full lg:w-auto">
-                                <div class="flex items-center gap-2 bg-white border border-gray-200 px-3 py-2 rounded-lg shadow-sm w-full lg:w-80">
+                            <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:col-span-2 lg:col-span-3 lg:justify-end">
+                                <div class="flex items-center gap-2 bg-white border border-gray-200 px-3 py-2 rounded-lg shadow-sm w-full sm:max-w-xs">
                                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                     </svg>
                                     <input x-model="searchQuery" type="text" placeholder="Search elections or organizations..." class="flex-1 text-sm outline-none border-none focus:ring-0 p-0" />
                                 </div>
 
-                                <select x-model="statusFilter" class="bg-white border border-gray-200 px-3 py-2 rounded-lg text-sm shadow-sm">
-                                    <option value="all">All Status</option>
-                                    <option value="active">Active</option>
-                                    <option value="scheduled">Scheduled</option>
-                                    <option value="completed">Completed</option>
-                                </select>
+                                <div class="flex items-center gap-3 w-full sm:w-auto">
+                                    <select x-model="statusFilter" class="bg-white border border-gray-200 px-3 py-2 rounded-lg text-sm shadow-sm flex-1 sm:flex-none">
+                                        <option value="all">All Status</option>
+                                        <option value="active">Active</option>
+                                        <option value="scheduled">Scheduled</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
 
-                                <a href="/admin/elections/create" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors shadow">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                    </svg>
-                                    New Election
-                                </a>
+                                    <a href="/admin/elections/create" class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors shadow flex-1 sm:flex-none whitespace-nowrap">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                        </svg>
+                                        <span class="sm:hidden lg:inline">New Election</span>
+                                        <span class="hidden sm:inline lg:hidden">New</span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
@@ -208,13 +211,13 @@
 
                         <!-- Selected Election Header -->
                         <div x-show="selectedElection" x-transition class="mt-6 rounded-2xl overflow-hidden shadow-lg">
-                            <div class="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 px-6 py-5 text-white flex items-center justify-between">
+                            <div class="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 px-6 py-5 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div>
                                     <h3 class="text-xl font-bold" x-text="currentElection?.name"></h3>
                                     <p class="text-sm text-indigo-100 mt-1" x-text="currentElection?.organization"></p>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    <button @click="viewReports(selectedElection)" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors backdrop-blur-sm">
+                                <div class="flex items-center gap-3 w-full sm:w-auto">
+                                    <button @click="viewReports(selectedElection)" class="flex-1 sm:flex-none px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors backdrop-blur-sm">
                                         View Full Report
                                     </button>
                                     <button @click="selectedElection = null" class="p-2 hover:bg-white/20 rounded-lg transition-colors">
@@ -225,8 +228,8 @@
                                 </div>
                             </div>
                             <div class="bg-white px-6 py-4 border-t border-gray-100">
-                                <div class="flex items-center justify-between gap-4">
-                                    <div class="flex items-center gap-6">
+                                <div class="flex items-center justify-between gap-4 overflow-x-auto pb-2 sm:pb-0">
+                                    <div class="flex items-center gap-6 min-w-max">
                                         <div>
                                             <div class="text-xs text-slate-500">Created</div>
                                             <div class="text-sm font-medium text-slate-900" x-text="formatDate(currentElection?.createdDate)"></div>
@@ -245,7 +248,7 @@
                                         <div>
                                             <div class="text-xs text-slate-500">Election Link</div>
                                             <div class="flex items-center gap-2">
-                                                <a :href="currentElection?.link" target="_blank" class="text-sm text-sky-600 hover:underline truncate max-w-xs" x-text="currentElection?.link"></a>
+                                                <a :href="currentElection?.link" target="_blank" class="text-sm text-sky-600 hover:underline truncate max-w-[150px] sm:max-w-xs" x-text="currentElection?.link"></a>
                                                 <button @click="navigator.clipboard.writeText(currentElection?.link)" class="p-1 hover:bg-slate-100 rounded transition-colors" title="Copy link">
                                                     <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
@@ -570,9 +573,17 @@
 
                 const updateCharts = () => {
                     const component = document.querySelector('[x-data]');
-                    if (!component?.__x?.$data) return;
-                    const data = component.__x.$data;
-                    if (!data.currentElection) {
+                    if (!component) return;
+
+                    // Alpine.js v3 uses Alpine.$data(el)
+                    let data;
+                    try {
+                        data = window.Alpine ? window.Alpine.$data(component) : (component.__x?.$data);
+                    } catch (e) {
+                        return;
+                    }
+
+                    if (!data || !data.currentElection) {
                         if (vpmChart) vpmChart.destroy(); vpmChart = null;
                         if (ageChart) ageChart.destroy(); ageChart = null;
                         if (channelsChart) channelsChart.destroy(); channelsChart = null;

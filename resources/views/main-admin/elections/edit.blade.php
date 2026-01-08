@@ -198,9 +198,9 @@
                                 </div>
                             </div>
 
-                            <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-200/60 p-10">
+                            <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-200/60 p-6 sm:p-10">
                                 <div class="flex items-center gap-4 mb-10">
-                                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner">
+                                    <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner flex-shrink-0">
                                         <i class="ri-shield-keyhole-line text-2xl"></i>
                                     </div>
                                     <div>
@@ -209,55 +209,55 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <label class="flex items-center justify-between p-8 bg-slate-50 rounded-[2rem] cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-blue-100 transition-all border-2 border-transparent hover:border-blue-100 group">
-                                        <div class="flex items-center gap-5">
-                                            <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm group-hover:scale-110 transition-transform">
-                                                <i class="ri-map-pin-line text-2xl"></i>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
+                                    <label class="flex items-center justify-between p-5 sm:p-8 bg-slate-50 rounded-[2rem] cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-blue-100 transition-all border-2 border-transparent hover:border-blue-100 group">
+                                        <div class="flex items-center gap-3 sm:gap-5">
+                                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm group-hover:scale-110 transition-transform flex-shrink-0">
+                                                <i class="ri-map-pin-line text-xl sm:text-2xl"></i>
                                             </div>
                                             <div>
-                                                <span class="block text-sm font-black text-slate-900 uppercase tracking-tight">Geofencing</span>
-                                                <span class="block text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Restrict Location</span>
+                                                <span class="block text-xs sm:text-sm font-black text-slate-900 uppercase tracking-tight">Geofencing</span>
+                                                <span class="block text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Restrict Location</span>
                                             </div>
                                         </div>
-                                        <div class="relative inline-block w-14 h-8 transition duration-200 ease-in-out">
+                                        <div class="relative inline-block w-12 sm:w-14 h-7 sm:h-8 transition duration-200 ease-in-out flex-shrink-0">
                                             <input type="checkbox" name="enable_geo_location" x-model="formData.enable_geo_location"
                                                    class="peer opacity-0 w-0 h-0" value="1">
-                                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-200 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-6 before:w-6 before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-emerald-500 peer-checked:before:translate-x-6"></span>
+                                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-200 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-5 sm:before:h-6 before:w-5 sm:before:w-6 before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-emerald-500 peer-checked:before:translate-x-5 sm:peer-checked:before:translate-x-6"></span>
                                         </div>
                                     </label>
 
-                                    <label class="flex items-center justify-between p-8 bg-slate-50 rounded-[2rem] cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-blue-100 transition-all border-2 border-transparent hover:border-blue-100 group">
-                                        <div class="flex items-center gap-5">
-                                            <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm group-hover:scale-110 transition-transform">
-                                                <i class="ri-shield-user-line text-2xl"></i>
+                                    <label class="flex items-center justify-between p-5 sm:p-8 bg-slate-50 rounded-[2rem] cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-blue-100 transition-all border-2 border-transparent hover:border-blue-100 group">
+                                        <div class="flex items-center gap-3 sm:gap-5">
+                                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm group-hover:scale-110 transition-transform flex-shrink-0">
+                                                <i class="ri-shield-user-line text-xl sm:text-2xl"></i>
                                             </div>
                                             <div>
-                                                <span class="block text-sm font-black text-slate-900 uppercase tracking-tight">Area Verification</span>
-                                                <span class="block text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Biometric or GPS</span>
+                                                <span class="block text-xs sm:text-sm font-black text-slate-900 uppercase tracking-tight">Area Verification</span>
+                                                <span class="block text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Biometric or GPS</span>
                                             </div>
                                         </div>
-                                        <div class="relative inline-block w-14 h-8 transition duration-200 ease-in-out">
+                                        <div class="relative inline-block w-12 sm:w-14 h-7 sm:h-8 transition duration-200 ease-in-out flex-shrink-0">
                                             <input type="checkbox" name="enable_geo_registration" x-model="formData.enable_geo_registration"
                                                    class="peer opacity-0 w-0 h-0" value="1">
-                                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-200 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-6 before:w-6 before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-emerald-500 peer-checked:before:translate-x-6"></span>
+                                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-200 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-5 sm:before:h-6 before:w-5 sm:before:w-6 before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-emerald-500 peer-checked:before:translate-x-5 sm:peer-checked:before:translate-x-6"></span>
                                         </div>
                                     </label>
 
-                                    <label class="flex items-center justify-between p-8 bg-slate-50 rounded-[2rem] cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-blue-100 transition-all border-2 border-transparent hover:border-blue-100 group">
-                                        <div class="flex items-center gap-5">
-                                            <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm group-hover:scale-110 transition-transform">
-                                                <i class="ri-checkbox-circle-line text-2xl"></i>
+                                    <label class="flex items-center justify-between p-5 sm:p-8 bg-slate-50 rounded-[2rem] cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-blue-100 transition-all border-2 border-transparent hover:border-blue-100 group">
+                                        <div class="flex items-center gap-3 sm:gap-5">
+                                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm group-hover:scale-110 transition-transform flex-shrink-0">
+                                                <i class="ri-checkbox-circle-line text-xl sm:text-2xl"></i>
                                             </div>
                                             <div>
-                                                <span class="block text-sm font-black text-slate-900 uppercase tracking-tight">Auto Approval</span>
-                                                <span class="block text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Bypass Admin</span>
+                                                <span class="block text-xs sm:text-sm font-black text-slate-900 uppercase tracking-tight">Auto Approval</span>
+                                                <span class="block text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Bypass Admin</span>
                                             </div>
                                         </div>
-                                        <div class="relative inline-block w-14 h-8 transition duration-200 ease-in-out">
+                                        <div class="relative inline-block w-12 sm:w-14 h-7 sm:h-8 transition duration-200 ease-in-out flex-shrink-0">
                                             <input type="checkbox" name="auto_approve_voters" x-model="formData.auto_approve_voters"
                                                    class="peer opacity-0 w-0 h-0" value="1">
-                                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-200 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-6 before:w-6 before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-emerald-500 peer-checked:before:translate-x-6"></span>
+                                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-200 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-5 sm:before:h-6 before:w-5 sm:before:w-6 before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-emerald-500 peer-checked:before:translate-x-5 sm:peer-checked:before:translate-x-6"></span>
                                         </div>
                                     </label>
                                 </div>
@@ -302,8 +302,8 @@
 
                                         <div class="grid gap-6">
                                             <template x-for="(candidate, cIndex) in position.candidates" :key="cIndex">
-                                                <div class="flex items-center gap-8 p-8 bg-slate-50/50 rounded-[2.5rem] border-2 border-slate-50 transition-all hover:bg-white hover:border-blue-200 hover:shadow-2xl hover:shadow-blue-100 group/cand">
-                                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 flex-1">
+                                                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 p-6 sm:p-8 bg-slate-50/50 rounded-[2.5rem] border-2 border-slate-50 transition-all hover:bg-white hover:border-blue-200 hover:shadow-2xl hover:shadow-blue-100 group/cand">
+                                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 flex-1 w-full">
                                                         <div class="space-y-2">
                                                             <label class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">First Name</label>
                                                             <input type="text" :name="`positions[${pIndex}][candidates][${cIndex}][first_name]`" x-model="candidate.first_name" required
@@ -322,7 +322,7 @@
                                                         <input type="hidden" :name="`positions[${pIndex}][candidates][${cIndex}][id]`" x-model="candidate.id">
                                                     </div>
                                                     <button type="button" @click="removeCandidate(pIndex, cIndex)"
-                                                            class="w-12 h-12 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-white rounded-xl transition-all">
+                                                            class="w-12 h-12 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-white rounded-xl transition-all self-end sm:self-center">
                                                         <i class="ri-close-circle-line text-2xl"></i>
                                                     </button>
                                                 </div>

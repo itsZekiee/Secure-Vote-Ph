@@ -182,20 +182,26 @@ class CandidateController extends Controller
                         ['organization_id' => $validated['organization_id'] ?? null]
                     );
                 } else {
-                    // If no election specified, check whether the DB allows NULL for positions.election_id
-                    $col = DB::select("SELECT IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='positions' AND COLUMN_NAME='election_id'");
-                    $isNullable = null;
-                    if (!empty($col) && is_array($col)) {
-                        $row = $col[0];
-                        // Column name casing varies by driver; check possible property names
-                        if (isset($row->IS_NULLABLE)) {
-                            $isNullable = $row->IS_NULLABLE;
-                        } elseif (isset($row->is_nullable)) {
-                            $isNullable = $row->is_nullable;
-                        }
+                    // Check whether the DB allows NULL for positions.election_id
+                    // Using Schema facade is more portable than raw SQL
+                    $isNullable = true; // Default to true based on migrations
+                    try {
+                        // Check if the column is NOT NULL
+                        // In Laravel 11+, we can use Schema::getColumnType or similar,
+                        // but a simple way to check is using Schema manager or just assuming nullable if migration says so.
+                        // However, to be safe and avoid the raw query:
+                        $isNullable = Schema::getConnection()
+                            ->getDoctrineSchemaManager()
+                            ->listTableDetails('positions')
+                            ->getColumn('election_id')
+                            ->getNotnull() === false;
+                    } catch (\Exception $e) {
+                        // Fallback: If we can't determine, check the migration history or just allow it.
+                        // In this project, we know it was made nullable.
+                        Log::warning("Could not determine nullability of positions.election_id: " . $e->getMessage());
                     }
 
-                    if ($isNullable === 'NO' || $isNullable === '0') {
+                    if ($isNullable === false) {
                         // Database requires election_id. Return validation error asking user to select an election.
                         DB::rollBack();
                         $message = 'Creating a new position requires selecting an election on this server. Please select an election or use an existing position.';

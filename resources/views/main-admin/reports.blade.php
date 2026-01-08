@@ -18,20 +18,29 @@
         <main class="flex-1 min-h-screen">
             <!-- Top Navigation Bar -->
             <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-40">
-                <div class="px-8 py-4">
+                <!-- Mobile Header Toggle -->
+                <div class="lg:hidden flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                    <button @click="collapsed = false" class="p-2 -ml-2 text-gray-600">
+                        <i class="ri-menu-2-fill text-xl"></i>
+                    </button>
+                    <h1 class="text-lg font-bold text-gray-900">Reports</h1>
+                    <div class="w-8"></div>
+                </div>
+
+                <div class="px-4 lg:px-8 py-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-4">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-gradient-to-br from-emerald-600 to-sky-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <div class="w-10 h-10 bg-gradient-to-br from-emerald-600 to-sky-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                                     <i class="ri-bar-chart-line text-white text-lg"></i>
                                 </div>
-                                <div>
-                                    <h2 class="text-xl font-bold text-gray-900">Reports & Tally</h2>
-                                    <p class="text-sm text-gray-600">Election results & statistics</p>
+                                <div class="min-w-0">
+                                    <h2 class="text-xl font-bold text-gray-900 truncate">Reports & Tally</h2>
+                                    <p class="text-sm text-gray-600 hidden sm:block">Election results & statistics</p>
                                 </div>
                             </div>
-                            <div class="h-8 w-px bg-gray-200"></div>
-                            <nav class="flex items-center space-x-2 text-sm">
+                            <div class="h-8 w-px bg-gray-200 hidden md:block"></div>
+                            <nav class="hidden md:flex items-center space-x-2 text-sm">
                                 <span class="text-gray-500">Admin</span>
                                 <i class="ri-arrow-right-s-line text-gray-400"></i>
                                 <span class="text-gray-900 font-semibold">Reports</span>
@@ -41,12 +50,12 @@
                 </div>
             </div>
 
-            <div class="px-6 py-6">
+            <div class="px-4 sm:px-6 py-6">
                 <div class="max-w-7xl mx-auto">
                     <!-- Search & Filters Section -->
                     <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden mb-6">
                         <div class="px-6 py-4 border-b border-gray-200/60 bg-gradient-to-r from-emerald-50/50 via-sky-50/50 to-slate-50/50">
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-10 h-10 bg-white/80 rounded-lg flex items-center justify-center shadow-sm border border-gray-200/50">
                                         <i class="ri-filter-3-line text-gray-600"></i>
@@ -56,9 +65,9 @@
                                         <p class="text-[11px] text-gray-500 font-medium">Filter through completed elections</p>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-3 w-full sm:w-auto">
                                     <a href="{{ route('admin.reports.export', array_merge(request()->only(['q','organization_id','year']), ['format' => 'xlsx'])) }}"
-                                       class="inline-flex items-center px-4 py-2 bg-white text-slate-700 text-xs font-bold rounded-lg border border-slate-200 hover:bg-slate-50 transition-all shadow-sm">
+                                       class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-white text-slate-700 text-xs font-bold rounded-lg border border-slate-200 hover:bg-slate-50 transition-all shadow-sm">
                                         <i class="ri-file-excel-2-line mr-1.5 text-emerald-600"></i>
                                         Export
                                     </a>
@@ -66,10 +75,10 @@
                             </div>
                         </div>
 
-                        <div class="p-6">
+                        <div class="p-4 sm:p-6">
                             <form method="GET" action="{{ route('admin.reports.index') }}">
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    <div class="lg:col-span-2">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                                    <div class="md:col-span-2 lg:col-span-2">
                                         <label class="block text-xs font-bold text-gray-800 mb-2">Keyword Search</label>
                                         <div class="relative">
                                             <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
@@ -110,9 +119,9 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="mt-6 flex justify-end gap-2">
-                                    <a href="{{ route('admin.reports.index') }}" class="px-4 py-2 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-all">RESET</a>
-                                    <button type="submit" class="px-6 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition-all">SEARCH</button>
+                                <div class="mt-6 flex flex-col sm:flex-row justify-end gap-2">
+                                    <a href="{{ route('admin.reports.index') }}" class="w-full sm:w-auto px-4 py-2 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-all text-center">RESET</a>
+                                    <button type="submit" class="w-full sm:w-auto px-6 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition-all">SEARCH</button>
                                 </div>
                             </form>
                         </div>
@@ -198,13 +207,13 @@
 
                             <!-- Detailed Tally -->
                             <div class="bg-white rounded-2xl border border-slate-200/60 shadow-lg overflow-hidden">
-                                <div class="p-8 border-b border-slate-100 flex items-center justify-between">
+                                <div class="p-8 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                     <div>
                                         <h3 class="text-xl font-bold text-slate-900 uppercase tracking-tight">Tally Breakdown</h3>
                                         <p class="text-[11px] text-gray-500 font-medium mt-0.5">Real-time metrics</p>
                                     </div>
-                                    <div class="flex gap-2">
-                                        <a href="{{ route('admin.reports.print', ['form_id' => $selectedForm->id]) }}" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold text-[10px] uppercase tracking-widest rounded-lg hover:bg-slate-200 transition-all">PRINT REPORT</a>
+                                    <div class="flex gap-2 w-full sm:w-auto">
+                                        <a href="{{ route('admin.reports.print', ['form_id' => $selectedForm->id]) }}" class="w-full sm:w-auto text-center px-4 py-2 bg-slate-100 text-slate-600 font-bold text-[10px] uppercase tracking-widest rounded-lg hover:bg-slate-200 transition-all">PRINT REPORT</a>
                                     </div>
                                 </div>
                                 <div class="p-8 space-y-6">
