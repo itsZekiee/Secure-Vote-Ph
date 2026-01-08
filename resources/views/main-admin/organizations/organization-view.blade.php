@@ -70,18 +70,18 @@
         <!-- Enhanced Navigation Bar -->
         <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm sticky top-0 z-40">
             <!-- Mobile Header -->
-            <header class="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
+            <header class="lg:hidden bg-white border-b px-4 py-4 flex items-center justify-between">
                 <button @click="collapsed = false"
-                        class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
+                        class="p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="ri-menu-2-fill text-xl"></i>
                 </button>
-                <h1 class="text-lg font-semibold text-slate-800">Organization View</h1>
-                <div class="w-10"></div>
+                <h1 class="text-lg font-bold text-slate-800">Organization</h1>
+                <div class="w-8"></div>
             </header>
 
-            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between hidden lg:flex">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-6">
-                <a href="{{ $indexUrl }}" class="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all border border-slate-100">
+                <a href="{{ $indexUrl }}" class="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-2xl transition-all border border-slate-100 hidden sm:block">
                     <i class="ri-arrow-left-line text-lg"></i>
                 </a>
                 <nav class="hidden md:flex items-center space-x-3">
@@ -93,12 +93,12 @@
                 </nav>
             </div>
 
-            <div class="flex items-center space-x-3">
-                <a href="{{ $editUrl }}" class="inline-flex items-center px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all transform hover:scale-105">
-                    <i class="ri-edit-line mr-2"></i>Edit Configuration
+            <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto">
+                <a href="{{ $editUrl }}" class="flex-1 sm:flex-none justify-center inline-flex items-center px-4 sm:px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">
+                    <i class="ri-edit-line mr-2"></i><span class="hidden xs:inline">Edit Configuration</span><span class="xs:hidden">Edit</span>
                 </a>
-                <button @click="confirmDelete()" class="inline-flex items-center px-4 py-2.5 bg-rose-50 text-rose-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100">
-                    <i class="ri-delete-bin-line mr-2"></i>Delete
+                <button @click="confirmDelete()" class="sm:flex-none inline-flex items-center px-4 py-2.5 bg-rose-50 text-rose-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-100 transition-all border border-rose-100">
+                    <i class="ri-delete-bin-line sm:mr-2"></i><span class="hidden sm:inline">Delete</span>
                 </button>
             </div>
         </div>
@@ -108,30 +108,30 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-8 py-8">
         <!-- Professional Header Card -->
         <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/60 overflow-hidden mb-8">
-            <div class="h-32 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 relative">
+            <div class="h-24 sm:h-32 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 relative">
                 <div class="absolute inset-0 bg-black/10"></div>
                 <!-- Decor -->
                 <div class="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
                 <div class="absolute -bottom-12 -left-12 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl"></div>
 
-                <div class="absolute -bottom-12 left-10">
-                    <div class="w-32 h-32 bg-white rounded-3xl shadow-2xl border-4 border-white flex items-center justify-center overflow-hidden transform hover:scale-105 transition-transform duration-500">
+                <div class="absolute -bottom-10 sm:-bottom-12 left-6 sm:left-10">
+                    <div class="w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-2xl sm:rounded-3xl shadow-2xl border-4 border-white flex items-center justify-center overflow-hidden transform hover:scale-105 transition-transform duration-500">
                         @if(!empty($organization->logo_url))
                             <img src="{{ $organization->logo_url }}" alt="{{ $organization->name }}" class="object-cover w-full h-full"/>
                         @else
                             <div class="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
-                                <i class="ri-building-2-line text-4xl text-blue-600"></i>
+                                <i class="ri-building-2-line text-3xl sm:text-4xl text-blue-600"></i>
                             </div>
                         @endif
                     </div>
                 </div>
             </div>
 
-            <div class="pt-16 pb-8 px-10">
-                <div class="flex flex-wrap items-start justify-between gap-8">
-                    <div class="flex-1 min-w-[320px]">
-                        <div class="flex flex-wrap items-center gap-3 mb-3">
-                            <h1 class="text-3xl font-black text-slate-900 tracking-tight uppercase">{{ $organization->name }}</h1>
+            <div class="pt-16 sm:pt-16 pb-8 px-6 sm:px-10">
+                <div class="flex flex-col lg:flex-row items-start justify-between gap-6 sm:gap-8">
+                    <div class="flex-1 min-w-0 w-full text-center sm:text-left">
+                        <div class="flex flex-col sm:flex-row items-center gap-3 mb-3">
+                            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight uppercase truncate w-full sm:w-auto">{{ $organization->name }}</h1>
                             <span class="px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase border {{ ($organization->status ?? 'inactive') === 'active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100' }}">
                                 {{ $organization->status ?? 'inactive' }}
                             </span>
@@ -142,20 +142,20 @@
                         <p class="text-[9px] text-slate-400 font-black uppercase tracking-[0.2em] mt-3">Organization ID: ORG-{{ str_pad($organization->id, 4, '0', STR_PAD_LEFT) }}</p>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                        <div class="text-center px-2">
-                            <div class="text-2xl font-black text-blue-600">{{ number_format($votersCount) }}</div>
-                            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Members</div>
+                    <div class="grid grid-cols-3 gap-2 sm:gap-6 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100 w-full lg:w-auto">
+                        <div class="text-center px-1 sm:px-2">
+                            <div class="text-lg sm:text-2xl font-black text-blue-600">{{ number_format($votersCount) }}</div>
+                            <div class="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Members</div>
                         </div>
                         <div class="w-px h-8 bg-slate-200 my-auto hidden sm:block"></div>
-                        <div class="text-center px-2">
-                            <div class="text-2xl font-black text-emerald-600">{{ number_format($electionsCount) }}</div>
-                            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Elections</div>
+                        <div class="text-center px-1 sm:px-2">
+                            <div class="text-lg sm:text-2xl font-black text-emerald-600">{{ number_format($electionsCount) }}</div>
+                            <div class="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Elections</div>
                         </div>
                         <div class="w-px h-8 bg-slate-200 my-auto hidden sm:block"></div>
-                        <div class="text-center px-2">
-                            <div class="text-2xl font-black text-indigo-600">{{ number_format($partylistsCount) }}</div>
-                            <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Partylists</div>
+                        <div class="text-center px-1 sm:px-2">
+                            <div class="text-lg sm:text-2xl font-black text-indigo-600">{{ number_format($partylistsCount) }}</div>
+                            <div class="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Partylists</div>
                         </div>
                     </div>
                 </div>
@@ -243,7 +243,7 @@
             <div class="lg:col-span-3 space-y-8">
                 <!-- Partylists Modern Section -->
                 <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/60 overflow-hidden">
-                    <div class="px-8 py-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/30">
+                    <div class="px-6 sm:px-8 py-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/30">
                         <div>
                             <h2 class="text-xl font-black text-slate-900 tracking-tight flex items-center uppercase">
                                 <i class="ri-flag-2-line mr-3 text-indigo-600 text-2xl"></i>
@@ -252,15 +252,15 @@
                             <p class="text-slate-400 font-bold mt-0.5 uppercase text-[9px] tracking-widest">Active political entities in this organization</p>
                         </div>
 
-                        <a href="{{ $partyCreateUrl }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-100 hover:shadow-blue-200/50 transform hover:-translate-y-0.5 transition-all duration-300">
+                        <a href="{{ $partyCreateUrl }}" class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-100 hover:shadow-blue-200/50 transform hover:-translate-y-0.5 transition-all duration-300">
                             <i class="ri-add-circle-line mr-2 text-lg"></i>
                             Register Party
                         </a>
                     </div>
 
-                    <div class="p-8">
+                    <div class="p-4 sm:p-8">
                         @if($partylists->count() > 0)
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                 @foreach($partylists as $party)
                                     @php
                                         $partyId = $party->id ?? 0;
@@ -284,7 +284,7 @@
                                                 </span>
                                             </div>
 
-                                            <h3 class="text-lg font-black text-slate-900 mb-1.5 group-hover:text-indigo-700 transition-colors uppercase tracking-tight">{{ $party->name }}</h3>
+                                            <h3 class="text-lg font-black text-slate-900 mb-1.5 group-hover:text-indigo-700 transition-colors uppercase tracking-tight truncate w-full">{{ $party->name }}</h3>
                                             <div class="flex items-center text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5">
                                                 <i class="ri-price-tag-3-line mr-1.5 text-indigo-400"></i>
                                                 {{ $party->acronym ?? 'N/A' }}
@@ -308,13 +308,13 @@
                                 @endforeach
                             </div>
                         @else
-                            <div class="text-center py-16 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200">
-                                <div class="w-20 h-20 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto mb-6">
-                                    <i class="ri-flag-line text-3xl text-slate-200"></i>
+                            <div class="text-center py-16 bg-slate-50/50 rounded-3xl border-2 border-dashed border-slate-200 px-4">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl shadow-md flex items-center justify-center mx-auto mb-6">
+                                    <i class="ri-flag-line text-2xl sm:text-3xl text-slate-200"></i>
                                 </div>
-                                <h3 class="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">Initialize Partylists</h3>
+                                <h3 class="text-lg sm:text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">Initialize Partylists</h3>
                                 <p class="text-slate-400 font-bold max-w-xs mx-auto mb-8 uppercase text-[10px] tracking-widest leading-relaxed">This organization currently has no registered partylists.</p>
-                                <a href="{{ $partyCreateUrl }}" class="inline-flex items-center px-8 py-3.5 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
+                                <a href="{{ $partyCreateUrl }}" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
                                     <i class="ri-add-line mr-2 text-lg"></i>
                                     Register First Party
                                 </a>

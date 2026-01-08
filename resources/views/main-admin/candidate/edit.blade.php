@@ -7,31 +7,31 @@
         <main class="flex-1">
             <!-- Top Navigation Bar -->
             <div class="bg-white border-b border-slate-200 sticky top-0 z-40">
-                <div class="max-w-7xl mx-auto px-8 py-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-4 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                <div class="max-w-7xl mx-auto px-4 sm:px-8 py-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] overflow-x-auto no-scrollbar whitespace-nowrap">
                             <a href="{{ route('admin.dashboard') }}" class="hover:text-indigo-600 transition-colors">Dashboard</a>
                             <i class="ri-arrow-right-s-line text-xs"></i>
                             <a href="{{ route('admin.candidates.index') }}" class="hover:text-indigo-600 transition-colors">Candidates</a>
-                            <i class="ri-arrow-right-s-line text-xs"></i>
+                            <i class="ri-arrow-right-s-line text-xs text-slate-300"></i>
                             <span class="font-black text-slate-900">Edit Candidate</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-8 py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-8 py-8">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Main Content -->
                     <div class="lg:col-span-2 space-y-6">
                         <!-- Header -->
-                        <div class="flex items-start gap-5 mb-8">
-                            <div class="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-100">
-                                <i class="ri-user-settings-line text-white text-2xl"></i>
+                        <div class="flex items-start gap-4 sm:gap-5 mb-8">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-100">
+                                <i class="ri-user-settings-line text-white text-xl sm:text-2xl"></i>
                             </div>
-                            <div>
-                                <h1 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Edit Candidate</h1>
-                                <p class="text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">Update profile and assignments</p>
+                            <div class="min-w-0">
+                                <h1 class="text-xl sm:text-3xl font-black text-slate-900 uppercase tracking-tight truncate sm:whitespace-normal">Edit Candidate</h1>
+                                <p class="text-slate-500 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1">Update profile and assignments</p>
                             </div>
                         </div>
 
@@ -43,19 +43,19 @@
                             <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
                                 <div class="h-20 bg-gradient-to-r from-indigo-600 via-blue-500 to-indigo-600"></div>
                                 <div class="px-6 pb-6">
-                                    <div class="relative flex items-end gap-5 -mt-8">
-                                        <div class="w-20 h-20 bg-white rounded-2xl p-1 shadow-xl">
+                                    <div class="relative flex items-end gap-4 sm:gap-5 -mt-8">
+                                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl p-1 shadow-xl">
                                             <div class="w-full h-full bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 overflow-hidden">
                                                 @if($candidate->photo)
                                                     <img src="{{ asset('storage/' . $candidate->photo) }}" class="w-full h-full object-cover">
                                                 @else
-                                                    <i class="ri-user-edit-line text-3xl"></i>
+                                                    <i class="ri-user-edit-line text-2xl sm:text-3xl"></i>
                                                 @endif
                                             </div>
                                         </div>
-                                        <div class="flex-1 mb-1.5">
-                                            <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight">{{ $candidate->name }}</h1>
-                                            <p class="text-[9px] text-slate-500 font-bold tracking-widest uppercase mt-0.5">Reference ID: #{{ $candidate->id }}</p>
+                                        <div class="flex-1 mb-1.5 min-w-0">
+                                            <h1 class="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight truncate">{{ $candidate->name }}</h1>
+                                            <p class="text-[9px] text-slate-500 font-bold tracking-widest uppercase mt-0.5 truncate">Reference ID: #{{ $candidate->id }}</p>
                                         </div>
                                     </div>
                                 </div>

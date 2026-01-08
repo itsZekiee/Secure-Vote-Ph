@@ -7,35 +7,36 @@
         <main class="flex-1 min-w-0">
             <!-- Top Navigation Bar -->
             <div class="bg-white border-b border-slate-200 sticky top-0 z-40">
-                <div class="max-w-7xl mx-auto px-8 py-4">
+                <div class="max-w-7xl mx-auto px-4 sm:px-8 py-4">
                     <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-4 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                        <div class="flex items-center gap-4 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] overflow-x-auto no-scrollbar whitespace-nowrap mr-4">
                             <a href="{{ route('admin.dashboard') }}" class="hover:text-indigo-600 transition-colors">Dashboard</a>
                             <i class="ri-arrow-right-s-line text-sm"></i>
                             <a href="{{ route('admin.candidates.index') }}" class="hover:text-indigo-600 transition-colors">Candidates</a>
-                            <i class="ri-arrow-right-s-line text-sm"></i>
+                            <i class="ri-arrow-right-s-line text-sm text-slate-300"></i>
                             <span class="text-slate-900">Registration</span>
                         </div>
-                        <button type="button" @click="resetForm()" class="text-[9px] font-black text-slate-500 hover:text-red-500 flex items-center gap-2 transition-all uppercase tracking-widest bg-slate-100 px-4 py-2 rounded-lg">
+                        <button type="button" @click="resetForm()" class="text-[9px] font-black text-slate-500 hover:text-red-500 flex items-center gap-2 transition-all uppercase tracking-widest bg-slate-100 px-3 sm:px-4 py-2 rounded-lg flex-shrink-0">
                             <i class="ri-refresh-line"></i>
-                            Reset Form
+                            <span class="hidden xs:inline">Reset Form</span>
+                            <span class="xs:hidden">Reset</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-8 py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-8 py-8">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Main Content -->
                     <div class="lg:col-span-2 space-y-6">
                         <!-- Header -->
-                        <div class="flex items-start gap-5 mb-8">
-                            <div class="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center flex-shrink-0 shadow-xl shadow-slate-200">
-                                <i class="ri-user-add-fill text-white text-2xl"></i>
+                        <div class="flex items-start gap-4 sm:gap-5 mb-8">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-900 flex items-center justify-center flex-shrink-0 shadow-xl shadow-slate-200">
+                                <i class="ri-user-add-fill text-white text-xl sm:text-2xl"></i>
                             </div>
-                            <div>
-                                <h1 class="text-3xl font-black text-slate-900 uppercase tracking-tight">Candidate Registration</h1>
-                                <p class="text-slate-500 font-bold text-xs uppercase tracking-widest mt-1">Onboarding new candidates to the platform</p>
+                            <div class="min-w-0">
+                                <h1 class="text-xl sm:text-3xl font-black text-slate-900 uppercase tracking-tight truncate sm:whitespace-normal">Candidate Registration</h1>
+                                <p class="text-slate-500 font-bold text-[10px] sm:text-xs uppercase tracking-widest mt-1">Onboarding new candidates to the platform</p>
                             </div>
                         </div>
 
