@@ -206,6 +206,8 @@
 
             <form action="{{ route('voter.elections.submit', $election->code) }}" method="POST" id="voting-form">
                 @csrf
+                <input type="hidden" name="latitude" id="lat-input">
+                <input type="hidden" name="longitude" id="lng-input">
                 <div class="space-y-12">
                     @foreach($positions as $position)
                         <div class="position-card" data-position-id="{{ $position->id }}">
@@ -362,6 +364,27 @@
             const modalConfirm = document.getElementById('modal-confirm');
             const finalSubmitBtn = document.getElementById('final-submit-btn');
             const totalPositions = {{ $positions->count() }};
+            const requireGeo = {{ $election->require_geo_verification ? 'true' : 'false' }};
+
+            // Get location on load if required
+            if (requireGeo) {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            document.getElementById('lat-input').value = position.coords.latitude;
+                            document.getElementById('lng-input').value = position.coords.longitude;
+                            console.log('Location acquired:', position.coords.latitude, position.coords.longitude);
+                        },
+                        (error) => {
+                            console.error('Error getting location:', error);
+                            alert('This election requires geo-verification. Please enable location services to vote.');
+                        },
+                        { enableHighAccuracy: true }
+                    );
+                } else {
+                    alert('Geolocation is not supported by your browser.');
+                }
+            }
 
             function updateProgress() {
                 const selectedPositions = new Set();
@@ -486,11 +509,12 @@
                     body: formData,
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     }
                 })
-                .then(response => {
-                    if (response.ok || response.status === 302) {
+                .then(async response => {
+                    if (response.ok) {
                         // Successfully cast vote
                         summaryModal.classList.add('hidden');
                         document.getElementById('success-screen').style.display = 'flex';
@@ -499,9 +523,8 @@
                             window.location.href = "{{ route('voter.elections.welcome', $election->code) }}";
                         }, 3000);
                     } else {
-                        return response.json().then(data => {
-                            throw new Error(data.message || 'Something went wrong');
-                        });
+                        const data = await response.json();
+                        throw new Error(data.message || data.error || 'Something went wrong');
                     }
                 })
                 .catch(error => {

@@ -14,10 +14,16 @@ return new class extends Migration
         }
 
         if (Schema::hasColumn('candidates', 'election_id')) {
-            try {
-                DB::statement('ALTER TABLE `candidates` MODIFY `election_id` bigint unsigned NULL');
-            } catch (\Throwable $e) {
-                // ignore if MODIFY not supported on this platform/version
+            if (DB::getDriverName() === 'sqlite') {
+                Schema::table('candidates', function (Blueprint $table) {
+                    $table->unsignedBigInteger('election_id')->nullable()->change();
+                });
+            } else {
+                try {
+                    DB::statement('ALTER TABLE `candidates` MODIFY `election_id` bigint unsigned NULL');
+                } catch (\Throwable $e) {
+                    // ignore if MODIFY not supported on this platform/version
+                }
             }
         } else {
             Schema::table('candidates', function (Blueprint $table) {

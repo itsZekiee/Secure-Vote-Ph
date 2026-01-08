@@ -152,7 +152,11 @@ class VoterElectionController extends Controller
 
         if ($election->require_geo_verification) {
             if (!$request->latitude || !$request->longitude) {
-                return back()->withErrors(['error' => 'Location access is required to submit your vote. Please enable GPS.']);
+                $msg = 'Location access is required to submit your vote. Please enable GPS.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return back()->withErrors(['error' => $msg]);
             }
 
             $distance = $this->calculateDistance(
@@ -163,7 +167,11 @@ class VoterElectionController extends Controller
             );
 
             if ($distance > ($election->geo_radius_meters + 10)) { // Add 10m buffer for GPS accuracy
-                return back()->withErrors(['error' => 'You are currently outside the designated voting area. (Distance: ' . round($distance) . 'm, Allowed: ' . $election->geo_radius_meters . 'm). You must return to the designated area to submit your vote.']);
+                $msg = 'You are currently outside the designated voting area. (Distance: ' . round($distance) . 'm, Allowed: ' . $election->geo_radius_meters . 'm). You must return to the designated area to submit your vote.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return back()->withErrors(['error' => $msg]);
             }
         }
 
@@ -171,8 +179,12 @@ class VoterElectionController extends Controller
 
         // Check if already voted
         if ($this->checkIfVoted($election->id, $voter['id'])) {
+            $msg = 'You have already voted in this election.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
             return redirect()->route('voter.elections.welcome', $election->code)
-                ->withErrors(['error' => 'You have already voted in this election.']);
+                ->withErrors(['error' => $msg]);
         }
 
         // Record votes
@@ -199,6 +211,10 @@ class VoterElectionController extends Controller
                     ]);
                 }
             }
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Your vote has been recorded successfully!']);
         }
 
         return redirect()->route('voter.elections.welcome', $election->code)

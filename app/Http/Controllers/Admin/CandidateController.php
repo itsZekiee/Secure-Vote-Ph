@@ -47,6 +47,13 @@ class CandidateController extends Controller
      */
     private function canUserManageCandidate(Candidate $candidate): bool
     {
+        $user = auth()->user();
+
+        // Admin can manage everything
+        if ($user && ($user->isAdmin() || $user->hasRole('admin'))) {
+            return true;
+        }
+
         if ($candidate->created_by === auth()->id()) {
             return true;
         }
@@ -380,6 +387,9 @@ class CandidateController extends Controller
             ? Partylist::where('status', 'active')->get()
             : Partylist::all();
 
+        // Added organizations because edit.blade.php requires it
+        $organizations = Organization::all();
+
         try {
             $positions = $this->positionsQuery()->get();
         } catch (\Throwable $e) {
@@ -387,7 +397,15 @@ class CandidateController extends Controller
             $positions = Position::all();
         }
 
-        return view('main-admin.candidate.edit', compact('candidate', 'users', 'elections', 'partylists', 'positions'));
+        return view('main-admin.candidate.edit', compact('candidate', 'users', 'elections', 'partylists', 'positions', 'organizations'));
+    }
+
+    /**
+     * Display the candidate profile (alias for show)
+     */
+    public function profile(string $id)
+    {
+        return $this->show($id);
     }
 
     /**
@@ -397,11 +415,16 @@ class CandidateController extends Controller
     {
         $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
             return back()->withErrors(['general' => 'Unauthorized']);
         }
 
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_name' => 'nullable|string', // Support for x-model="formData.user_name"
+            'user_email' => 'nullable|email', // Support for x-model="formData.user_email"
+            'organization_id' => 'nullable|exists:organizations,id',
             'election_id' => 'nullable|exists:elections,id',
             'position_id' => 'required|exists:positions,id',
             'partylist_id' => 'nullable|exists:partylists,id',
@@ -413,15 +436,11 @@ class CandidateController extends Controller
         try {
             DB::beginTransaction();
 
-            $existingCandidate = Candidate::where('user_id', $validated['user_id'])
-                ->where('election_id', $validated['election_id'])
-                ->where('position_id', $validated['position_id'])
-                ->where('id', '!=', $candidate->id)
-                ->first();
-
-            if ($existingCandidate) {
-                return back()->withErrors(['user_id' => 'This user is already a candidate for this position in this election'])
-                    ->withInput();
+            // Handle user name/email updates if provided
+            if ($candidate->user) {
+                if ($request->has('user_name')) $candidate->user->update(['name' => $validated['user_name']]);
+                // Email update might be sensitive, usually handled separately, but following the form's lead
+                if ($request->has('user_email')) $candidate->user->update(['email' => $validated['user_email']]);
             }
 
             if ($request->hasFile('photo')) {
@@ -437,11 +456,23 @@ class CandidateController extends Controller
 
             DB::commit();
 
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Candidate updated successfully.',
+                    'candidate' => $candidate
+                ]);
+            }
+
             return redirect()->route('admin.candidates.index')
                 ->with('success', 'Candidate updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('CandidateController@update error: '.$e->getMessage());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
 
             return back()->withErrors(['general' => 'An error occurred while updating the candidate'])
                 ->withInput();
@@ -451,10 +482,13 @@ class CandidateController extends Controller
     /**
      * Remove the specified candidate from storage
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
             return back()->withErrors(['general' => 'Unauthorized']);
         }
 
@@ -462,6 +496,9 @@ class CandidateController extends Controller
             DB::beginTransaction();
 
             if ($candidate->votes()->count() > 0) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Cannot delete candidate with existing votes'], 422);
+                }
                 return back()->withErrors(['general' => 'Cannot delete candidate with existing votes']);
             }
 
@@ -473,11 +510,22 @@ class CandidateController extends Controller
 
             DB::commit();
 
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Candidate deleted successfully.'
+                ]);
+            }
+
             return redirect()->route('admin.candidates.index')
                 ->with('success', 'Candidate deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('CandidateController@destroy error: '.$e->getMessage());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'An error occurred while deleting the candidate'], 500);
+            }
 
             return back()->withErrors(['general' => 'An error occurred while deleting the candidate']);
         }
