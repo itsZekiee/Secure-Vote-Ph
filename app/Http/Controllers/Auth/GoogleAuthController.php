@@ -45,20 +45,30 @@ class GoogleAuthController extends Controller
                 ], 400);
             }
 
-            // Find or create user
-            $user = User::where('email', $jwtPayload->email)->first();
+            // 1. Try to find the user by google_id first
+            $user = User::where('google_id', $jwtPayload->sub)->first();
 
             if (!$user) {
-                $user = User::create([
-                    'name' => $jwtPayload->name ?? 'Google User',
-                    'email' => $jwtPayload->email,
-                    'password' => Hash::make(Str::random(24)),
-                    'email_verified_at' => now(),
-                    'google_id' => $jwtPayload->sub ?? null,
-                    'role' => User::ROLE_ADMIN, // Default to Admin if they sign up via landing page?
-                    // Actually, let's keep it role-aware.
-                    // Usually landing page signups are intended to be Admins/Org owners.
-                ]);
+                // 2. If not found by google_id, try to find by email
+                $user = User::where('email', $jwtPayload->email)->first();
+
+                if ($user) {
+                    // 3. If found by email, link the Google account
+                    $user->update([
+                        'google_id' => $jwtPayload->sub,
+                        'email_verified_at' => $user->email_verified_at ?? now(),
+                    ]);
+                } else {
+                    // 4. If still not found, create a new user
+                    $user = User::create([
+                        'name' => $jwtPayload->name ?? 'Google User',
+                        'email' => $jwtPayload->email,
+                        'password' => Hash::make(Str::random(24)),
+                        'email_verified_at' => now(),
+                        'google_id' => $jwtPayload->sub,
+                        'role' => User::ROLE_ADMIN, // Default to Admin for now, as requested for admins
+                    ]);
+                }
             }
 
             Auth::login($user);

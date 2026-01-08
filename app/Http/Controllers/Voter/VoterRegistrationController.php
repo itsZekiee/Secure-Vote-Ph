@@ -98,11 +98,15 @@ class VoterRegistrationController extends Controller
             'email' => $request->email,
             'student_id' => $request->student_id ?? null,
             'password' => Hash::make($request->password),
-            'registration_status' => 'pending',
+            'registration_status' => $election->auto_approve_voters ? 'approved' : 'pending',
         ]);
 
+        $msg = $election->auto_approve_voters
+            ? 'Registration successful! You can now Sign In.'
+            : 'Registration submitted! Please wait 1 to 24 hours for admin approval of your registration before you can Sign In.';
+
         return redirect()->route('voter.registration.index', $election->code)
-            ->with('success', 'Registration submitted! Please wait 1 to 24 hours for admin approval of your registration before you can Sign In.');
+            ->with('success', $msg);
     }
 
     /**
@@ -149,7 +153,7 @@ class VoterRegistrationController extends Controller
             return back()->withErrors(['login' => 'Invalid email or password.']);
         }
 
-        if ($voter->registration_status === 'pending') {
+        if ($voter->registration_status === 'pending' && !$election->auto_approve_voters) {
             return back()->withErrors(['login' => 'Your registration is still pending approval. Please wait 1 to 24 hours.']);
         }
 

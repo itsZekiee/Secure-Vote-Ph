@@ -36,6 +36,8 @@ class Store extends Controller
                 'geo_longitude' => 'nullable|numeric',
                 'geo_radius_meters' => 'nullable|numeric',
                 'enable_geo_location' => 'nullable',
+                'enable_geo_registration' => 'nullable',
+                'auto_approve_voters' => 'nullable',
             ]);
 
             DB::beginTransaction();
@@ -57,6 +59,8 @@ class Store extends Controller
                 'geo_longitude' => $validated['geo_longitude'] ?? null,
                 'geo_radius_meters' => $validated['geo_radius_meters'] ?? null,
                 'require_geo_verification' => $request->boolean('enable_geo_location'),
+                'require_geo_registration' => $request->boolean('enable_geo_registration'),
+                'auto_approve_voters' => $request->boolean('auto_approve_voters'),
                 'accepted_domains' => $validated['accepted_domains'] ?? null,
                 'max_votes' => $validated['max_votes'] ?? 1,
             ]);

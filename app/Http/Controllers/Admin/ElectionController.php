@@ -71,6 +71,7 @@ class ElectionController extends Controller
                 'geo_latitude' => 'nullable|numeric',
                 'geo_longitude' => 'nullable|numeric',
                 'geo_radius' => 'nullable|numeric',
+                'auto_approve_voters' => 'nullable|boolean',
             ]);
 
             DB::beginTransaction();
@@ -91,6 +92,7 @@ class ElectionController extends Controller
                 'geo_radius_meters' => $request->geo_radius,
                 'require_geo_verification' => $request->boolean('enable_geo_location'),
                 'require_geo_registration' => $request->boolean('enable_geo_registration'),
+                'auto_approve_voters' => $request->boolean('auto_approve_voters'),
             ]);
 
             foreach ($validated['positions'] as $positionData) {
@@ -206,8 +208,8 @@ class ElectionController extends Controller
     public function update(Request $request, string $id)
     {
         $election = Election::findOrFail($id);
-        if ($election->created_by !== auth()->id()) {
-            return back()->withErrors(['general' => 'Only the election creator can edit it']);
+        if (!$this->canUserManageElection($election)) {
+            return back()->withErrors(['general' => 'You do not have permission to edit this election']);
         }
 
         $validated = $request->validate([
@@ -225,6 +227,7 @@ class ElectionController extends Controller
             'geo_latitude' => 'nullable|numeric',
             'geo_longitude' => 'nullable|numeric',
             'geo_radius' => 'nullable|numeric',
+            'auto_approve_voters' => 'nullable|boolean',
             'sub_admin_ids' => 'nullable|array',
             'sub_admin_ids.*' => 'exists:users,id',
             'positions' => 'nullable|array',
@@ -255,6 +258,7 @@ class ElectionController extends Controller
                 'geo_radius_meters' => $request->geo_radius ?? $election->geo_radius_meters,
                 'require_geo_verification' => $request->boolean('enable_geo_location'),
                 'require_geo_registration' => $request->boolean('enable_geo_registration'),
+                'auto_approve_voters' => $request->boolean('auto_approve_voters'),
             ]);
 
             if (!empty($validated['sub_admin_ids'])) {
