@@ -195,26 +195,33 @@
                                         <div class="flex gap-4">
                                             <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">1</div>
                                             <div>
+                                                <h4 class="font-bold text-slate-800">Enable Location Access</h4>
+                                                <p class="text-slate-500 text-sm">Always allow your browser to track your location to use our website and verify your voting eligibility.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-4">
+                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">2</div>
+                                            <div>
                                                 <h4 class="font-bold text-slate-800">Enter Access Details</h4>
                                                 <p class="text-slate-500 text-sm">Use your unique 6-digit election code or the voting link provided by your organization.</p>
                                             </div>
                                         </div>
                                         <div class="flex gap-4">
-                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">2</div>
+                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">3</div>
                                             <div>
                                                 <h4 class="font-bold text-slate-800">Verify Identity</h4>
                                                 <p class="text-slate-500 text-sm">Sign in with your registered voter credentials to verify your eligibility.</p>
                                             </div>
                                         </div>
                                         <div class="flex gap-4">
-                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">3</div>
+                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">4</div>
                                             <div>
                                                 <h4 class="font-bold text-slate-800">Cast Your Vote</h4>
                                                 <p class="text-slate-500 text-sm">Select your preferred candidates for each position and review your choices.</p>
                                             </div>
                                         </div>
                                         <div class="flex gap-4">
-                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">4</div>
+                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">5</div>
                                             <div>
                                                 <h4 class="font-bold text-slate-800">Submit Securely</h4>
                                                 <p class="text-slate-500 text-sm">Once submitted, your vote is encrypted and anonymously recorded in the system.</p>

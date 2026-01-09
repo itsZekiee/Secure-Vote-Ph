@@ -173,17 +173,32 @@
 
                     <!-- Action Buttons -->
                     <div class="flex flex-wrap gap-6">
-                        @if($hasVoted)
+                        @php
+                            $maxVotes = $election->max_votes ?? 1;
+                            $ballotCount = \App\Models\Vote::where('election_id', $election->id)
+                                ->where('voter_id', $voter['id'])
+                                ->distinct('ballot_id')
+                                ->count('ballot_id');
+                            $hasRemainingVotes = $ballotCount < $maxVotes;
+                        @endphp
+
+                        @if(!$hasRemainingVotes)
                             <div class="px-10 py-5 bg-slate-100 text-slate-500 rounded-2xl font-bold flex items-center gap-3">
                                 <i class="fas fa-check-circle text-emerald-500"></i>
-                                VOTE ALREADY SUBMITTED
+                                ALL VOTES SUBMITTED
                             </div>
                         @else
                             <a href="{{ route('voter.elections.vote', $election->code) }}"
                                id="voteBtn"
                                class="btn-start-voting px-12 py-6 rounded-[2rem] font-black flex items-center gap-4 shadow-2xl shadow-brand-accent/30 text-lg">
                                 <i class="fas fa-edit"></i>
-                                <span id="voteBtnText">START VOTING</span>
+                                <span id="voteBtnText">
+                                    @if($ballotCount > 0)
+                                        CAST ANOTHER VOTE ({{ $maxVotes - $ballotCount }} REMAINING)
+                                    @else
+                                        START VOTING
+                                    @endif
+                                </span>
                             </a>
                         @endif
 
