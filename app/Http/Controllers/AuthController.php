@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+
 
 class AuthController extends Controller
 {
@@ -24,16 +26,33 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
-            $request->session()->regenerate();
 
-            Log::info('Login successful', [
-                'user_id' => Auth::id(),
-                'email' => Auth::user()->email
+            $user = Auth::user();
+
+            // Send OTP using Supabase
+            Http::withHeaders([
+                'apikey' => config('services.supabase.service_key'),
+                'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
+            ])->post(config('services.supabase.url') . '/auth/v1/otp', [
+                        'email' => $user->email,
+                        'type' => 'email',
+                    ]);
+
+            // Logout temporarily until OTP is verified
+            Auth::logout();
+
+            // Store email for OTP verification
+            session([
+                'otp_email' => $user->email,
+                'remember_me' => $request->filled('remember')
             ]);
 
-            return redirect()->intended('/admin/dashboard')
-                ->with('success', 'Welcome back, ' . Auth::user()->name . '!');
+            Log::info('OTP sent', ['email' => $user->email]);
+
+            return redirect('/auth/otp')
+                ->with('success', 'We sent a verification code to your email.');
         }
+
 
         Log::warning('Login failed - Invalid credentials', ['email' => $request->email]);
 

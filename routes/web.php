@@ -19,6 +19,8 @@ use App\Http\Controllers\Voter\VoterRegistrationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Elections\Store as ElectionStoreController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\OtpController;
+use App\Http\Controllers\Auth\MagicLinkController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +36,11 @@ Route::get('/', function () {
 // Custom Authentication Routes for Welcome Page
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.submit');
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
+
+Route::get('/otp', [OtpController::class, 'show'])->name('otp.form');
+Route::post('/otp', [OtpController::class, 'verify'])->name('otp.verify');
+
+Route::get('/magic-link/callback', [MagicLinkController::class, 'handleMagicLink'])->name('magiclink.callback');
 
 // Authenticated user dashboard
 Route::get('/dashboard', [DashboardController::class, 'index'])
