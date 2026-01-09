@@ -40,6 +40,12 @@ Route::post('/register', [RegisteredUserController::class, 'store'])->name('regi
 Route::get('/otp', [OtpController::class, 'show'])->name('otp.form');
 Route::post('/otp', [OtpController::class, 'verify'])->name('otp.verify');
 
+Route::middleware('guest')->group(function () {
+    Route::get('otp', [OtpController::class, 'show'])->name('otp.form');
+    Route::post('otp', [OtpController::class, 'verify'])->name('otp.verify');
+});
+
+
 Route::get('/magic-link/callback', [MagicLinkController::class, 'handleMagicLink'])->name('magiclink.callback');
 
 // Authenticated user dashboard
