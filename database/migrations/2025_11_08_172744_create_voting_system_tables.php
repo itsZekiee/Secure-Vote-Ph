@@ -128,17 +128,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Failed logins table
-        Schema::create('failed_logins', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('election_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('ip_address');
-            $table->timestamps();
-        });
-
-
-
     }
 
 
