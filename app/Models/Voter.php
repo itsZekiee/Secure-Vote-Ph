@@ -23,10 +23,18 @@ class Voter extends Model
         'password',
         'election_id',
         'registration_status',
+        'failed_login_attempts',
+        'locked_until',
+        'is_permanently_blocked',
     ];
 
     protected $hidden = [
         'password',
+    ];
+
+    protected $casts = [
+        'locked_until' => 'datetime',
+        'is_permanently_blocked' => 'boolean',
     ];
 
     public function election()

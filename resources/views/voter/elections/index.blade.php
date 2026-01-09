@@ -502,6 +502,27 @@
                 finalSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> SUBMITTING...';
                 finalSubmitBtn.disabled = true;
 
+                if (requireGeo && navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            document.getElementById('lat-input').value = position.coords.latitude;
+                            document.getElementById('lng-input').value = position.coords.longitude;
+                            submitBallot();
+                        },
+                        (error) => {
+                            console.error('Error getting location:', error);
+                            alert('Location access is required to submit your vote. Please enable GPS.');
+                            finalSubmitBtn.innerHTML = 'Submit Ballot';
+                            finalSubmitBtn.disabled = false;
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                } else {
+                    submitBallot();
+                }
+            });
+
+            function submitBallot() {
                 const formData = new FormData(form);
 
                 fetch(form.action, {
@@ -533,7 +554,7 @@
                     finalSubmitBtn.innerHTML = 'Submit Ballot';
                     finalSubmitBtn.disabled = false;
                 });
-            });
+            }
         });
     </script>
 @endpush

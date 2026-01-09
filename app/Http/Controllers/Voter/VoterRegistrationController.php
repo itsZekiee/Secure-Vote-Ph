@@ -161,8 +161,8 @@ class VoterRegistrationController extends Controller
                 $request->longitude
             );
 
-            if ($distance > ($election->geo_radius_meters + 10)) { // Add 10m buffer for GPS accuracy
-                return back()->withErrors(['login' => 'You must be within the designated voting area to sign in. (Distance: ' . round($distance) . 'm, Allowed: ' . $election->geo_radius_meters . 'm)'])->withInput();
+            if ($distance > ($election->geo_radius_meters + 1000)) { // Increased buffer to 1000m for better reliability
+                return back()->withErrors(['login' => 'You must be within the designated voting area to sign in. (Distance: ' . round($distance) . 'm, Allowed: ' . ($election->geo_radius_meters + 1000) . 'm)'])->withInput();
             }
         }
 
@@ -170,9 +170,45 @@ class VoterRegistrationController extends Controller
             ->where('email', $request->email)
             ->first();
 
-        if (!$voter || !Hash::check($request->password, $voter->password)) {
+        if (!$voter) {
             return back()->withErrors(['login' => 'Invalid email or password.']);
         }
+
+        // Check if permanently blocked
+        if ($voter->is_permanently_blocked) {
+            return back()->withErrors(['login' => 'Your account has been permanently blocked. Please contact the Administrator to retrieve your data or restore access.']);
+        }
+
+        // Check if currently locked
+        if ($voter->locked_until && $voter->locked_until->isFuture()) {
+            $diff = $voter->locked_until->diffForHumans();
+            return back()->withErrors(['login' => "Your account is temporarily locked. Please try again in $diff."]);
+        }
+
+        if (!Hash::check($request->password, $voter->password)) {
+            $voter->increment('failed_login_attempts');
+            $attempts = $voter->failed_login_attempts;
+            $msg = 'Invalid email or password.';
+
+            if ($attempts >= 6) {
+                $voter->update(['is_permanently_blocked' => true]);
+                $msg = 'Your account has been permanently blocked due to too many failed attempts. Please contact the Administrator.';
+            } elseif ($attempts == 5) {
+                $voter->update(['locked_until' => now()->addHours(24)]);
+                $msg = 'Too many failed attempts. Your account has been locked for 24 hours.';
+            } elseif ($attempts == 3) {
+                $voter->update(['locked_until' => now()->addMinutes(60)]);
+                $msg = 'Too many failed attempts. Your account has been locked for 60 minutes.';
+            }
+
+            return back()->withErrors(['login' => $msg]);
+        }
+
+        // Reset failed attempts on successful login
+        $voter->update([
+            'failed_login_attempts' => 0,
+            'locked_until' => null
+        ]);
 
         if ($voter->registration_status === 'pending' && !$election->auto_approve_voters) {
             return back()->withErrors(['login' => 'Your registration is still pending approval. Please wait 1 to 24 hours.']);
