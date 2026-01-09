@@ -14,7 +14,11 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'first_name',
+        'middle_name',
+        'last_name',
         'email',
+        'username',
         'password',
         'google_id',
         'organization_id',
@@ -23,7 +27,10 @@ class User extends Authenticatable
         'profile_photo',
         'phone',
         'position',
-        'department'
+        'department',
+        'failed_login_attempts',
+        'locked_until',
+        'is_permanently_blocked',
     ];
 
     protected $hidden = [
@@ -35,6 +42,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'is_active' => 'boolean',
+        'locked_until' => 'datetime',
+        'is_permanently_blocked' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'

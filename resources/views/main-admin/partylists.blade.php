@@ -105,20 +105,20 @@
 
             <!-- Top Navigation Bar -->
             <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-40">
-                <div class="px-8 py-4">
-                    <div class="flex items-center justify-between">
+                <div class="px-4 lg:px-8 py-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div class="flex items-center space-x-4">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <div class="w-10 h-10 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                                     <i class="ri-stack-line text-white text-lg"></i>
                                 </div>
-                                <div>
-                                    <h2 class="text-xl font-bold text-gray-900">Party Lists</h2>
-                                    <p class="text-sm text-gray-600">Manage your organization's party lists</p>
+                                <div class="min-w-0">
+                                    <h2 class="text-xl font-bold text-gray-900 truncate">Party Lists</h2>
+                                    <p class="text-sm text-gray-600 hidden sm:block">Manage your organization's party lists</p>
                                 </div>
                             </div>
-                            <div class="h-8 w-px bg-gray-200"></div>
-                            <nav class="flex items-center space-x-2 text-sm">
+                            <div class="h-8 w-px bg-gray-200 hidden md:block"></div>
+                            <nav class="hidden md:flex items-center space-x-2 text-sm">
                                 <span class="text-gray-500">Admin</span>
                                 <i class="ri-arrow-right-s-line text-gray-400"></i>
                                 <span class="text-gray-900 font-semibold">Party Lists</span>
@@ -133,11 +133,7 @@
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <span class="font-semibold text-green-600" x-text="filteredPartylists.filter(p => p.status === 'active').length"></span>
-                                    <span class="text-gray-600">Active</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="font-semibold text-amber-600" x-text="filteredPartylists.filter(p => p.status === 'pending').length"></span>
-                                    <span class="text-gray-600">Pending</span>
+                                    <span class="text-gray-600 uppercase text-[10px] tracking-tight">Active</span>
                                 </div>
                             </div>
                         </div>
@@ -146,35 +142,35 @@
             </div>
 
             <!-- Content -->
-            <div class="px-6 py-6">
+            <div class="px-4 sm:px-6 py-6">
                 <div class="max-w-7xl mx-auto">
                     <!-- Search and Filter Section -->
                     <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden mb-6">
                         <!-- Header with Action Button -->
                         <div class="px-6 py-4 border-b border-gray-200/60 bg-gradient-to-r from-purple-50/50 via-indigo-50/50 to-blue-50/50">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-white/80 rounded-lg flex items-center justify-center shadow-sm border border-gray-200/50">
-                                        <i class="ri-search-line text-gray-600"></i>
+                                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-white/80 rounded-lg flex items-center justify-center shadow-sm border border-gray-200/50">
+                                            <i class="ri-search-line text-gray-600"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-base font-bold text-gray-900">Search & Filter</h3>
+                                            <p class="text-[11px] text-gray-500 font-medium">Find and manage party lists</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 class="text-base font-bold text-gray-900">Search & Filter</h3>
-                                        <p class="text-[11px] text-gray-500 font-medium">Find and manage party lists</p>
-                                    </div>
+                                    <a href="{{ route('admin.partylists.create') }}"
+                                       class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-md active:scale-95">
+                                        <i class="ri-add-line mr-1.5 text-sm"></i>
+                                        New Party List
+                                    </a>
                                 </div>
-                                <a href="{{ route('admin.partylists.create') }}"
-                                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
-                                    <i class="ri-add-line mr-1.5"></i>
-                                    New Party List
-                                </a>
-                            </div>
                         </div>
 
                         <!-- Filter Controls -->
-                        <div class="p-6">
-                            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div class="p-4 sm:p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                                 <!-- Search Box -->
-                                <div class="lg:col-span-1">
+                                <div class="md:col-span-2 lg:col-span-1">
                                     <label class="block text-xs font-bold text-gray-800 mb-2">
                                         <i class="ri-search-line text-purple-600 mr-1.5"></i>
                                         Search
@@ -191,7 +187,7 @@
                                 </div>
 
                                 <!-- Sort By Filter -->
-                                <div class="lg:col-span-1">
+                                <div>
                                     <label class="block text-xs font-bold text-gray-800 mb-2">
                                         <i class="ri-sort-asc text-purple-600 mr-1.5"></i>
                                         Sort By
@@ -212,7 +208,7 @@
                                 </div>
 
                                 <!-- Status Filter -->
-                                <div class="lg:col-span-1">
+                                <div>
                                     <label class="block text-xs font-bold text-gray-800 mb-2">
                                         <i class="ri-checkbox-circle-line text-purple-600 mr-1.5"></i>
                                         Status
@@ -232,7 +228,7 @@
                                 </div>
 
                                 <!-- Election Filter -->
-                                <div class="lg:col-span-1">
+                                <div>
                                     <label class="block text-xs font-bold text-gray-800 mb-2">
                                         <i class="ri-calendar-event-line text-purple-600 mr-1.5"></i>
                                         Election
@@ -252,7 +248,7 @@
                                 </div>
                             </div>
 
-                            <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+                                <div class="mt-6 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div class="flex items-center space-x-2">
                                     <i class="ri-file-list-3-line text-purple-600 text-sm"></i>
                                     <span class="text-xs font-semibold text-gray-600">
@@ -260,11 +256,11 @@
                                     </span>
                                 </div>
                                 <button @click="clearAllFilters()"
-                                        class="inline-flex items-center px-3 py-1.5 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                                        class="w-full sm:w-auto inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
                                     <i class="ri-refresh-line mr-1.5"></i>
                                     Reset
                                 </button>
-                            </div>
+                                </div>
                         </div>
                     </div>
 
@@ -339,17 +335,16 @@
                             </table>
                         </div>
 
-                        <!-- Footer -->
-                        <div class="px-6 py-4 border-t border-gray-100 bg-white flex items-center justify-between text-sm text-gray-600">
-                            <div>Showing <span class="font-semibold" x-text="filteredPartylists.length"></span> of <span x-text="allPartylists.length"></span> results</div>
-                            <div class="flex items-center space-x-3">
-                                <button @click="filteredPartylists = filteredPartylists.slice().reverse()"
-                                        class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium hover:bg-gray-50">
-                                    <i class="ri-sort-desc mr-1"></i>
-                                    Toggle Order
-                                </button>
-                            </div>
-                        </div>
+                                <div class="px-6 py-4 border-t border-gray-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-600">
+                                    <div>Showing <span class="font-semibold" x-text="filteredPartylists.length"></span> of <span x-text="allPartylists.length"></span> results</div>
+                                    <div class="flex items-center space-x-3 w-full sm:w-auto">
+                                        <button @click="filteredPartylists = filteredPartylists.slice().reverse()"
+                                                class="w-full sm:w-auto px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors">
+                                            <i class="ri-sort-desc mr-1"></i>
+                                            Toggle Order
+                                        </button>
+                                    </div>
+                                </div>
                     </div>
                 </div>
             </div>

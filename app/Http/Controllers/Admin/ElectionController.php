@@ -284,7 +284,7 @@ class ElectionController extends Controller
                 foreach ($validated['positions'] as $pIdx => $pData) {
                     $position = $election->positions()->updateOrCreate(
                         ['id' => $pData['id'] ?? null],
-                        ['name' => $pData['name'], 'order' => $pIdx + 1, 'title' => $pData['name']]
+                        ['title' => $pData['name'], 'order' => $pIdx + 1]
                     );
 
                     if (isset($pData['candidates'])) {

@@ -113,20 +113,20 @@
 
             <!-- Top Navigation Bar -->
             <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-40">
-                <div class="px-8 py-4">
-                    <div class="flex items-center justify-between">
+                <div class="px-4 lg:px-8 py-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div class="flex items-center space-x-4">
                             <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
                                     <i class="ri-building-line text-white text-lg"></i>
                                 </div>
-                                <div>
-                                    <h2 class="text-xl font-bold text-gray-900">Organizations</h2>
-                                    <p class="text-sm text-gray-600">Manage institutional entities</p>
+                                <div class="min-w-0">
+                                    <h2 class="text-xl font-bold text-gray-900 truncate">Organizations</h2>
+                                    <p class="text-sm text-gray-600 hidden sm:block">Manage institutional entities</p>
                                 </div>
                             </div>
-                            <div class="h-8 w-px bg-gray-200"></div>
-                            <nav class="flex items-center space-x-2 text-sm">
+                            <div class="h-8 w-px bg-gray-200 hidden md:block"></div>
+                            <nav class="hidden md:flex items-center space-x-2 text-sm">
                                 <span class="text-gray-500">Admin</span>
                                 <i class="ri-arrow-right-s-line text-gray-400"></i>
                                 <span class="text-gray-900 font-semibold">Organizations</span>
@@ -137,11 +137,11 @@
                             <div class="flex items-center space-x-6 text-sm">
                                 <div class="flex items-center space-x-2">
                                     <span class="font-semibold text-gray-900" x-text="filteredOrganizations.length"></span>
-                                    <span class="text-gray-600">Total</span>
+                                    <span class="text-gray-600 uppercase text-[10px] font-bold tracking-tight">Total</span>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <span class="font-semibold text-green-600" x-text="filteredOrganizations.filter(o => o.status === 'active').length"></span>
-                                    <span class="text-gray-600">Active</span>
+                                    <span class="text-gray-600 uppercase text-[10px] font-bold tracking-tight">Active</span>
                                 </div>
                             </div>
                         </div>
@@ -150,13 +150,13 @@
             </div>
 
             <!-- Content -->
-            <div class="px-6 py-6">
+            <div class="px-4 sm:px-6 py-6">
                 <div class="max-w-7xl mx-auto">
                     <!-- Search and Filter Section -->
                     <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden mb-6">
                         <!-- Header with Action Button -->
                         <div class="px-6 py-4 border-b border-gray-200/60 bg-gradient-to-r from-blue-50/50 via-indigo-50/50 to-slate-50/50">
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-10 h-10 bg-white/80 rounded-lg flex items-center justify-center shadow-sm border border-gray-200/50">
                                         <i class="ri-search-line text-gray-600"></i>
@@ -167,18 +167,18 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.organizations.create') }}"
-                                   class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-sm">
-                                    <i class="ri-add-line mr-1.5"></i>
+                                   class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-md active:scale-95">
+                                    <i class="ri-add-line mr-1.5 text-sm"></i>
                                     New Organization
                                 </a>
                             </div>
                         </div>
 
                         <!-- Filter Controls -->
-                        <div class="p-6">
-                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="p-4 sm:p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                 <!-- Search Box -->
-                                <div class="lg:col-span-1">
+                                <div class="md:col-span-2 lg:col-span-1">
                                     <label class="block text-xs font-bold text-gray-800 mb-2">
                                         <i class="ri-search-line text-indigo-600 mr-1.5"></i>
                                         Search
@@ -235,7 +235,7 @@
                                 </div>
                             </div>
 
-                            <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+                                <div class="mt-6 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div class="flex items-center space-x-2">
                                     <i class="ri-file-list-3-line text-indigo-600"></i>
                                     <span class="text-xs font-semibold text-gray-600">
@@ -243,17 +243,18 @@
                                     </span>
                                 </div>
                                 <button @click="clearAllFilters()"
-                                        class="inline-flex items-center px-3 py-1.5 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                                        class="w-full sm:w-auto inline-flex items-center justify-center px-3 py-1.5 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
                                     <i class="ri-refresh-line mr-1.5"></i>
                                     Reset
                                 </button>
-                            </div>
+                                </div>
                         </div>
                     </div>
 
-                    <!-- Organizations Table -->
+                    <!-- Organizations Table (Desktop) / Cards (Mobile) -->
                     <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden">
-                        <div class="responsive-table-container">
+                        <!-- Desktop View -->
+                        <div class="hidden md:block overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-slate-50/50">
                                 <tr class="text-left">
@@ -308,6 +309,50 @@
                                 </template>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Mobile View (Cards) -->
+                        <div class="md:hidden divide-y divide-gray-100">
+                            <template x-for="org in filteredOrganizations" :key="org.id">
+                                <div class="p-4 space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100">
+                                                <i class="ri-building-4-line text-xl"></i>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <p class="font-bold text-slate-900 text-base truncate" x-text="org.name"></p>
+                                                <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest" x-text="org.slug || 'no-slug'"></p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <a :href="`/admin/organizations/${org.id}`"
+                                               class="w-9 h-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 shadow-sm">
+                                                <i class="ri-eye-line text-sm"></i>
+                                            </a>
+                                            <a :href="`/admin/organizations/${org.id}/edit`"
+                                               class="w-9 h-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 shadow-sm">
+                                                <i class="ri-edit-line text-sm"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                                            <span :class="org.status === 'active' ? 'text-emerald-600' : 'text-slate-500'"
+                                                  class="text-xs font-bold uppercase" x-text="org.status || 'inactive'"></span>
+                                        </div>
+                                        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 text-center">
+                                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Members</p>
+                                            <p class="text-xs font-bold text-slate-700" x-text="org.members_count || 0"></p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-indigo-50/50 p-2.5 rounded-lg border border-indigo-100">
+                                        <p class="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Registered On</p>
+                                        <p class="text-xs font-bold text-indigo-700" x-text="org.created_at ? new Date(org.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'"></p>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>

@@ -47,6 +47,13 @@ class CandidateController extends Controller
      */
     private function canUserManageCandidate(Candidate $candidate): bool
     {
+        $user = auth()->user();
+
+        // Admin can manage everything
+        if ($user && ($user->isAdmin() || $user->hasRole('admin'))) {
+            return true;
+        }
+
         if ($candidate->created_by === auth()->id()) {
             return true;
         }
@@ -182,20 +189,26 @@ class CandidateController extends Controller
                         ['organization_id' => $validated['organization_id'] ?? null]
                     );
                 } else {
-                    // If no election specified, check whether the DB allows NULL for positions.election_id
-                    $col = DB::select("SELECT IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='positions' AND COLUMN_NAME='election_id'");
-                    $isNullable = null;
-                    if (!empty($col) && is_array($col)) {
-                        $row = $col[0];
-                        // Column name casing varies by driver; check possible property names
-                        if (isset($row->IS_NULLABLE)) {
-                            $isNullable = $row->IS_NULLABLE;
-                        } elseif (isset($row->is_nullable)) {
-                            $isNullable = $row->is_nullable;
-                        }
+                    // Check whether the DB allows NULL for positions.election_id
+                    // Using Schema facade is more portable than raw SQL
+                    $isNullable = true; // Default to true based on migrations
+                    try {
+                        // Check if the column is NOT NULL
+                        // In Laravel 11+, we can use Schema::getColumnType or similar,
+                        // but a simple way to check is using Schema manager or just assuming nullable if migration says so.
+                        // However, to be safe and avoid the raw query:
+                        $isNullable = Schema::getConnection()
+                            ->getDoctrineSchemaManager()
+                            ->listTableDetails('positions')
+                            ->getColumn('election_id')
+                            ->getNotnull() === false;
+                    } catch (\Exception $e) {
+                        // Fallback: If we can't determine, check the migration history or just allow it.
+                        // In this project, we know it was made nullable.
+                        Log::warning("Could not determine nullability of positions.election_id: " . $e->getMessage());
                     }
 
-                    if ($isNullable === 'NO' || $isNullable === '0') {
+                    if ($isNullable === false) {
                         // Database requires election_id. Return validation error asking user to select an election.
                         DB::rollBack();
                         $message = 'Creating a new position requires selecting an election on this server. Please select an election or use an existing position.';
@@ -374,6 +387,9 @@ class CandidateController extends Controller
             ? Partylist::where('status', 'active')->get()
             : Partylist::all();
 
+        // Added organizations because edit.blade.php requires it
+        $organizations = Organization::all();
+
         try {
             $positions = $this->positionsQuery()->get();
         } catch (\Throwable $e) {
@@ -381,7 +397,15 @@ class CandidateController extends Controller
             $positions = Position::all();
         }
 
-        return view('main-admin.candidate.edit', compact('candidate', 'users', 'elections', 'partylists', 'positions'));
+        return view('main-admin.candidate.edit', compact('candidate', 'users', 'elections', 'partylists', 'positions', 'organizations'));
+    }
+
+    /**
+     * Display the candidate profile (alias for show)
+     */
+    public function profile(string $id)
+    {
+        return $this->show($id);
     }
 
     /**
@@ -391,11 +415,16 @@ class CandidateController extends Controller
     {
         $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
             return back()->withErrors(['general' => 'Unauthorized']);
         }
 
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'user_name' => 'nullable|string', // Support for x-model="formData.user_name"
+            'user_email' => 'nullable|email', // Support for x-model="formData.user_email"
+            'organization_id' => 'nullable|exists:organizations,id',
             'election_id' => 'nullable|exists:elections,id',
             'position_id' => 'required|exists:positions,id',
             'partylist_id' => 'nullable|exists:partylists,id',
@@ -407,15 +436,11 @@ class CandidateController extends Controller
         try {
             DB::beginTransaction();
 
-            $existingCandidate = Candidate::where('user_id', $validated['user_id'])
-                ->where('election_id', $validated['election_id'])
-                ->where('position_id', $validated['position_id'])
-                ->where('id', '!=', $candidate->id)
-                ->first();
-
-            if ($existingCandidate) {
-                return back()->withErrors(['user_id' => 'This user is already a candidate for this position in this election'])
-                    ->withInput();
+            // Handle user name/email updates if provided
+            if ($candidate->user) {
+                if ($request->has('user_name')) $candidate->user->update(['name' => $validated['user_name']]);
+                // Email update might be sensitive, usually handled separately, but following the form's lead
+                if ($request->has('user_email')) $candidate->user->update(['email' => $validated['user_email']]);
             }
 
             if ($request->hasFile('photo')) {
@@ -431,11 +456,23 @@ class CandidateController extends Controller
 
             DB::commit();
 
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Candidate updated successfully.',
+                    'candidate' => $candidate
+                ]);
+            }
+
             return redirect()->route('admin.candidates.index')
                 ->with('success', 'Candidate updated successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('CandidateController@update error: '.$e->getMessage());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
 
             return back()->withErrors(['general' => 'An error occurred while updating the candidate'])
                 ->withInput();
@@ -445,10 +482,13 @@ class CandidateController extends Controller
     /**
      * Remove the specified candidate from storage
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $candidate = Candidate::findOrFail($id);
         if (! $this->canUserManageCandidate($candidate)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
             return back()->withErrors(['general' => 'Unauthorized']);
         }
 
@@ -456,6 +496,9 @@ class CandidateController extends Controller
             DB::beginTransaction();
 
             if ($candidate->votes()->count() > 0) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Cannot delete candidate with existing votes'], 422);
+                }
                 return back()->withErrors(['general' => 'Cannot delete candidate with existing votes']);
             }
 
@@ -467,11 +510,22 @@ class CandidateController extends Controller
 
             DB::commit();
 
+            if ($request->ajax() || $request->wantsJson() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Candidate deleted successfully.'
+                ]);
+            }
+
             return redirect()->route('admin.candidates.index')
                 ->with('success', 'Candidate deleted successfully.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('CandidateController@destroy error: '.$e->getMessage());
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'An error occurred while deleting the candidate'], 500);
+            }
 
             return back()->withErrors(['general' => 'An error occurred while deleting the candidate']);
         }

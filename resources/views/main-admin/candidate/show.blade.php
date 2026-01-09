@@ -5,13 +5,13 @@
     <x-admin-header title="Candidate Profile" />
 
     <!-- Mobile Header -->
-    <header class="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
+    <header class="lg:hidden bg-white shadow-sm border-b px-4 py-4 flex items-center justify-between sticky top-0 z-40">
         <button @click="collapsed = false"
-                class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-            <i class="ri-menu-fold-line text-lg rotate-180"></i>
+                class="p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100">
+            <i class="ri-menu-2-fill text-xl"></i>
         </button>
-        <h1 class="text-lg font-semibold text-slate-800">Candidate Profile</h1>
-        <div class="w-10"></div>
+        <h1 class="text-lg font-bold text-slate-800">Profile</h1>
+        <div class="w-8"></div>
     </header>
 
     <main class="flex-1 p-4 lg:p-8">
@@ -61,13 +61,13 @@
                         </div>
 
                         <!-- Actions -->
-                        <div class="flex items-center gap-2 mb-1">
+                        <div class="flex items-center gap-2 mb-1 w-full md:w-auto">
                             <a href="{{ route('admin.candidates.index') }}"
-                               class="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] tracking-widest hover:bg-slate-200 transition-all uppercase">
+                               class="flex-1 md:flex-none text-center px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] tracking-widest hover:bg-slate-200 transition-all uppercase">
                                 Back
                             </a>
                             <a href="{{ route('admin.candidates.edit', $candidate->id) }}"
-                               class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-[10px] tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all uppercase flex items-center gap-2">
+                               class="flex-1 md:flex-none justify-center px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-[10px] tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all uppercase flex items-center gap-2">
                                 <i class="ri-edit-line"></i>
                                 Edit Profile
                             </a>

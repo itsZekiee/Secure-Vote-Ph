@@ -22,7 +22,7 @@ class Store extends Controller
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'organization_id' => 'required|exists:organizations,id',
+                'organization_id' => 'nullable|exists:organizations,id',
                 'voting_start' => 'required|date',
                 'voting_end' => 'required|date|after:voting_start',
                 'registration_deadline' => 'nullable|date',
@@ -47,7 +47,7 @@ class Store extends Controller
             $election = Election::create([
                 'title' => $validated['title'],
                 'description' => $validated['description'] ?? null,
-                'organization_id' => $validated['organization_id'],
+                'organization_id' => $validated['organization_id'] ?? null,
                 'start_date' => $validated['voting_start'],
                 'end_date' => $validated['voting_end'],
                 'registration_deadline' => $validated['registration_deadline'] ?? $validated['voting_start'],

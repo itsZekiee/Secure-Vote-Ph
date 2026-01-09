@@ -198,88 +198,90 @@
         </div>
 
         <!-- Enhanced Navigation Bar -->
-        <div class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm sticky top-0 z-40">
             <!-- Mobile Header -->
-            <header class="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
+            <header class="lg:hidden bg-white border-b px-4 py-4 flex items-center justify-between">
                 <button @click="collapsed = false"
-                        class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
+                        class="p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="ri-menu-2-fill text-xl"></i>
                 </button>
-                <h1 class="text-lg font-semibold text-slate-800">Edit Organization</h1>
-                <div class="w-10"></div>
+                <h1 class="text-lg font-bold text-slate-800">Edit Org</h1>
+                <div class="w-8"></div>
             </header>
 
-            <div class="px-8 py-4 hidden lg:block">
-                <div class="flex items-center justify-between">
-                    <!-- Left Section: Back Button & Breadcrumb -->
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ $indexUrl }}"
-                           class="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all duration-300 border border-slate-200 hover:border-slate-300 group">
-                            <i class="ri-arrow-left-line text-slate-600 group-hover:-translate-x-1 transition-transform"></i>
-                        </a>
+            <div class="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
+                <!-- Left Section: Back Button & Breadcrumb -->
+                <div class="flex items-center space-x-4">
+                    <a href="{{ $indexUrl }}"
+                       class="hidden sm:flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all duration-300 border border-slate-200 hover:border-slate-300 group">
+                        <i class="ri-arrow-left-line text-slate-600 group-hover:-translate-x-1 transition-transform"></i>
+                    </a>
 
-                        <div class="h-6 w-px bg-slate-200"></div>
+                    <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
-                        <nav class="flex" aria-label="Breadcrumb">
-                            <ol class="inline-flex items-center space-x-2">
-                                <li class="inline-flex items-center">
-                                    <span class="text-slate-400 text-[9px] font-black uppercase tracking-widest">Admin</span>
-                                </li>
-                                <li>
-                                    <i class="ri-arrow-right-s-line text-slate-300"></i>
-                                </li>
-                                <li>
-                                    <a href="{{ $indexUrl }}" class="text-slate-500 hover:text-indigo-600 text-[9px] font-black uppercase tracking-widest transition-colors">Organizations</a>
-                                </li>
-                                <li>
-                                    <i class="ri-arrow-right-s-line text-slate-300"></i>
-                                </li>
-                                <li class="flex items-center">
-                                    <span class="text-indigo-700 text-[9px] font-black uppercase tracking-widest">Edit</span>
-                                </li>
-                            </ol>
-                        </nav>
-                    </div>
+                    <nav class="hidden md:flex" aria-label="Breadcrumb">
+                        <ol class="inline-flex items-center space-x-2">
+                            <li class="inline-flex items-center">
+                                <span class="text-slate-400 text-[9px] font-black uppercase tracking-widest">Admin</span>
+                            </li>
+                            <li>
+                                <i class="ri-arrow-right-s-line text-slate-300"></i>
+                            </li>
+                            <li>
+                                <a href="{{ $indexUrl }}" class="text-slate-500 hover:text-indigo-600 text-[9px] font-black uppercase tracking-widest transition-colors">Organizations</a>
+                            </li>
+                            <li>
+                                <i class="ri-arrow-right-s-line text-slate-300"></i>
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-indigo-700 text-[9px] font-black uppercase tracking-widest">Edit</span>
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
 
-                    <!-- Right Section: Action Buttons -->
-                    <div class="flex items-center space-x-3">
-                        <button @click="loadDraft()"
-                                class="inline-flex items-center px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-xl hover:bg-indigo-100 transition-all duration-300">
-                            <i class="ri-download-2-line mr-1.5"></i>
-                            Load Draft
-                        </button>
+                <!-- Right Section: Action Buttons -->
+                <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto">
+                    <button @click="loadDraft()"
+                            class="hidden xs:inline-flex items-center px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-xl hover:bg-indigo-100 transition-all duration-300">
+                        <i class="ri-download-2-line mr-1.5"></i>
+                        Load Draft
+                    </button>
 
-                        <button @click="resetForm()"
-                                class="inline-flex items-center px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all duration-300">
-                            <i class="ri-refresh-line mr-1.5"></i>
-                            Reset
-                        </button>
-                    </div>
+                    <button @click="resetForm()"
+                            class="hidden xs:inline-flex items-center px-4 py-2.5 text-[9px] font-black uppercase tracking-widest text-slate-600 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-all duration-300">
+                        <i class="ri-refresh-line mr-1.5"></i>
+                        Reset
+                    </button>
+
+                    <button type="submit" form="orgEditForm" class="flex-1 sm:flex-none justify-center inline-flex items-center px-4 sm:px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 shadow-lg transition-all" :disabled="!isDirty">
+                        <i class="ri-save-line mr-2"></i><span class="hidden sm:inline">Commit Changes</span><span class="sm:hidden">Save</span>
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Header Section -->
-        <div class="px-8 py-8">
+        <div class="px-4 sm:px-8 py-8">
             <div class="max-w-7xl mx-auto">
-                <div class="flex items-start justify-between mb-8">
-                    <div class="flex items-center space-x-6">
+                <div class="flex flex-col sm:flex-row items-start justify-between gap-6 mb-8">
+                    <div class="flex items-center space-x-4 sm:space-x-6">
                         <!-- Organization Icon -->
                         <div class="flex-shrink-0">
-                            <div class="w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 transform hover:scale-105 transition-all duration-500">
-                                <i class="ri-building-2-fill text-white text-3xl"></i>
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100 transform hover:scale-105 transition-all duration-500">
+                                <i class="ri-building-2-fill text-white text-2xl sm:text-3xl"></i>
                             </div>
                         </div>
 
-                        <div>
-                            <h1 class="text-3xl font-black text-slate-900 mb-1 tracking-tight uppercase">Edit Organization</h1>
-                            <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Identity & Core Settings</p>
+                        <div class="min-w-0">
+                            <h1 class="text-xl sm:text-3xl font-black text-slate-900 mb-1 tracking-tight uppercase truncate">Edit Organization</h1>
+                            <p class="text-[9px] sm:text-[10px] text-slate-500 font-bold tracking-widest uppercase">Identity & Core Settings</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Form Container -->
-                <form action="{{ $updateAction }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-12 gap-8">
+                <form id="orgEditForm" action="{{ $updateAction }}" method="POST" enctype="multipart/form-data" class="grid grid-cols-12 gap-8">
                     @csrf
                     @method('PUT')
 

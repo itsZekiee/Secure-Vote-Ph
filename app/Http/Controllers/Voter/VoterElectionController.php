@@ -66,7 +66,7 @@ class VoterElectionController extends Controller
 
         $voter = session('voter');
 
-        $hasVoted = $this->checkIfVoted($election->id, $voter['id']);
+        $hasVoted = $this->getBallotCount($election->id, $voter['id']) >= ($election->max_votes ?? 1);
 
         return view('voter.welcome', [
             'election' => $election,
@@ -101,9 +101,9 @@ class VoterElectionController extends Controller
                 ->withErrors(['election' => 'Election has already ended.']);
         }
 
-        if ($this->checkIfVoted($election->id, $voter['id'])) {
+        if ($this->getBallotCount($election->id, $voter['id']) >= ($election->max_votes ?? 1)) {
             return redirect()->route('voter.elections.welcome', $election->code)
-                ->with('info', 'You have already cast your vote.');
+                ->with('info', 'You have already reached the maximum number of votes allowed for this election.');
         }
 
         $positions = $election->positions()
@@ -152,7 +152,11 @@ class VoterElectionController extends Controller
 
         if ($election->require_geo_verification) {
             if (!$request->latitude || !$request->longitude) {
-                return back()->withErrors(['error' => 'Location access is required to submit your vote. Please enable GPS.']);
+                $msg = 'Location access is required to submit your vote. Please enable GPS.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return back()->withErrors(['error' => $msg]);
             }
 
             $distance = $this->calculateDistance(
@@ -162,21 +166,33 @@ class VoterElectionController extends Controller
                 $request->longitude
             );
 
-            if ($distance > ($election->geo_radius_meters + 10)) { // Add 10m buffer for GPS accuracy
-                return back()->withErrors(['error' => 'You are currently outside the designated voting area. (Distance: ' . round($distance) . 'm, Allowed: ' . $election->geo_radius_meters . 'm). You must return to the designated area to submit your vote.']);
+            if ($distance > ($election->geo_radius_meters + 1000)) { // Increased buffer to 1000m to handle GPS accuracy issues
+                $msg = 'You are currently outside the designated voting area. (Distance: ' . round($distance) . 'm, Allowed: ' . ($election->geo_radius_meters + 1000) . 'm). You must return to the designated area to submit your vote.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return back()->withErrors(['error' => $msg]);
             }
         }
 
         $voter = session('voter');
 
-        // Check if already voted
-        if ($this->checkIfVoted($election->id, $voter['id'])) {
+        // Check if already voted max times
+        $maxVotes = $election->max_votes ?? 1;
+        $votedCount = $this->getBallotCount($election->id, $voter['id']);
+
+        if ($votedCount >= $maxVotes) {
+            $msg = 'You have already reached the maximum number of votes allowed for this election.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
             return redirect()->route('voter.elections.welcome', $election->code)
-                ->withErrors(['error' => 'You have already voted in this election.']);
+                ->withErrors(['error' => $msg]);
         }
 
         // Record votes
         $votedAt = now();
+        $ballotId = \Str::random(10); // Generate a unique ID for this ballot
         $ipAddress = $request->ip();
         $userAgent = $request->userAgent();
 
@@ -187,6 +203,7 @@ class VoterElectionController extends Controller
             foreach ($ids as $candidateId) {
                 if (!empty($candidateId)) {
                     Vote::create([
+                        'ballot_id' => $ballotId,
                         'voter_id' => $voter['id'],
                         'election_id' => $election->id,
                         'position_id' => $positionId,
@@ -201,8 +218,22 @@ class VoterElectionController extends Controller
             }
         }
 
+        $remainingVotes = $maxVotes - ($votedCount + 1);
+        $successMsg = 'Your vote has been recorded successfully!';
+        if ($remainingVotes > 0) {
+            $successMsg .= " You have $remainingVotes " . \Str::plural('vote', $remainingVotes) . " remaining.";
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMsg,
+                'remaining_votes' => $remainingVotes
+            ]);
+        }
+
         return redirect()->route('voter.elections.welcome', $election->code)
-            ->with('success', 'Your vote has been recorded successfully!');
+            ->with('success', $successMsg);
     }
 
     /**
@@ -298,13 +329,14 @@ class VoterElectionController extends Controller
     }
 
     /**
-     * Check if voter has already voted
+     * Check how many ballots the voter has submitted
      */
-    private function checkIfVoted($electionId, $voterId)
+    private function getBallotCount($electionId, $voterId)
     {
         return Vote::where('election_id', $electionId)
             ->where('voter_id', $voterId)
-            ->exists();
+            ->distinct('ballot_id')
+            ->count('ballot_id');
     }
 
     /**

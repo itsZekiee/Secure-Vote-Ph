@@ -51,13 +51,13 @@
 @endpush
 
 @section('content')
-    <div class="bg-amber-100 border-b border-amber-200 py-2 text-center text-amber-800 font-semibold sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 flex items-center justify-center gap-4">
-            <span class="inline-flex items-center">
-                <i class="fas fa-eye mr-2"></i> PREVIEW MODE: Viewing as a voter
+    <div class="bg-amber-100 border-b border-amber-200 py-2 text-center text-amber-800 font-semibold sticky top-0 z-50 shadow-sm px-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
+            <span class="inline-flex items-center text-xs sm:text-sm">
+                <i class="fas fa-eye mr-2"></i> PREVIEW MODE
             </span>
-            <div class="h-4 w-px bg-amber-300 mx-2"></div>
-            <a href="{{ route('admin.elections.index') }}" class="text-amber-900 hover:text-amber-700 underline text-sm">
+            <div class="h-4 w-px bg-amber-300 mx-1 sm:mx-2 hidden xs:block"></div>
+            <a href="{{ route('admin.elections.index') }}" class="text-amber-900 hover:text-amber-700 underline text-xs sm:text-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
             </a>
         </div>
@@ -71,21 +71,21 @@
 
         <div class="relative z-10 min-h-screen flex flex-col">
             <!-- Header -->
-            <header class="py-6 px-8 bg-white/90 backdrop-blur-xl border-b border-slate-200 sticky top-[41px] z-40 shadow-sm">
+            <header class="py-4 sm:py-6 px-4 sm:px-8 bg-white/90 backdrop-blur-xl border-b border-slate-200 sticky top-[41px] z-40 shadow-sm">
                 <div class="max-w-7xl mx-auto flex items-center justify-between">
-                    <div class="flex items-center gap-4 group">
-                        <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-xl shadow-slate-200 transition-transform group-hover:scale-105">
-                            <i class="fas fa-vote-yea text-white text-xl"></i>
+                    <div class="flex items-center gap-3 sm:gap-4 group">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-xl shadow-slate-200 transition-transform group-hover:scale-105">
+                            <i class="fas fa-vote-yea text-white text-lg sm:text-xl"></i>
                         </div>
-                        <div>
-                            <h1 class="text-xl font-black text-slate-900 tracking-tight uppercase">SecureVote</h1>
-                            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-[0.2em]">Philippines</p>
+                        <div class="min-w-0">
+                            <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight uppercase truncate">SecureVote</h1>
+                            <p class="text-[9px] sm:text-[10px] font-bold text-blue-600 uppercase tracking-[0.2em]">Philippines</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-8">
-                        <div class="text-right hidden sm:block">
-                            <p class="text-slate-400 text-[10px] uppercase font-black tracking-[0.2em] mb-0.5">Active Session</p>
-                            <p class="text-slate-900 font-bold text-sm">{{ $election->title }}</p>
+                    <div class="flex items-center gap-4 sm:gap-8">
+                        <div class="text-right hidden xs:block">
+                            <p class="text-slate-400 text-[9px] sm:text-[10px] uppercase font-black tracking-[0.2em] mb-0.5">Active Session</p>
+                            <p class="text-slate-900 font-bold text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{{ $election->title }}</p>
                         </div>
                         <div class="h-8 w-px bg-slate-200 hidden md:block"></div>
                         <div class="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
@@ -99,31 +99,31 @@
             </header>
 
             <!-- Main Content -->
-            <div class="flex-grow px-6 py-10">
+            <div class="flex-grow px-4 sm:px-6 py-6 sm:py-10">
                 <div class="max-w-6xl mx-auto">
                     <!-- Election Header Card -->
-                    <div class="bg-slate-900 rounded-[2.5rem] p-8 sm:p-12 mb-10 shadow-2xl relative overflow-hidden">
+                    <div class="bg-slate-900 rounded-[1.5rem] sm:rounded-[2.5rem] p-6 sm:p-12 mb-6 sm:mb-10 shadow-2xl relative overflow-hidden text-center lg:text-left">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 blur-[100px] rounded-full -mr-32 -mt-32"></div>
                         <div class="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/20 blur-[100px] rounded-full -ml-32 -mb-32"></div>
 
-                        <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center gap-8">
-                            <div class="w-20 h-20 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/20 shadow-inner">
-                                <i class="fas fa-landmark text-white text-3xl"></i>
+                        <div class="relative z-10 flex flex-col lg:flex-row items-center lg:items-center gap-6 sm:gap-8">
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white/10 backdrop-blur-md rounded-2xl sm:rounded-3xl flex items-center justify-center border border-white/20 shadow-inner flex-shrink-0 mx-auto lg:mx-0">
+                                <i class="fas fa-landmark text-white text-2xl sm:text-3xl"></i>
                             </div>
-                            <div class="flex-grow">
-                                <div class="flex items-center gap-3 mb-3">
+                            <div class="flex-grow min-w-0">
+                                <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 mb-3">
                                     <span class="px-3 py-1 bg-blue-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full">Official Election</span>
                                     <span class="text-slate-400 text-sm font-medium">• {{ $election->organization ? $election->organization->name : 'General' }}</span>
                                 </div>
-                                <h2 class="text-3xl sm:text-4xl font-black text-white mb-4 tracking-tight leading-tight">{{ $election->title }}</h2>
-                                <p class="text-slate-400 text-lg max-w-2xl leading-relaxed">{{ $election->description ?? 'Securely cast your vote for the leadership positions listed below. Every vote counts towards our future.' }}</p>
+                                <h2 class="text-2xl sm:text-4xl font-black text-white mb-4 tracking-tight leading-tight uppercase">{{ $election->title }}</h2>
+                                <p class="text-slate-400 text-base sm:text-lg max-w-2xl leading-relaxed mx-auto lg:mx-0">{{ $election->description ?? 'Securely cast your vote for the leadership positions listed below.' }}</p>
                             </div>
-                            <div class="flex lg:flex-col gap-4 w-full lg:w-auto">
-                                <div class="flex-1 lg:w-40 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                            <div class="flex flex-row lg:flex-col gap-4 w-full lg:w-auto overflow-x-auto no-scrollbar pb-2 lg:pb-0">
+                                <div class="flex-1 min-w-[120px] lg:w-40 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 text-center lg:text-left">
                                     <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Positions</p>
                                     <p class="text-white text-2xl font-black">{{ $positions->count() }}</p>
                                 </div>
-                                <div class="flex-1 lg:w-40 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+                                <div class="flex-1 min-w-[120px] lg:w-40 bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 text-center lg:text-left">
                                     <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-1">Candidates</p>
                                     <p class="text-white text-2xl font-black">{{ $positions->sum(fn($p) => $p->candidates->count()) }}</p>
                                 </div>
@@ -133,15 +133,15 @@
 
                     <form onsubmit="return false;" id="voting-form">
                         <!-- Progress Indicator -->
-                        <div class="bg-white rounded-3xl p-8 mb-10 border border-slate-200 shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
+                        <div class="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 mb-6 sm:mb-10 border border-slate-200 shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                                 <div>
                                     <span class="text-slate-900 text-sm font-black uppercase tracking-widest">Voting Progress</span>
                                     <p class="text-slate-400 text-xs mt-1 font-medium">Please complete all positions to finalize your ballot</p>
                                 </div>
                                 <span class="text-blue-600 font-black text-sm" id="progress-text">0 / {{ $positions->count() }} POSITIONS</span>
                             </div>
-                            <div class="h-4 bg-slate-100 rounded-full overflow-hidden p-1">
+                            <div class="h-3 sm:h-4 bg-slate-100 rounded-full overflow-hidden p-1">
                                 <div class="h-full progress-bar-fill rounded-full transition-all duration-700 shadow-sm" id="progress-bar" style="width: 0%"></div>
                             </div>
                         </div>
@@ -168,7 +168,7 @@
                                     </div>
 
                                     <!-- Candidates Grid -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                         @foreach($position->candidates as $candidate)
                                             <label class="candidate-card group cursor-pointer block relative">
                                                 <input type="{{ ($position->max_votes ?? 1) > 1 ? 'checkbox' : 'radio' }}"
@@ -179,31 +179,31 @@
                                                        data-candidate-name="{{ $candidate->name }}"
                                                        data-max-votes="{{ $position->max_votes ?? 1 }}">
 
-                                                <div class="card-content bg-white rounded-[2rem] border-2 border-slate-100 p-6 transition-all hover:shadow-xl hover:shadow-slate-100 relative overflow-hidden">
+                                                <div class="card-content bg-white rounded-[1.5rem] sm:rounded-[2rem] border-2 border-slate-100 p-4 sm:p-6 transition-all hover:shadow-xl hover:shadow-slate-100 relative overflow-hidden">
                                                     <div class="flex flex-col items-center text-center">
-                                                        <div class="relative mb-6">
-                                                            <div class="w-24 h-24 rounded-3xl bg-slate-50 overflow-hidden border-4 border-white shadow-lg transition-transform group-hover:scale-105">
+                                                        <div class="relative mb-4 sm:mb-6">
+                                                            <div class="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-slate-50 overflow-hidden border-4 border-white shadow-lg transition-transform group-hover:scale-105">
                                                                 @if($candidate->photo)
                                                                     <img src="{{ asset('storage/' . $candidate->photo) }}" class="w-full h-full object-cover">
                                                                 @else
                                                                     <div class="w-full h-full flex items-center justify-center text-slate-200">
-                                                                        <i class="fas fa-user text-3xl"></i>
+                                                                        <i class="fas fa-user text-2xl sm:text-3xl"></i>
                                                                     </div>
                                                                 @endif
                                                             </div>
-                                                            <div class="check-icon absolute -top-2 -right-2 w-8 h-8 bg-blue-600 text-white rounded-xl hidden items-center justify-center shadow-lg border-2 border-white transform rotate-12">
-                                                                <i class="fas fa-check text-xs"></i>
+                                                            <div class="check-icon absolute -top-1 sm:-top-2 -right-1 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 text-white rounded-lg sm:rounded-xl hidden items-center justify-center shadow-lg border-2 border-white transform rotate-12">
+                                                                <i class="fas fa-check text-[10px] sm:text-xs"></i>
                                                             </div>
                                                         </div>
 
-                                                        <h4 class="font-black text-lg text-slate-900 leading-tight mb-2">{{ $candidate->name }}</h4>
+                                                        <h4 class="font-black text-base sm:text-lg text-slate-900 leading-tight mb-2 truncate w-full">{{ $candidate->name }}</h4>
 
                                                         @if($candidate->partylist)
-                                                            <span class="px-3 py-1 bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] rounded-full">
+                                                            <span class="px-3 py-1 bg-slate-100 text-slate-500 text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] rounded-full truncate max-w-full">
                                                                 {{ $candidate->partylist->name }}
                                                             </span>
                                                         @else
-                                                            <span class="px-3 py-1 bg-slate-50 text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] rounded-full">
+                                                            <span class="px-3 py-1 bg-slate-50 text-slate-400 text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] rounded-full">
                                                                 Independent
                                                             </span>
                                                         @endif
@@ -217,18 +217,18 @@
                         </div>
 
                         <!-- Submit Section -->
-                        <div class="mt-20 bg-slate-50 rounded-[3rem] p-12 border-2 border-slate-100 flex flex-col items-center text-center">
-                            <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-8 shadow-xl shadow-slate-200">
-                                <i class="fas fa-shield-alt text-blue-600 text-3xl"></i>
+                        <div class="mt-12 sm:mt-20 bg-slate-50 rounded-[1.5rem] sm:rounded-[3rem] p-6 sm:p-12 border-2 border-slate-100 flex flex-col items-center text-center">
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl sm:rounded-3xl flex items-center justify-center mb-6 sm:mb-8 shadow-xl shadow-slate-200">
+                                <i class="fas fa-shield-alt text-blue-600 text-2xl sm:text-3xl"></i>
                             </div>
-                            <h3 class="text-3xl font-black text-slate-900 mb-4 tracking-tight uppercase">Review Your Ballot</h3>
-                            <p class="text-slate-500 mb-10 max-w-md text-lg leading-relaxed">Please ensure all your selections are correct. You cannot change your vote after submission.</p>
+                            <h3 class="text-xl sm:text-3xl font-black text-slate-900 mb-3 sm:mb-4 tracking-tight uppercase">Review Your Ballot</h3>
+                            <p class="text-slate-500 mb-6 sm:mb-10 max-w-md text-base sm:text-lg leading-relaxed">Please ensure all your selections are correct. You cannot change your vote after submission.</p>
 
-                            <button type="button" disabled class="bg-slate-200 text-slate-400 px-12 py-5 rounded-2xl font-black text-lg cursor-not-allowed uppercase tracking-widest flex items-center gap-3">
+                            <button type="button" disabled class="w-full sm:w-auto bg-slate-200 text-slate-400 px-8 sm:px-12 py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg cursor-not-allowed uppercase tracking-widest flex items-center justify-center gap-3">
                                 <i class="fas fa-lock text-sm"></i>
                                 Submit Final Vote
                             </button>
-                            <p class="mt-6 text-slate-400 text-xs font-bold uppercase tracking-widest italic">Submission is disabled in preview mode</p>
+                            <p class="mt-4 sm:mt-6 text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest italic">Submission is disabled in preview mode</p>
                         </div>
                     </form>
                 </div>

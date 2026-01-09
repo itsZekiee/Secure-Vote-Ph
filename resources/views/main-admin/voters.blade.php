@@ -45,28 +45,28 @@
         <!-- Main content -->
         <main class="flex-1">
             <!-- Mobile Header (if needed) -->
-            <header class="bg-white/80 backdrop-blur-sm border-b lg:hidden px-6 py-4 flex items-center justify-between">
-                <button @click="collapsed = false" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
-                    <i class="ri-menu-fold-line text-lg rotate-180"></i>
+            <header class="bg-white/80 backdrop-blur-sm border-b lg:hidden px-4 py-4 flex items-center justify-between sticky top-0 z-40">
+                <button @click="collapsed = false" class="p-2 -ml-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                    <i class="ri-menu-2-fill text-xl"></i>
                 </button>
                 <h1 class="text-lg font-bold text-slate-800">Voters</h1>
-                <div class="w-10"></div>
+                <div class="w-8"></div>
             </header>
 
-            <!-- Top bar (Desktop) -->
-            <div class="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-40 hidden lg:block">
+            <!-- Top bar (Desktop & Tablet) -->
+            <div class="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-40 hidden md:block">
                 <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 flex items-center justify-center shadow">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 flex items-center justify-center shadow flex-shrink-0">
                             <i class="ri-user-3-line text-white text-xl"></i>
                         </div>
-                        <div>
-                            <h1 class="text-2xl font-semibold leading-tight">Voter Directory</h1>
-                            <p class="text-sm text-gray-500">Manage registered voters and import/export data</p>
+                        <div class="min-w-0">
+                            <h1 class="text-2xl font-semibold leading-tight truncate">Voter Directory</h1>
+                            <p class="text-sm text-gray-500 hidden sm:block">Manage registered voters and import/export data</p>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                    <div class="hidden lg:flex items-center gap-4 text-sm text-gray-600">
                         <div>
                             <span class="font-medium text-gray-900">Admin</span>
                             <i class="ri-arrow-right-s-line mx-2"></i>
@@ -76,11 +76,11 @@
                 </div>
             </div>
 
-            <div class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
                 <!-- Search & Filters -->
                 <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden">
                     <div class="px-6 py-4 border-b bg-gradient-to-r from-white via-indigo-50/30 to-white">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-slate-200">
                                     <i class="ri-search-line text-indigo-600"></i>
@@ -91,20 +91,20 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-3">
-                                <form method="GET" action="{{ route('admin.voters.export') }}">
+                            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                                <form method="GET" action="{{ route('admin.voters.export') }}" class="flex-1 sm:flex-none">
                                     <input type="hidden" name="format" value="csv" />
-                                    <button type="submit" class="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">
+                                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-50 transition-colors">
                                         <i class="ri-download-2-line"></i>
                                         Export CSV
                                     </button>
                                 </form>
 
-                                <form method="POST" action="{{ route('admin.voters.import.preview') }}" enctype="multipart/form-data" class="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5" id="importForm">
+                                <form method="POST" action="{{ route('admin.voters.import.preview') }}" enctype="multipart/form-data" class="flex-1 sm:flex-none inline-flex items-center justify-between gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5" id="importForm">
                                     @csrf
                                     <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700">
                                         <i class="ri-upload-cloud-line text-lg text-indigo-600"></i>
-                                        <span class="hidden sm:inline">Import Excel</span>
+                                        <span class="sm:inline">Import</span>
                                         <input type="file" name="file" accept=".xlsx,.xls" required class="sr-only" onchange="checkFile(this)" />
                                     </label>
                                     <button type="submit" class="ml-2 inline-flex items-center gap-2 px-3 py-1 bg-indigo-600 text-white rounded text-xs font-bold hover:bg-indigo-700 transition-colors">
@@ -112,48 +112,36 @@
                                     </button>
                                 </form>
 
-                                <script>
-                                    function checkFile(input) {
-                                        const file = input.files[0];
-                                        if (file) {
-                                            const extension = file.name.split('.').pop().toLowerCase();
-                                            if (extension !== 'xlsx' && extension !== 'xls') {
-                                                alert('Invalid file type! Please upload an Excel file (.xlsx or .xls).');
-                                                input.value = '';
-                                            }
-                                        }
-                                    }
-                                </script>
-
                                 @if (isset($importPath) && $importPath)
-                                    <form method="POST" action="{{ route('admin.voters.import.store') }}" class="flex items-center gap-3">
+                                    <form method="POST" action="{{ route('admin.voters.import.store') }}" class="w-full lg:w-auto">
                                         @csrf
                                         <input type="hidden" name="import_path" value="{{ $importPath }}" />
-
-                                        <div class="flex items-center gap-2">
-                                            <label for="election_id" class="text-sm font-medium text-gray-700">Select Form:</label>
-                                            <select name="election_id" id="election_id" required class="text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                                                <option value="">-- Choose Form --</option>
-                                                @foreach($forms ?? [] as $form)
-                                                    <option value="{{ $form->id }}">{{ $form->title }}</option>
-                                                @endforeach
-                                            </select>
+                                        <div class="flex flex-col sm:flex-row items-center gap-3">
+                                            <div class="flex items-center gap-2">
+                                                <label for="election_id" class="text-sm font-medium text-gray-700">Form:</label>
+                                                <select name="election_id" id="election_id" required class="text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                                    <option value="">-- Choose --</option>
+                                                    @foreach($forms ?? [] as $form)
+                                                        <option value="{{ $form->id }}">{{ $form->title }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                                <button type="submit" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 shadow-sm transition-colors">
+                                                    Save All
+                                                </button>
+                                                <a href="{{ route('admin.voters.index') }}" class="flex-1 sm:flex-none text-center text-sm text-gray-500 hover:text-gray-700">Cancel</a>
+                                            </div>
                                         </div>
-
-                                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 shadow-sm transition-colors">
-                                            <i class="ri-check-line"></i>
-                                            Save & Approve All
-                                        </button>
-                                        <a href="{{ route('admin.voters.index') }}" class="text-sm text-gray-500 hover:text-gray-700 ml-2">Cancel</a>
                                     </form>
                                 @endif
                             </div>
                         </div>
                     </div>
 
-                    <div class="p-6">
-                        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                            <div class="lg:col-span-2">
+                    <div class="p-4 sm:p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div class="md:col-span-2">
                                 <label class="sr-only" for="global-search">Search voters</label>
                                 <div class="relative">
                                     <input id="global-search" x-model="search" type="search" placeholder="Search by name, email, or student ID"
@@ -189,10 +177,11 @@
                                 </select>
                             </div>
 
-                            <div class="hidden lg:flex items-center justify-end">
-                                <a href="{{ route('admin.voters.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700">
-                                    <i class="ri-add-line mr-2"></i> New Voter
-                                </a>
+                            <div class="flex items-center justify-end">
+                                <button @click="$dispatch('search', { q: search, filter: filterBy, form: selectedForm })"
+                                        class="w-full bg-slate-900 text-white rounded-lg px-6 py-3 font-bold text-xs tracking-widest hover:bg-indigo-600 transition-all shadow-md">
+                                    REFINE
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -200,17 +189,22 @@
 
             <!-- Table -->
             <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden mb-12">
-                <div class="px-6 py-4 border-b border-gray-200/60 bg-gradient-to-r from-white via-indigo-50/30 to-white flex items-center justify-between">
+                <div class="px-4 sm:px-6 py-4 border-b border-gray-200/60 bg-gradient-to-r from-white via-indigo-50/30 to-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h3 class="text-base font-bold text-gray-900">Registered Voters</h3>
                         <p class="text-[11px] text-gray-500 font-medium">Complete list of registered voters</p>
                     </div>
-                    <div class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg">
-                        <span x-text="total"></span> Total
+                    <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                        <div class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg">
+                            <span x-text="total"></span> Total
+                        </div>
+                        <a href="{{ route('admin.voters.create') }}" class="lg:hidden inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700">
+                            <i class="ri-add-line mr-2"></i> New Voter
+                        </a>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto">
+                <div class="responsive-table-container">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/50">

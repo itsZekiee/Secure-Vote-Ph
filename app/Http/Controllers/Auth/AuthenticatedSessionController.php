@@ -7,9 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
-use App\Services\SupabaseAuthService;
 use App\Models\User;
-
 
 class AuthenticatedSessionController extends Controller
 {
@@ -25,16 +23,69 @@ class AuthenticatedSessionController extends Controller
             'password' => ['required'],
         ]);
 
-        // Validate credentials (DO NOT log in yet)
-        if (!Auth::validate($request->only('email', 'password'))) {
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
             throw ValidationException::withMessages([
                 'email' => __('The provided credentials do not match our records.'),
             ]);
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
+        /*
+        |--------------------------------------------------------------------------
+        | Account Status Checks (BEFORE OTP)
+        |--------------------------------------------------------------------------
+        */
 
-        // Send OTP via Supabase
+        // Permanently blocked
+        if ($user->is_permanently_blocked) {
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been permanently blocked. Please contact the Administrator.',
+            ]);
+        }
+
+        // Temporarily locked
+        if ($user->locked_until && $user->locked_until->isFuture()) {
+            $diff = $user->locked_until->diffForHumans();
+            throw ValidationException::withMessages([
+                'email' => "Your account is temporarily locked. Please try again in $diff.",
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Credentials (NO LOGIN YET)
+        |--------------------------------------------------------------------------
+        */
+
+        if (!Auth::validate($request->only('email', 'password'))) {
+            $user->increment('failed_login_attempts');
+            $attempts = $user->failed_login_attempts;
+
+            $message = __('The provided credentials do not match our records.');
+
+            if ($attempts >= 6) {
+                $user->update(['is_permanently_blocked' => true]);
+                $message = 'Your account has been permanently blocked due to too many failed attempts. Please contact the Administrator.';
+            } elseif ($attempts == 5) {
+                $user->update(['locked_until' => now()->addHours(24)]);
+                $message = 'Too many failed attempts. Your account has been locked for 24 hours.';
+            } elseif ($attempts == 3) {
+                $user->update(['locked_until' => now()->addMinutes(60)]);
+                $message = 'Too many failed attempts. Your account has been locked for 60 minutes.';
+            }
+
+            throw ValidationException::withMessages([
+                'email' => $message,
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Send OTP via Supabase
+        |--------------------------------------------------------------------------
+        */
+
         Http::withHeaders([
             'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
             'apikey' => config('services.supabase.service_key'),
@@ -47,6 +98,12 @@ class AuthenticatedSessionController extends Controller
                 ]
             );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Store OTP Session Data
+        |--------------------------------------------------------------------------
+        */
+
         session([
             'otp_email' => $user->email,
             'otp_user_id' => $user->id,
@@ -57,8 +114,6 @@ class AuthenticatedSessionController extends Controller
             ->route('otp.form')
             ->with('success', 'A verification code has been sent to your email.');
     }
-
-
 
     public function destroy(Request $request)
     {

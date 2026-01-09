@@ -13,7 +13,13 @@ return new class extends Migration
     public function up(): void
     {
         // Make election_id nullable to allow party lists without an election
-        DB::statement('ALTER TABLE `partylists` MODIFY `election_id` BIGINT UNSIGNED NULL');
+        if (DB::getDriverName() === 'sqlite') {
+            Schema::table('partylists', function (Blueprint $table) {
+                $table->unsignedBigInteger('election_id')->nullable()->change();
+            });
+        } else {
+            DB::statement('ALTER TABLE `partylists` MODIFY `election_id` BIGINT UNSIGNED NULL');
+        }
     }
 
     /**
