@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Http;
 
 class OtpController extends Controller
 {
+
+    // Show OTP verification form
     public function show()
     {
         abort_unless(session()->has('otp_email'), 403);
