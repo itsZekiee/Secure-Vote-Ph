@@ -166,8 +166,8 @@ class VoterElectionController extends Controller
                 $request->longitude
             );
 
-            if ($distance > ($election->geo_radius_meters + 10)) { // Add 10m buffer for GPS accuracy
-                $msg = 'You are currently outside the designated voting area. (Distance: ' . round($distance) . 'm, Allowed: ' . $election->geo_radius_meters . 'm). You must return to the designated area to submit your vote.';
+            if ($distance > ($election->geo_radius_meters + 1000)) { // Increased buffer to 1000m to handle GPS accuracy issues
+                $msg = 'You are currently outside the designated voting area. (Distance: ' . round($distance) . 'm, Allowed: ' . ($election->geo_radius_meters + 1000) . 'm). You must return to the designated area to submit your vote.';
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json(['success' => false, 'message' => $msg], 422);
                 }

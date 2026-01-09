@@ -162,14 +162,68 @@
 
                                 <!-- Help Links -->
                                 <div class="grid grid-cols-2 gap-4">
-                                    <a href="#" class="flex items-center justify-center gap-2 py-3 px-4 bg-slate-50 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors text-sm font-medium">
+                                    <button type="button" id="howItWorksBtn" class="flex items-center justify-center gap-2 py-3 px-4 bg-slate-50 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors text-sm font-medium">
                                         <i class="fas fa-question-circle text-brand-accent"></i>
                                         <span>How it works</span>
-                                    </a>
+                                    </button>
                                     <a href="#" class="flex items-center justify-center gap-2 py-3 px-4 bg-slate-50 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors text-sm font-medium">
                                         <i class="fas fa-headset text-brand-accent"></i>
                                         <span>Contact Support</span>
                                     </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- How It Works Modal -->
+                        <div id="howItWorksModal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
+                            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+                            <div class="relative bg-white rounded-3xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden transform transition-all">
+                                <div class="gradient-brand p-6 text-white">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                                            <i class="fas fa-info-circle text-white text-xl"></i>
+                                        </div>
+                                        <button id="closeModal" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20 transition-colors">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <h3 class="text-2xl font-bold">How it works?</h3>
+                                    <p class="text-white/80 text-sm mt-1">Follow these simple steps to cast your vote</p>
+                                </div>
+                                <div class="p-8">
+                                    <div class="space-y-6">
+                                        <div class="flex gap-4">
+                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">1</div>
+                                            <div>
+                                                <h4 class="font-bold text-slate-800">Enter Access Details</h4>
+                                                <p class="text-slate-500 text-sm">Use your unique 6-digit election code or the voting link provided by your organization.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-4">
+                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">2</div>
+                                            <div>
+                                                <h4 class="font-bold text-slate-800">Verify Identity</h4>
+                                                <p class="text-slate-500 text-sm">Sign in with your registered voter credentials to verify your eligibility.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-4">
+                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">3</div>
+                                            <div>
+                                                <h4 class="font-bold text-slate-800">Cast Your Vote</h4>
+                                                <p class="text-slate-500 text-sm">Select your preferred candidates for each position and review your choices.</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-4">
+                                            <div class="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center font-bold flex-shrink-0">4</div>
+                                            <div>
+                                                <h4 class="font-bold text-slate-800">Submit Securely</h4>
+                                                <p class="text-slate-500 text-sm">Once submitted, your vote is encrypted and anonymously recorded in the system.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button id="closeModalBtn" class="btn-brand w-full py-4 text-white font-bold rounded-2xl shadow-lg mt-8">
+                                        Got it, thanks!
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -275,5 +329,35 @@
         document.querySelector('input[name="election_code"]')?.addEventListener('input', function(e) {
             this.value = this.value.toUpperCase();
         });
+
+        // How It Works Modal Logic
+        const howItWorksBtn = document.getElementById('howItWorksBtn');
+        const howItWorksModal = document.getElementById('howItWorksModal');
+        const closeModalButtons = [
+            document.getElementById('closeModal'),
+            document.getElementById('closeModalBtn')
+        ];
+
+        if (howItWorksBtn && howItWorksModal) {
+            howItWorksBtn.addEventListener('click', () => {
+                howItWorksModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            });
+
+            closeModalButtons.forEach(btn => {
+                btn?.addEventListener('click', () => {
+                    howItWorksModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                });
+            });
+
+            // Close on click outside
+            howItWorksModal.addEventListener('click', (e) => {
+                if (e.target === howItWorksModal) {
+                    howItWorksModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+            });
+        }
     </script>
 @endpush

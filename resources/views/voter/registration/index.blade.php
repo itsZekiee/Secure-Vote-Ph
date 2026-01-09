@@ -249,7 +249,25 @@
                                     </div>
                                 @endif
 
-                                <!-- Login Error Message -->
+                                @if($errors->has('login'))
+                                    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                                        <div class="flex items-start gap-3 text-red-600">
+                                            <i class="fas fa-exclamation-circle mt-1"></i>
+                                            <div>
+                                                <p class="font-bold">Login Error</p>
+                                                <p class="text-sm">{{ $errors->first('login') }}</p>
+                                                @if(str_contains($errors->first('login'), 'permanently blocked') || str_contains($errors->first('login'), 'contact the Administrator'))
+                                                    <div class="mt-3 p-3 bg-white rounded-lg border border-red-100 shadow-sm">
+                                                        <p class="text-xs font-bold text-slate-800 mb-1 uppercase tracking-wider">How to restore access?</p>
+                                                        <p class="text-xs text-slate-500">Please send an email to <span class="text-brand-accent font-bold">admin@securevote.ph</span> or contact your organization's IT department.</p>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- Login Error Message (For AJAX) -->
                                 <div id="login-error" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl hidden">
                                     <div class="flex items-center gap-2 text-red-600">
                                         <i class="fas fa-exclamation-circle"></i>
@@ -548,6 +566,13 @@
                                         <span
                                             class="font-semibold text-brand-primary">{{ $election->end_date->format('M d, Y h:i A') }}</span>
                                     </div>
+                                    @if($election->registration_deadline)
+                                    <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                                        <span class="text-slate-500">Reg. Deadline</span>
+                                        <span
+                                            class="font-semibold text-rose-600">{{ $election->registration_deadline->format('M d, Y h:i A') }}</span>
+                                    </div>
+                                    @endif
                                     <div class="flex items-center justify-between py-2">
                                         <span class="text-slate-500">Positions</span>
                                         <span
@@ -681,7 +706,7 @@
                 const loginLatInput = document.getElementById('login-lat');
                 const loginLngInput = document.getElementById('login-lng');
 
-                function getGeoLocation() {
+                function getGeoLocation(callback) {
                     if (navigator.geolocation) {
                         geoStatus.className = 'mb-6 p-4 rounded-xl text-sm border flex items-center gap-3 bg-blue-50 border-blue-100 text-blue-700';
                         geoStatus.innerHTML = '<i class="fas fa-location-dot animate-pulse"></i><span>Requesting location access...</span>';
@@ -697,6 +722,8 @@
                                 geoStatus.innerHTML = '<i class="fas fa-check-circle"></i><span>Location verified successfully</span>';
                                 submitBtn.classList.remove('opacity-50', 'pointer-events-none');
                                 if (loginSubmitBtn) loginSubmitBtn.classList.remove('opacity-50', 'pointer-events-none');
+
+                                if (callback) callback();
                             },
                             (error) => {
                                 let message = 'Error getting location';
@@ -722,7 +749,21 @@
                     }
                 }
 
+                // Initial call to check permissions
                 getGeoLocation();
+
+                // Intercept form submissions to get fresh location
+                const forms = [document.getElementById('register-form'), document.getElementById('signin-form')];
+                forms.forEach(f => {
+                    if (f) {
+                        f.addEventListener('submit', function(e) {
+                            if (!latInput.value || !lngInput.value) {
+                                e.preventDefault();
+                                getGeoLocation(() => f.submit());
+                            }
+                        });
+                    }
+                });
             @endif
                             });
 
@@ -745,26 +786,34 @@
         document.addEventListener('DOMContentLoaded', function () {
             // create modal element
             const modalHtml = `
-            <div id="tos-privacy-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center">
-                                    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-                                    <div class="relative bg-white rounded-3xl shadow-2xl max-w-3xl w-full mx-4 overflow-hidden">
-                                        <div class="gradient-brand p-6 text-white flex items-center justify-between">
-                                            <div class="flex items-center gap-4">
-                                                <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
-                                                    <i class="fas fa-file-contract text-white text-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <h3 id="modal-title" class="text-lg font-bold">Title</h3>
-                                                    <p id="modal-sub" class="text-sm opacity-80">Details</p>
-                                                </div>
-                                            </div>
-                                            <button id="modal-close" class="text-white text-xl">&times;</button>
-                                        </div>
-                                        <div id="modal-body" class="p-6 text-slate-700 max-h-[60vh] overflow-y-auto">
-                                            <!-- content injected -->
-                                        </div>
-                                    </div>
-                                </div>`;
+            <div id="tos-privacy-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+                <div class="relative bg-white rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-300">
+                    <div class="gradient-brand p-6 text-white flex items-center justify-between shrink-0">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                                <i class="fas fa-file-shield text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 id="modal-title" class="text-xl font-bold tracking-tight">Title</h3>
+                                <p id="modal-sub" class="text-xs text-white/80 uppercase tracking-widest font-semibold">Legal Information</p>
+                            </div>
+                        </div>
+                        <button id="modal-close" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/20 transition-all duration-200">
+                            <i class="fas fa-times text-lg"></i>
+                        </button>
+                    </div>
+                    <div id="modal-body" class="p-8 text-slate-700 overflow-y-auto custom-scrollbar leading-relaxed">
+                        <!-- content injected -->
+                    </div>
+                    <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
+                        <button onclick="document.getElementById('tos-privacy-modal').classList.add('hidden'); document.body.style.overflow = '';"
+                                class="btn-brand px-8 py-3 text-white font-bold rounded-xl shadow-lg hover:shadow-brand-primary/20 transition-all">
+                            I Understand
+                        </button>
+                    </div>
+                </div>
+            </div>`;
 
             document.body.insertAdjacentHTML('beforeend', modalHtml);
 
@@ -775,130 +824,97 @@
             const modalClose = document.getElementById('modal-close');
 
             const termsContent = `
-                                    <h4 class="font-bold mb-3">Terms of Service</h4>
-                                    <p class="text-sm text-slate-600 mb-2">1. Purpose of the System</p>
+                                    <div class="prose prose-slate max-w-none">
+                                        <div class="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
+                                            <h4 class="font-bold text-brand-primary flex items-center gap-2 mb-2">
+                                                <i class="fas fa-gavel text-brand-accent"></i>
+                                                1. Purpose of the System
+                                            </h4>
+                                            <p class="text-sm text-slate-600">This Voting System is created to provide a secure and reliable way to conduct elections. It ensures fair voting, protects user data, and keeps all votes confidential. By using this system, users agree to follow these terms and allow their data to be processed as described below.</p>
+                                        </div>
 
-                                    <p class="text-sm text-slate-600">This Voting System is created to provide a secure and reliable way to conduct elections. It ensures fair voting,</p>
-                                    <p class="text-sm text-slate-600">protects user data, and keeps all votes confidential.</p>
-                                    <p class="text-sm text-slate-600">By using this system, users agree to follow these terms and allow their data to be processed as described below.</p>
+                                        <div class="space-y-6">
+                                            <section>
+                                                <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                                    <span class="w-6 h-6 rounded-full bg-brand-primary text-white text-[10px] flex items-center justify-center">2</span>
+                                                    Authorized Use
+                                                </h4>
+                                                <p class="text-sm text-slate-600 ml-8">Only registered and authorized users may access the system. Each user is responsible for keeping their account credentials private and secure.</p>
+                                            </section>
 
-                                    <h4 class="font-bold mb-3">Terms of Use</h4>
+                                            <section>
+                                                <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                                    <span class="w-6 h-6 rounded-full bg-brand-primary text-white text-[10px] flex items-center justify-center">3</span>
+                                                    Fair Use
+                                                </h4>
+                                                <p class="text-sm text-slate-600 ml-8">Users must use the system only for its intended purpose. Any attempt to manipulate votes, access other users’ data, or disrupt the system is strictly prohibited.</p>
+                                            </section>
 
-                                    <h4 class="font-bold mb-3">2. Authorized Use</h4>
-                                    <p class="text-sm text-slate-600">Only registered and authorized users may access the system. Each user is responsible for keeping their</p>
-                                    <p class="text-sm text-slate-600">account credentials private and secure.</p>
+                                            <section>
+                                                <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                                    <span class="w-6 h-6 rounded-full bg-brand-primary text-white text-[10px] flex items-center justify-center">4</span>
+                                                    One Person, One Vote
+                                                </h4>
+                                                <p class="text-sm text-slate-600 ml-8">Each eligible voter is allowed to vote only once per election. The system includes controls to prevent duplicate or unauthorized voting.</p>
+                                            </section>
 
-                                    <h4 class="font-bold mb-3">3. Fair Use</h4>
-                                    <p class="text-sm text-slate-600">Users must use the system only for its intended purpose. Any attempt to manipulate votes, access other</p>
-                                    <p class="text-sm text-slate-600">users’ data, or disrupt the system is strictly prohibited.</p>
-
-                                    <h4 class="font-bold mb-3">4. One Person, One Vote</h4>
-                                    <p class="text-sm text-slate-600">Each eligible voter is allowed to vote only once per election. The system includes controls to prevent</p>
-                                    <p class="text-sm text-slate-600">duplicate or unauthorized voting.</p>
-
-                                    <h4 class="font-bold mb-3">Privacy Policy (RA 10173 Compliant)</h4>
-
-                                    <h5 class="font-bold mb-3">5. Data Collection</h5>
-                                    <p class="text-sm text-slate-600">The system collects only the necessary personal information, such as:</p>
-                                    <p class="text-sm text-slate-600">Name, username, and email</p>
-                                    <p class="text-sm text-slate-600">Login credentials (securely encrypted)</p>
-                                    <p class="text-sm text-slate-600">Voting participation status</p>
-                                    <p class="text-sm text-slate-600">No unnecessary personal data is collected.</p>
-
-                                    <h5 class="font-bold mb-3">6. Data Usage</h5>
-                                    <p class="text-sm text-slate-600">Collected data is used solely for:</p>
-                                    <p class="text-sm text-slate-600">Verifying voter eligibility   </p>
-                                    <p class="text-sm text-slate-600">Ensuring one person, one vote</p>
-                                    <p class="text-sm text-slate-600">Maintaining system security</p>
-                                    <p class="text-sm text-slate-600">Improving user experience</p>
-                                    <p class="text-sm text-slate-600">Data will not be used for marketing or shared with third parties without explicit consent.</p>
-
-                                    <h5 class="font-bold mb-3">7. Data Protection</h5>
-                                    <p class="text-sm text-slate-600">The system employs robust security measures to protect user data, including:</p>
-                                    <p class="text-sm text-slate-600">Encryption of sensitive information</p>
-                                    <p class="text-sm text-slate-600">Regular security audits</p>
-                                    <p class="text-sm text-slate-600">Access controls to prevent unauthorized data access</p>
-                                    <p class="text-sm text-slate-600">Users are encouraged to use strong passwords and report any suspicious activity.</p>
-
-                                    <h5 class="font-bold mb-3">8. User Rights</h5>
-                                    <p class="text-sm text-slate-600">Users have the right to:</p>
-                                    <p class="text-sm text-slate-600">Access their personal data</p>
-                                    <p class="text-sm text-slate-600">Request corrections to inaccurate data</p>
-                                    <p class="text-sm text-slate-600">Request deletion of their data, subject to legal obligations</p>
-                                    <p class="text-sm text-slate-600">Withdraw consent for data processing at any time</p>
-                                    <p class="text-sm text-slate-600">To exercise these rights, users can contact the system administrator.</p>
-
-                                    <h5 class="font-bold mb-3">9. Changes to Terms and Privacy Policy</h5>
-                                    <p class="text-sm text-slate-600">The system reserves the right to update these Terms of Service and Privacy Policy as needed. Users will be notified of any significant changes.</p>
-                                    <p class="text-sm text-slate-600">Continued use of the system after changes constitutes acceptance of the new terms.</p>
-
-                                    <h5 class="font-bold mb-3">10. Contact Information</h5>
-                                    <p class="text-sm text-slate-600">For questions or concerns regarding these Terms of Service or Privacy Policy, users can contact:</p>
-                                    <p class="text-sm text-slate-600">Access their personal data</p>
-                                    <p class="text-sm text-slate-600">Request corrections to inaccurate information</p>
-                                    <p class="text-sm text-slate-600">Request deletion of their data, subject to legal obligations</p>
-                                    <p class="text-sm text-slate-600">Withdraw consent for data processing at any time</p>
-                                    <p class="text-sm text-slate-600">To exercise these rights, users can contact the system administrator.</p>
-
-                                    11. Acceptance of Terms
-                                    <p class="text-sm text-slate-600">By using this Voting System, users acknowledge that they have read, understood, and agree to be bound by these Terms of Service and Privacy Policy.</p>
-
-                                    12. Effective Date
-                                    <p class="text-sm text-slate-600">These Terms of Service and Privacy Policy are effective as of January 1, 2024.</p>
-
+                                            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 mt-8">
+                                                <h4 class="font-bold text-amber-800 flex items-center gap-2 mb-2 text-sm">
+                                                    <i class="fas fa-calendar-check"></i>
+                                                    Acceptance & Effective Date
+                                                </h4>
+                                                <p class="text-xs text-amber-700">By using this Voting System, users acknowledge that they have read, understood, and agree to be bound by these Terms of Service. Effective as of January 1, 2024.</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 `;
 
             const privacyContent = `
-                                    <h4 class="font-bold mb-3">Privacy Policy</h4>
-                                    <p class="text-sm text-slate-600">Your privacy is important to us. This Privacy Policy explains how we collect, use, and protect your personal information when you use our Voting System.</p>
+                                    <div class="prose prose-slate max-w-none">
+                                        <div class="bg-emerald-50 p-4 rounded-2xl mb-6 border border-emerald-100">
+                                            <h4 class="font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                                                <i class="fas fa-user-shield"></i>
+                                                RA 10173 Compliant
+                                            </h4>
+                                            <p class="text-sm text-emerald-700/80">Your privacy is our priority. We are fully committed to protecting your personal data in accordance with the Data Privacy Act of 2012.</p>
+                                        </div>
 
-                                    <h4 class="font-bold mb-3">1. Information We Collect</h4>
-                                    <p class="text-sm text-slate-600">We collect the following types of information:</p>
-                                    <p class="text-sm text-slate-600">Personal Information: Name, email address, and other contact details</p>
-                                    <p class="text-sm text-slate-600">Login Credentials: Username and password (securely encrypted)</p>
-                                    <p class="text-sm text-slate-600">Voting Data: Information about your voting participation</p>
-                                    <p class="text-sm text-slate-600">Usage Data: Information about how you use the system, including IP address and browser type</p>
+                                        <div class="space-y-6">
+                                            <section>
+                                                <h4 class="font-bold text-slate-800 mb-2">1. Information We Collect</h4>
+                                                <ul class="list-disc ml-5 text-sm text-slate-600 space-y-1">
+                                                    <li><strong>Personal Info:</strong> Name, email, and contact details</li>
+                                                    <li><strong>Credentials:</strong> Securely encrypted passwords</li>
+                                                    <li><strong>Voting Data:</strong> Participation status (anonymous)</li>
+                                                    <li><strong>Technical Data:</strong> IP address and browser type for security</li>
+                                                </ul>
+                                            </section>
 
-                                    <h4 class="font-bold mb-3">2. How We Use Your Information</h4>
-                                    <p class="text-sm text-slate-600">We use your information for the following purposes:</p>
-                                    <p class="text-sm text-slate-600">To verify voter eligibility</p>
-                                    <p class="text-sm text-slate-600">To ensure one person, one vote</p>
-                                    <p class="text-sm text-slate-600">To maintain system security and prevent fraud</p>
-                                    <p class="text-sm text-slate-600">To improve user experience and system functionality</p>
-                                    <p class="text-sm text-slate-600">To communicate important updates and information</p>
+                                            <section>
+                                                <h4 class="font-bold text-slate-800 mb-2">2. How We Use Data</h4>
+                                                <p class="text-sm text-slate-600">Data is strictly used for verifying eligibility, ensuring one-person-one-vote, and maintaining system security. We never share your data with third parties for marketing.</p>
+                                            </section>
 
-                                    <h4 class="font-bold mb-3">3. Data Protection</h4>
-                                    <p class="text-sm text-slate-600">We implement robust security measures to protect your personal information, including:</p>
-                                    <p class="text-sm text-slate-600">Encryption of sensitive data</p>
-                                    <p class="text-sm text-slate-600">Regular security audits</p>
-                                    <p class="text-sm text-slate-600">Access controls to prevent unauthorized access</p>
-                                    <p class="text-sm text-slate-600">We encourage you to use strong passwords and report any suspicious activity.</p>
+                                            <section>
+                                                <h4 class="font-bold text-slate-800 mb-2">3. Your Rights</h4>
+                                                <p class="text-sm text-slate-600">You have the right to access, correct, or request deletion of your data. You may also withdraw consent at any time by contacting the system administrator.</p>
+                                            </section>
 
-                                    <h4 class="font-bold mb-3">4. Your Rights</h4>
-                                    <p class="text-sm text-slate-600">You have the right to:<//p>
-                                    <p class="text-sm text-slate-600">Access your personal data</p>
-                                    <p class="text-sm text-slate-600">Request corrections to inaccurate data</p>
-                                    <p class="text-sm text-slate-600">Request deletion of your data, subject to legal obligations</p>
-                                    <p class="text-sm text-slate-600">Withdraw consent for data processing at any time</p>
-                                    <p class="text-sm text-slate-600">To exercise these rights, please contact the system administrator.</p>
-
-                                    <h4 class="font-bold mb-3">5. Changes to This Privacy Policy</h4>
-                                    <p class="text-sm text-slate-600">We may update this Privacy Policy from time to time. We will notify you of any significant changes.</p>
-                                    <p class="text-sm text-slate-600">Your continued use of the system after changes constitutes acceptance of the new policy.</p>
-
-                                    <h4 class="font-bold mb-3">6. Contact Us</h4>
-                                    <p class="text-sm text-slate-600">If you have any questions or concerns about this Privacy Policy, please contact the system administrator.</p>
-
+                                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-[10px] text-slate-500 italic">
+                                                Last updated: January 1, 2024. The system reserves the right to update this policy to maintain compliance with legal standards.
+                                            </div>
+                                        </div>
+                                    </div>
                                 `;
 
             function openModal(type) {
                 if (type === 'terms') {
                     modalTitle.textContent = 'Terms of Service';
-                    modalSub.textContent = 'Please read our terms carefully';
+                    modalSub.textContent = 'User Agreement';
                     modalBody.innerHTML = termsContent;
                 } else {
                     modalTitle.textContent = 'Privacy Policy';
-                    modalSub.textContent = 'How we handle your data';
+                    modalSub.textContent = 'Data Protection';
                     modalBody.innerHTML = privacyContent;
                 }
                 modal.classList.remove('hidden');
