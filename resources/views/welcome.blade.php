@@ -37,6 +37,12 @@
                 <div class="flex-1">
                     @foreach($errors->all() as $error)
                         <p class="font-medium">{{ $error }}</p>
+                        @if(str_contains($error, 'permanently blocked') || str_contains($error, 'contact the Administrator'))
+                            <div class="mt-3 p-3 bg-white rounded-lg border border-red-100 shadow-sm">
+                                <p class="text-xs font-bold text-slate-800 mb-1 uppercase tracking-wider">How to restore access?</p>
+                                <p class="text-xs text-slate-500">Please send an email to <span class="text-primary font-bold">admin@securevote.ph</span> or contact your organization's IT department.</p>
+                            </div>
+                        @endif
                     @endforeach
                 </div>
                 <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600">

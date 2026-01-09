@@ -538,7 +538,17 @@
                     if (response.ok) {
                         // Successfully cast vote
                         summaryModal.classList.add('hidden');
-                        document.getElementById('success-screen').style.display = 'flex';
+                        const successScreen = document.getElementById('success-screen');
+                        successScreen.style.display = 'flex';
+
+                        // Update success message if there are remaining votes
+                        const responseData = await response.json();
+                        if (responseData.remaining_votes > 0) {
+                            const successTitle = successScreen.querySelector('h2');
+                            const successMessage = successScreen.querySelector('p');
+                            if (successTitle) successTitle.textContent = 'Ballot Submitted!';
+                            if (successMessage) successMessage.textContent = responseData.message + ' Redirecting you back to cast your next vote...';
+                        }
 
                         setTimeout(() => {
                             window.location.href = "{{ route('voter.elections.welcome', $election->code) }}";
