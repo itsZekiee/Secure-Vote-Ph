@@ -1,71 +1,70 @@
 <?php
-
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use App\Models\User;
 
-class OtpController extends Controller
-{
-
-    // Show OTP verification form
-    public function show()
+    class OtpController extends Controller
     {
-        abort_unless(session()->has('otp_email'), 403);
-        return view('auth.verify-otp');
-    }
 
-    public function verify(Request $request)
-    {
-        $request->validate([
-            'token' => 'required|digits:8',
-        ]);
-
-        $email = session('otp_email');
-        $userId = session('otp_user_id');
-
-        if (!$email || !$userId) {
-            return redirect('/')->withErrors([
-                'token' => 'Session expired. Please login again.',
-            ]);
+        // Show OTP verification form
+        public function show()
+        {
+            abort_unless(session()->has('otp_email'), 403);
+            return view('auth.verify-otp');
         }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
-            'apikey' => config('services.supabase.service_key'),
-            'Content-Type' => 'application/json',
-        ])->post(
-                config('services.supabase.url') . '/auth/v1/verify',
-                [
-                    'email' => $email,
-                    'token' => $request->token,
-                    'type' => 'email',
-                ]
+        public function verify(Request $request)
+        {
+            $request->validate([
+                'token' => 'required|digits:8',
+            ]);
+
+            $email = session('otp_email');
+            $userId = session('otp_user_id');
+
+            if (!$email || !$userId) {
+                return redirect('/')->withErrors([
+                    'token' => 'Session expired. Please login again.',
+                ]);
+            }
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
+                'apikey' => config('services.supabase.service_key'),
+                'Content-Type' => 'application/json',
+            ])->post(
+                    config('services.supabase.url') . '/auth/v1/verify',
+                    [
+                        'email' => $email,
+                        'token' => $request->token,
+                        'type' => 'email',
+                    ]
+                );
+
+            if (!$response->successful()) {
+                return back()->withErrors([
+                    'token' => 'Invalid or expired verification code.',
+                ]);
+            }
+
+            Auth::loginUsingId(
+                $userId,
+                session('remember_me', false)
             );
 
-        if (!$response->successful()) {
-            return back()->withErrors([
-                'token' => 'Invalid or expired verification code.',
+            session()->forget([
+                'otp_email',
+                'otp_user_id',
+                'remember_me',
             ]);
+
+            $request->session()->regenerate();
+
+            return redirect('/admin/dashboard')
+                ->with('success', 'Login verified successfully.');
         }
-
-        Auth::loginUsingId(
-            $userId,
-            session('remember_me', false)
-        );
-
-        session()->forget([
-            'otp_email',
-            'otp_user_id',
-            'remember_me',
-        ]);
-
-        $request->session()->regenerate();
-
-        return redirect('/admin/dashboard')
-            ->with('success', 'Login verified successfully.');
     }
-}

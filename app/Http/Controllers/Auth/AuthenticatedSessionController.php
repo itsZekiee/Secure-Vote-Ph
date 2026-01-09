@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use App\Http\Controllers\Auth\OtpController;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -24,6 +25,8 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         $user = User::where('email', $request->email)->first();
+
+        
 
         if (!$user) {
             throw ValidationException::withMessages([
