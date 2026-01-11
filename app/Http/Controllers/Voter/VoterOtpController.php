@@ -14,7 +14,10 @@ class VoterOtpController extends Controller
     public function show()
     {
         abort_unless(session()->has('otp_email'), 403);
-        return view('auth.voter-verify-otp');
+        return view('auth.supabase.otp', [
+            'verify_route' => route('voter.otp.verify'),
+            'back_route' => route('voter.elections.access')
+        ]);
     }
 
     public function verify(Request $request)

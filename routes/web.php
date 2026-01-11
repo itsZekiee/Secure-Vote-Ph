@@ -88,8 +88,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('/elections/{election}/data', [SubAdminDashboardController::class, 'getElectionData'])->name('election-data');
     });
 
-    // Direct voter page route (legacy)
-    Route::get('/voters', [AdminController::class, 'voters'])->name('voters');
 
     // Settings Management
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
@@ -165,23 +163,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     });
 
     // Voter Management Routes
-    Route::resource('voters', VoterController::class);
     Route::prefix('voters')->name('voters.')->group(function () {
         Route::get('search', [VoterController::class, 'search'])->name('search');
         Route::get('export', [VoterController::class, 'export'])->name('export');
-        Route::post('{voter}/toggle-status', [VoterController::class, 'toggleStatus'])->name('toggle-status');
-        Route::post('{voter}/verify', [VoterController::class, 'verify'])->name('verify');
-        Route::post('{voter}/unverify', [VoterController::class, 'unverify'])->name('unverify');
-        Route::post('{voter}/approve', [VoterController::class, 'approve'])->name('approve');
-        Route::post('{voter}/decline', [VoterController::class, 'decline'])->name('decline');
-        Route::get('{voter}/voting-history', [VoterController::class, 'votingHistory'])->name('voting-history');
         Route::post('bulk-import', [VoterController::class, 'bulkImport'])->name('bulk-import');
         Route::get('template-download', [VoterController::class, 'downloadTemplate'])->name('template-download');
         Route::post('bulk-verify', [VoterController::class, 'bulkVerify'])->name('bulk-verify');
         Route::post('bulk-delete', [VoterController::class, 'bulkDelete'])->name('bulk-delete');
         Route::post('import-preview', [VoterController::class, 'importPreview'])->name('import.preview');
         Route::post('import-store', [VoterController::class, 'importStore'])->name('import.store');
+
+        Route::post('{voter}/toggle-status', [VoterController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('{voter}/verify', [VoterController::class, 'verify'])->name('verify');
+        Route::post('{voter}/unverify', [VoterController::class, 'unverify'])->name('unverify');
+        Route::post('{voter}/approve', [VoterController::class, 'approve'])->name('approve');
+        Route::post('{voter}/decline', [VoterController::class, 'decline'])->name('decline');
+        Route::get('{voter}/voting-history', [VoterController::class, 'votingHistory'])->name('voting-history');
     });
+    Route::resource('voters', VoterController::class);
 
     // User Management Routes
     Route::resource('users', UserController::class);

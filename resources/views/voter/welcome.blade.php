@@ -194,7 +194,7 @@
                                 <i class="fas fa-edit"></i>
                                 <span id="voteBtnText">
                                     @if($ballotCount > 0)
-                                        CAST ANOTHER VOTE ({{ $maxVotes - $ballotCount }} REMAINING)
+                                        CAST ANOTHER VOTE ({{ max(0, $maxVotes - $ballotCount) }} REMAINING)
                                     @else
                                         START VOTING
                                     @endif
@@ -299,6 +299,9 @@
         const endDate = {{ $election->end_date->timestamp * 1000 }};
         const hasVoted = {{ $hasVoted ? 'true' : 'false' }};
 
+        const ballotCount = {{ $ballotCount }};
+        const maxVotes = {{ $maxVotes }};
+
         function updateCountdown() {
             const now = new Date().getTime() + timeOffset;
             let targetDate, label, isBeforeStart, isEnded, subLabel;
@@ -339,25 +342,33 @@
             if (subLabelEl) subLabelEl.textContent = subLabel;
 
             // Update button status
-            if (!hasVoted) {
-                const voteBtn = document.getElementById('voteBtn');
-                const voteBtnText = document.getElementById('voteBtnText');
+            const voteBtn = document.getElementById('voteBtn');
+            const voteBtnText = document.getElementById('voteBtnText');
 
-                if (voteBtn) {
-                    voteBtn.classList.remove(
-                        'pointer-events-none',
-                        'opacity-50',
-                        'cursor-not-allowed'
-                    );
+            if (voteBtn) {
+                voteBtn.classList.remove(
+                    'pointer-events-none',
+                    'opacity-50',
+                    'cursor-not-allowed'
+                );
 
-                    if (isBeforeStart) {
-                        voteBtn.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
-                        if (voteBtnText) voteBtnText.textContent = 'WAITING TO OPEN';
-                    } else if (isEnded) {
-                        voteBtn.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
-                        if (voteBtnText) voteBtnText.textContent = 'ELECTION CLOSED';
-                    } else {
-                        if (voteBtnText) voteBtnText.textContent = 'Start Voting';
+                if (isBeforeStart) {
+                    voteBtn.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+                    if (voteBtnText) voteBtnText.textContent = 'WAITING TO OPEN';
+                } else if (isEnded) {
+                    voteBtn.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+                    if (voteBtnText) voteBtnText.textContent = 'ELECTION CLOSED';
+                } else {
+                    if (voteBtnText) {
+                        if (ballotCount >= maxVotes) {
+                            // Should have been handled by if-condition in blade, but for extra safety
+                            voteBtn.classList.add('pointer-events-none', 'opacity-50', 'cursor-not-allowed');
+                            voteBtnText.textContent = 'ALL VOTES SUBMITTED';
+                        } else if (ballotCount > 0) {
+                            voteBtnText.textContent = `CAST ANOTHER VOTE (${maxVotes - ballotCount} REMAINING)`;
+                        } else {
+                            voteBtnText.textContent = 'START VOTING';
+                        }
                     }
                 }
             }
