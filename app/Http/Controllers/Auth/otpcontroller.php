@@ -14,7 +14,10 @@ use App\Models\User;
         public function show()
         {
             abort_unless(session()->has('otp_email'), 403);
-            return view('auth.verify-otp');
+            return view('auth.supabase.otp', [
+                'verify_route' => route('otp.verify'),
+                'back_route' => route('home')
+            ]);
         }
 
         public function verify(Request $request)

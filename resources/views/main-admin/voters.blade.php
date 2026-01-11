@@ -34,6 +34,7 @@
         filterBy: 'all',
         selectedForm: 'all',
         perPage: 15,
+        showPasswordModal: {{ session('temp_password_display') ? 'true' : 'false' }},
         confirmAction(id, action) {
             if (confirm(`Are you sure you want to ${action} this voter?`)) {
                 document.getElementById(`${action}-form-${id}`).submit();
@@ -41,6 +42,59 @@
         }
     }"
          class="flex-1 flex flex-col">
+
+        <!-- Temporary Password Modal -->
+        <template x-if="showPasswordModal">
+            <div class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="showPasswordModal = false"></div>
+
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                    <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-white/20">
+                        <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                            <div class="sm:flex sm:items-start">
+                                <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-xl bg-amber-50 sm:mx-0 sm:h-10 sm:w-10">
+                                    <i class="ri-shield-keyhole-line text-amber-600 text-xl"></i>
+                                </div>
+                                <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                                    <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                                        Import Successful!
+                                    </h3>
+                                    <div class="mt-2">
+                                        <p class="text-sm text-gray-500 font-medium">
+                                            The voters have been imported. Here is the temporary password assigned to all of them:
+                                        </p>
+                                        <div class="mt-4 p-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center gap-3 group">
+                                            <span class="text-2xl font-mono font-bold tracking-wider text-indigo-600 select-all">
+                                                {{ session('temp_password_display') }}
+                                            </span>
+                                            <button @click="navigator.clipboard.writeText('{{ session('temp_password_display') }}'); alert('Password copied!')"
+                                                    class="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-indigo-600">
+                                                <i class="ri-file-copy-line"></i>
+                                            </button>
+                                        </div>
+                                        <div class="mt-4 flex items-start gap-2 p-3 bg-red-50 rounded-lg border border-red-100">
+                                            <i class="ri-error-warning-line text-red-500 mt-0.5"></i>
+                                            <p class="text-[11px] text-red-700 font-bold leading-tight uppercase tracking-wider">
+                                                SECURITY WARNING: THIS PASSWORD WILL NOT BE SHOWN AGAIN AFTER YOU CLOSE THIS MODAL. PLEASE RECORD IT NOW.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                            <button type="button"
+                                    @click="showPasswordModal = false"
+                                    class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-6 py-2.5 bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700 focus:outline-none sm:ml-3 sm:w-auto uppercase tracking-widest transition-all">
+                                I Have Recorded the Password
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
 
         <!-- Main content -->
         <main class="flex-1">
@@ -112,29 +166,24 @@
                                     </button>
                                 </form>
 
-                                @if (isset($importPath) && $importPath)
-                                    <form method="POST" action="{{ route('admin.voters.import.store') }}" class="w-full lg:w-auto">
-                                        @csrf
-                                        <input type="hidden" name="import_path" value="{{ $importPath }}" />
-                                        <div class="flex flex-col sm:flex-row items-center gap-3">
-                                            <div class="flex items-center gap-2">
-                                                <label for="election_id" class="text-sm font-medium text-gray-700">Form:</label>
-                                                <select name="election_id" id="election_id" required class="text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                                                    <option value="">-- Choose --</option>
-                                                    @foreach($forms ?? [] as $form)
-                                                        <option value="{{ $form->id }}">{{ $form->title }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <div class="flex items-center gap-2 w-full sm:w-auto">
-                                                <button type="submit" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 shadow-sm transition-colors">
-                                                    Save All
-                                                </button>
-                                                <a href="{{ route('admin.voters.index') }}" class="flex-1 sm:flex-none text-center text-sm text-gray-500 hover:text-gray-700">Cancel</a>
-                                            </div>
-                                        </div>
-                                    </form>
-                                @endif
+                                <a href="{{ route('admin.voters.create') }}" class="hidden lg:inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-indigo-600 transition-all shadow-md">
+                                    <i class="ri-user-add-line text-lg"></i>
+                                    Add Voter
+                                </a>
+
+                                <script>
+                                    function checkFile(input) {
+                                        if (input.files && input.files[0]) {
+                                            const file = input.files[0];
+                                            const extension = file.name.split('.').pop().toLowerCase();
+                                            if (!['xlsx', 'xls', 'csv'].includes(extension)) {
+                                                alert('Please upload a valid Excel or CSV file.');
+                                                input.value = '';
+                                            }
+                                        }
+                                    }
+                                </script>
+
                             </div>
                         </div>
                     </div>

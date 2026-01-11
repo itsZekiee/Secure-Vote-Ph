@@ -131,6 +131,25 @@ class VoterElectionController extends Controller
                 ->withErrors(['code' => 'Election not found.']);
         }
 
+        $voter = session('voter');
+        if (!$voter) {
+            return redirect()->route('voter.elections.access')
+                ->withErrors(['error' => 'Voter session expired.']);
+        }
+
+        // Check if already voted max times
+        $maxVotes = $election->max_votes ?? 1;
+        $votedCount = $this->getBallotCount($election->id, $voter['id']);
+
+        if ($votedCount >= $maxVotes) {
+            $msg = 'You have already reached the maximum number of votes allowed for this election.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->route('voter.elections.welcome', $election->code)
+                ->withErrors(['error' => $msg]);
+        }
+
         $request->validate([
             'votes' => 'required|array',
             'votes.*' => ['required', function ($attribute, $value, $fail) {
@@ -173,21 +192,6 @@ class VoterElectionController extends Controller
                 }
                 return back()->withErrors(['error' => $msg]);
             }
-        }
-
-        $voter = session('voter');
-
-        // Check if already voted max times
-        $maxVotes = $election->max_votes ?? 1;
-        $votedCount = $this->getBallotCount($election->id, $voter['id']);
-
-        if ($votedCount >= $maxVotes) {
-            $msg = 'You have already reached the maximum number of votes allowed for this election.';
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => $msg], 422);
-            }
-            return redirect()->route('voter.elections.welcome', $election->code)
-                ->withErrors(['error' => $msg]);
         }
 
         // Record votes

@@ -329,28 +329,41 @@ class VoterController extends Controller
 
         $file = $request->file('file');
 
-        $sheets = Excel::toCollection(new VoterImport(), $file);
-        $rows = $sheets->first() ?? collect();
+        try {
+            $sheets = Excel::toCollection(new VoterImport(), $file);
+            $rows = $sheets->first() ?? collect();
+        } catch (\Throwable $e) {
+            return back()->withErrors(['file' => 'Error reading file: ' . $e->getMessage()]);
+        }
+
+        if ($rows->isEmpty()) {
+            return back()->withErrors(['file' => 'The uploaded file is empty or has no data.']);
+        }
 
         $voters = $rows->map(function ($row) {
             $studentId = $row['id'] ?? ($row['student_id'] ?? ($row['id_number'] ?? ($row['employee_id'] ?? ($row['student id'] ?? null))));
+            $email = $row['email'] ?? ($row['email_address'] ?? ($row['email address'] ?? null));
+            $name = $row['full_name'] ?? ($row['name'] ?? ($row['full name'] ?? null));
+
+            if (!$email && !$name) return null;
+
             return (object) [
-                'name' => $row['full_name'] ?? ($row['name'] ?? ($row['full name'] ?? null)),
-                'email' => $row['email'] ?? null,
+                'name' => $name,
+                'email' => $email,
                 'student_id' => $studentId,
                 'phone' => $row['phone'] ?? ($row['phone_number'] ?? ($row['phone number'] ?? null)),
                 'registration_status' => 'approved',
                 'created_at' => now(),
             ];
-        });
+        })->filter();
 
         $storedPath = $file->store('imports');
 
         // Fetch forms/elections for selection
-        $forms = \App\Models\Election::where('status', '!=', 'archived')->get();
+        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
 
         // return view; the blade will handle collection vs paginator
-        return view('main-admin.voters', [
+        return view('main-admin.voter.show', [
             'voters' => $voters,
             'importPath' => $storedPath,
             'forms' => $forms
@@ -365,56 +378,62 @@ class VoterController extends Controller
         $request->validate([
             'import_path' => 'required|string',
             'election_id' => 'required|exists:elections,id',
+            'registration_status' => 'required|in:approved,pending,declined',
+            'temp_password' => 'required|string|min:4'
         ]);
 
         $path = $request->input('import_path');
         $electionId = $request->input('election_id');
-        $fullPath = storage_path('app/' . ltrim($path, '/'));
+        $registrationStatus = $request->input('registration_status', 'approved');
+        $tempPassword = $request->input('temp_password');
+        $hashedPassword = \Illuminate\Support\Facades\Hash::make($tempPassword);
 
-        if (!file_exists($fullPath)) {
+        if (!Storage::disk('local')->exists($path)) {
             return back()->withErrors(['file' => 'Import file not found. Please re-upload.']);
         }
 
-        $sheets = Excel::toCollection(new VoterImport(), $fullPath);
-        $rows = $sheets->first() ?? collect();
+        $fullPath = Storage::disk('local')->path($path);
+
+        try {
+            $sheets = Excel::toCollection(new VoterImport(), $fullPath);
+            $rows = $sheets->first() ?? collect();
+        } catch (\Throwable $e) {
+            return back()->withErrors(['file' => 'Error reading stored file: ' . $e->getMessage()]);
+        }
 
         $created = 0;
+        $skipped = 0;
         DB::beginTransaction();
         try {
             foreach ($rows as $row) {
-                $email = $row['email'] ?? null;
-                if (!$email) {
+                $email = $row['email'] ?? ($row['email_address'] ?? ($row['email address'] ?? null));
+                $name = $row['full_name'] ?? ($row['name'] ?? ($row['full name'] ?? null));
+
+                if (!$email || !$name) {
+                    $skipped++;
                     continue;
                 }
 
                 $studentId = $row['id'] ?? ($row['student_id'] ?? ($row['id_number'] ?? ($row['employee_id'] ?? ($row['student id'] ?? null))));
 
-                // Validate Student ID format (xxxx-xxxxxx-xx-x)
-                if ($studentId && !preg_match('/^\d{4}-\d{6}-\d{2}-\d{1}$/', (string)$studentId)) {
-                    // Log or handle invalid format if needed
+                // Check if voter already exists
+                $existingVoter = \App\Models\Voter::where('email', $email)->first();
+                if ($existingVoter) {
+                    $skipped++;
+                    continue;
                 }
 
                 $data = [
-                    'name' => $row['full_name'] ?? ($row['name'] ?? 'Unnamed'),
+                    'name' => $name,
                     'email' => $email,
                     'student_id' => $studentId,
-                    'phone' => $row['phone'] ?? ($row['phone_number'] ?? null),
-                    'is_active' => true,
-                    'password' => bcrypt(Str::random(12)),
+                    'phone' => $row['phone'] ?? ($row['phone_number'] ?? ($row['phone number'] ?? null)),
+                    'password' => $hashedPassword,
                     'election_id' => $electionId,
-                    'registration_status' => 'approved',
+                    'registration_status' => $registrationStatus,
                 ];
 
-                if (Schema::hasColumn('users', 'role')) {
-                    $data['role'] = 'voter';
-                }
-                if (Schema::hasColumn('users', 'is_voter')) {
-                    $data['is_voter'] = true;
-                }
-
-                $user = User::create($data);
-
-                $this->assignVoterRole($user);
+                \App\Models\Voter::create($data);
 
                 $created++;
             }
@@ -432,6 +451,8 @@ class VoterController extends Controller
             // ignore
         }
 
-        return redirect()->route('admin.voters.index')->with('success', "Imported {$created} voters.");
+        return redirect()->route('admin.voters.index')
+            ->with('success', "Imported {$created} voters. Skipped {$skipped} invalid or duplicate rows.")
+            ->with('temp_password_display', $tempPassword);
     }
 }
