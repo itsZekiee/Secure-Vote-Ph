@@ -21,6 +21,9 @@ use App\Http\Controllers\Elections\Store as ElectionStoreController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\MagicLinkController;
+use App\Http\Controllers\Voter\VoterOtpController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -39,6 +42,13 @@ Route::post('/register', [RegisteredUserController::class, 'store'])->name('regi
 
 Route::get('/otp', [OtpController::class, 'show'])->name('otp.form');
 Route::post('/otp', [OtpController::class, 'verify'])->name('otp.verify');
+
+Route::get('/voter/otp', [VoterOtpController::class, 'show'])
+    ->name('voter.otp.form');
+
+Route::post('/voter/otp', [VoterOtpController::class, 'verify'])
+    ->name('voter.otp.verify');
+
 
 Route::middleware('guest')->group(function () {
     Route::get('otp', [OtpController::class, 'show'])->name('otp.form');
