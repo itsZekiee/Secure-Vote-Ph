@@ -7,6 +7,8 @@ use App\Models\Election;
 use App\Models\Voter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
+
 
 class VoterRegistrationController extends Controller
 {
@@ -226,6 +228,40 @@ class VoterRegistrationController extends Controller
             'election_id' => $election->id,
             'role' => 'voter'
         ]]);
+
+        // 🔐 Send OTP (Email)
+        Http::withHeaders([
+            'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
+            'apikey' => config('services.supabase.service_key'),
+            'Content-Type' => 'application/json',
+        ])->post(
+                config('services.supabase.url') . '/auth/v1/otp',
+                [
+                    'email' => $voter->email,
+                    'type' => 'email',
+                ]
+            );
+
+        // 🔑 Keep current session data for voter
+        session([
+            'otp_voter_id' => $voter->id,
+            'otp_email' => $voter->email,
+            'otp_election_code' => $election->code,
+        ]);
+
+
+        // Store OTP info in session for 2FA
+        session([
+            'otp_email' => $voter->email,
+            'otp_user_id' => $voter->id,
+            'remember_me' => $request->has('remember'),
+        ]);
+
+        
+        // Redirect to OTP form instead of welcome
+        return redirect()->route('voter.otp.form')
+            ->with('success', 'A verification code has been sent to your email.');
+
 
         return redirect()->route('voter.elections.welcome', $election->code);
     }

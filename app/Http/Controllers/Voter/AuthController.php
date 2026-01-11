@@ -65,31 +65,44 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'password' => ['required'],
         ]);
 
-        $credentials = $request->only('email', 'password');
-        $remember = $request->boolean('remember');
-
-        if (Auth::attempt($credentials, $remember)) {
-            $request->session()->regenerate();
-
-            // Redirect to welcome page if election data exists in session
-            if (session()->has('election_id')) {
-                $election = Election::find(session('election_id'));
-                if ($election) {
-                    return redirect()->route('voter.elections.welcome', $election->code);
-                }
-            }
-
-            return redirect()->intended(route('voter.dashboard'));
+        // Check credentials WITHOUT logging in
+        if (!Auth::validate($request->only('email', 'password'))) {
+            return back()->withErrors([
+                'email' => 'Invalid email or password.',
+            ]);
         }
 
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->onlyInput('email');
+        $user = User::where('email', $request->email)->first();
+
+        // 🔐 Send OTP via Supabase
+        Http::withHeaders([
+            'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
+            'apikey' => config('services.supabase.service_key'),
+            'Content-Type' => 'application/json',
+        ])->post(
+                config('services.supabase.url') . '/auth/v1/otp',
+                [
+                    'email' => $user->email,
+                    'type' => 'email',
+                ]
+            );
+
+        // Store OTP session data
+        session([
+            'otp_email' => $user->email,
+            'otp_user_id' => $user->id,
+            'remember_me' => $request->boolean('remember'),
+        ]);
+
+        return redirect()
+            ->route('voter.otp.form')
+            ->with('success', 'A verification code has been sent to your email.');
     }
+
 
     /**
      * Handle voter logout
