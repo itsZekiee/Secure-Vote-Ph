@@ -12,6 +12,7 @@ class Vote extends Model
     use HasFactory, HasUuids;
 
     protected $fillable = [
+        'ballot_id',
         'election_id',
         'candidate_id',
         'voter_id',
