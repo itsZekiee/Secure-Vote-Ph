@@ -50,6 +50,7 @@ class User extends Authenticatable
     ];
 
     // User role constants
+    const ROLE_SUPER_ADMIN = 'super-admin';
     const ROLE_ADMIN = 'admin';
     const ROLE_ELECTION_OFFICER = 'election_officer';
     const ROLE_VOTER = 'voter';
@@ -156,7 +157,7 @@ class User extends Authenticatable
      */
     public function isAdmin()
     {
-        return $this->hasRole(self::ROLE_ADMIN);
+        return $this->role === self::ROLE_ADMIN || $this->role === self::ROLE_SUPER_ADMIN;
     }
 
     /**

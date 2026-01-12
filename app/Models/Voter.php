@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use App\Traits\Auditable;
+
 class Voter extends Model
 {
-    use HasUuids;
+    use HasUuids, Auditable;
     protected $table = 'voters';
 
     protected $fillable = [

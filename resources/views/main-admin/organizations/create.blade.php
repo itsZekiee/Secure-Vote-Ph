@@ -28,6 +28,9 @@
             },
 
             submitForm() {
+                if (!confirm('Are you sure you want to submit and create this organization?')) {
+                    return;
+                }
                 this.loading = true;
                 this.errors = {};
 

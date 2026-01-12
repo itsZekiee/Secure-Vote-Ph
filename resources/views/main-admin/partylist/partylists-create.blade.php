@@ -55,6 +55,9 @@
 
                 async submitForm() {
                     if (!this.validateStep1()) return;
+                    if (!confirm('Are you sure you want to submit and create this partylist?')) {
+                        return;
+                    }
                     this.loading = true;
                     this.errors = {};
 

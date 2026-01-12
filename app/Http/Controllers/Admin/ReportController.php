@@ -17,6 +17,14 @@ class ReportController extends Controller
     /**
      * Display reports dashboard
      */
+    private function getView($name)
+    {
+        if (auth()->check() && auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            return "admin.$name";
+        }
+        return "main-admin.$name";
+    }
+
     public function index(Request $request)
     {
         $stats = [
@@ -56,7 +64,7 @@ class ReportController extends Controller
             ->orderBy('year', 'desc')
             ->pluck('year');
 
-        return view('main-admin.reports', compact('stats', 'forms', 'organizations', 'years'));
+        return view($this->getView('reports'), compact('stats', 'forms', 'organizations', 'years'));
     }
 
     /**
@@ -80,7 +88,7 @@ class ReportController extends Controller
         // In this project, Voter belongs to an election.
         $totalRegistered = \App\Models\Voter::where('election_id', $election->id)->count();
 
-        return view('main-admin.report.reports-view', compact('election', 'totalVotes', 'turnoutCount', 'totalRegistered'));
+        return view($this->getView('report.reports-view'), compact('election', 'totalVotes', 'turnoutCount', 'totalRegistered'));
     }
 
     /**
@@ -93,7 +101,7 @@ class ReportController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('main-admin.reports.elections', compact('elections'));
+        return view($this->getView('reports.elections'), compact('elections'));
     }
 
     /**
@@ -113,7 +121,7 @@ class ReportController extends Controller
             'voters_with_votes' => $voters->where('votes_count', '>', 0)->count(),
         ];
 
-        return view('main-admin.reports.voters', compact('voters', 'voter_stats'));
+        return view($this->getView('reports.voters'), compact('voters', 'voter_stats'));
     }
 
     /**
@@ -132,7 +140,7 @@ class ReportController extends Controller
             'candidates_with_votes' => $candidates->where('votes_count', '>', 0)->count(),
         ];
 
-        return view('main-admin.reports.candidates', compact('candidates', 'candidate_stats'));
+        return view($this->getView('reports.candidates'), compact('candidates', 'candidate_stats'));
     }
 
     /**

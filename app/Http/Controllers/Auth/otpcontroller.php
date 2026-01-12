@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
 
+use App\Services\AuditLogger;
+
     class OtpController extends Controller
     {
 
@@ -59,6 +61,14 @@ use App\Models\User;
                 session('remember_me', false)
             );
 
+            $user = User::find($userId);
+
+            AuditLogger::log(
+                'LOGIN',
+                'Auth',
+                "User logged in: " . ($user->email ?? $userId)
+            );
+
             session()->forget([
                 'otp_email',
                 'otp_user_id',
@@ -66,6 +76,13 @@ use App\Models\User;
             ]);
 
             $request->session()->regenerate();
+
+            $user = User::find($userId);
+
+            if ($user && $user->role === User::ROLE_VOTER) {
+                return redirect()->route('dashboard')
+                    ->with('success', 'Login verified successfully.');
+            }
 
             return redirect('/admin/dashboard')
                 ->with('success', 'Login verified successfully.');

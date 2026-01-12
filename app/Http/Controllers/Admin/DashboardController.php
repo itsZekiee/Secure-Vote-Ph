@@ -8,6 +8,7 @@ use App\Models\Organization;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\AuditLog;
 
 class DashboardController extends Controller
 {
@@ -59,7 +60,14 @@ class DashboardController extends Controller
                 ];
             });
 
-        return view('main-admin.dashboard', compact('elections'));
+        $auditLogs = AuditLog::with('user')->latest()->limit(50)->get();
+
+        $view = 'main-admin.dashboard';
+        if (auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            $view = 'admin.dashboard';
+        }
+
+        return view($view, compact('elections', 'auditLogs'));
     }
 
     /**

@@ -47,7 +47,8 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
+        $user->update(['role' => 'admin']);
 
-        return redirect()->route('dashboard')->with('success', 'Account created successfully!');
+        return redirect('/admin/dashboard')->with('success', 'Account created successfully!');
     }
 }

@@ -17,6 +17,73 @@
         filteredPartylists: @js($partylists->toArray() ?? []),
         allPartylists: @js($partylists->toArray() ?? []),
         elections: @js(isset($elections) ? $elections->toArray() : []),
+        organizations: @js(isset($organizations) ? $organizations->toArray() : []),
+
+        // Import CSV
+        showImportModal: false,
+        importing: false,
+        importFile: null,
+        importPreviewData: [],
+        importPath: '',
+        selectedImportElection: '',
+
+        handleFileSelect(e) {
+            this.importFile = e.target.files[0];
+            if (this.importFile) {
+                this.previewImport();
+            }
+        },
+
+        previewImport() {
+            const formData = new FormData();
+            formData.append('file', this.importFile);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            this.importing = true;
+            fetch('{{ route('admin.partylists.import.preview') }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    this.importPreviewData = data.data;
+                    this.importPath = data.importPath;
+                } else {
+                    alert(data.message || 'Error processing file');
+                }
+            })
+            .catch(err => alert('Upload failed'))
+            .finally(() => this.importing = false);
+        },
+
+        processImport() {
+            if (!this.importPath) return;
+
+            this.importing = true;
+            fetch('{{ route('admin.partylists.import.store') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    import_path: this.importPath,
+                    election_id: this.selectedImportElection
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Import failed');
+                }
+            })
+            .catch(err => alert('Import failed'))
+            .finally(() => this.importing = false);
+        },
 
         clearAllFilters() {
             this.searchQuery = '';
@@ -148,22 +215,34 @@
                     <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden mb-6">
                         <!-- Header with Action Button -->
                         <div class="px-6 py-4 border-b border-gray-200/60 bg-gradient-to-r from-purple-50/50 via-indigo-50/50 to-blue-50/50">
-                                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-10 h-10 bg-white/80 rounded-lg flex items-center justify-center shadow-sm border border-gray-200/50">
-                                            <i class="ri-search-line text-gray-600"></i>
+                                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 bg-white/80 rounded-lg flex items-center justify-center shadow-sm border border-gray-200/50">
+                                                <i class="ri-search-line text-gray-600"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-base font-bold text-gray-900">Search & Filter</h3>
+                                                <p class="text-[11px] text-gray-500 font-medium">Find and manage party lists</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 class="text-base font-bold text-gray-900">Search & Filter</h3>
-                                            <p class="text-[11px] text-gray-500 font-medium">Find and manage party lists</p>
+                                        <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                            <button @click="showImportModal = true"
+                                                    class="inline-flex items-center justify-center px-4 py-2.5 bg-green-600 text-white text-xs font-bold rounded-lg hover:bg-green-700 transition-all shadow-md active:scale-95">
+                                                <i class="ri-upload-2-line mr-1.5"></i>
+                                                Import CSV
+                                            </button>
+                                            <a href="{{ route('admin.partylists.export') }}"
+                                               class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all shadow-md active:scale-95">
+                                                <i class="ri-download-2-line mr-1.5"></i>
+                                                Export CSV
+                                            </a>
+                                            <a href="{{ route('admin.partylists.create') }}"
+                                               class="inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-md active:scale-95">
+                                                <i class="ri-add-line mr-1.5 text-sm"></i>
+                                                New Party List
+                                            </a>
                                         </div>
                                     </div>
-                                    <a href="{{ route('admin.partylists.create') }}"
-                                       class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-all shadow-md active:scale-95">
-                                        <i class="ri-add-line mr-1.5 text-sm"></i>
-                                        New Party List
-                                    </a>
-                                </div>
                         </div>
 
                         <!-- Filter Controls -->
@@ -349,5 +428,133 @@
                 </div>
             </div>
         </main>
+
+        <!-- Import Modal -->
+        <div x-show="showImportModal"
+             class="fixed inset-0 z-[100] overflow-y-auto"
+             x-cloak>
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div x-show="showImportModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                     @click="showImportModal = false"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div x-show="showImportModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-xl leading-6 font-bold text-gray-900 mb-4 flex items-center">
+                                    <i class="ri-upload-2-line mr-2 text-green-600"></i>
+                                    Import Party Lists via CSV
+                                </h3>
+
+                                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                                    <div class="flex">
+                                        <div class="flex-shrink-0">
+                                            <i class="ri-information-line text-blue-400"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-xs text-blue-700 font-medium">
+                                                Required CSV Header Format: <br>
+                                                <code class="bg-white/50 px-1 rounded">Party Name, Acronym, Description, Platform & Agenda, Logo (Image), Organization</code>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <!-- Election Selection -->
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700 mb-1">Assign to Election (Optional)</label>
+                                        <select x-model="selectedImportElection"
+                                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
+                                            <option value="">None</option>
+                                            <template x-for="election in elections" :key="election.id">
+                                                <option :value="election.id" x-text="election.name || election.title"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+
+                                    <!-- File Upload -->
+                                    <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-indigo-400 transition-colors bg-slate-50/50">
+                                        <input type="file" @change="handleFileSelect" class="hidden" id="csvFileUpload" accept=".csv">
+                                        <label for="csvFileUpload" class="cursor-pointer">
+                                            <div class="w-12 h-12 bg-white rounded-full shadow-sm border border-gray-200 flex items-center justify-center mx-auto mb-3">
+                                                <i class="ri-file-upload-line text-gray-400 text-xl"></i>
+                                            </div>
+                                            <span class="text-sm font-bold text-gray-900" x-text="importFile ? importFile.name : 'Choose CSV file'"></span>
+                                            <p class="text-xs text-gray-500 mt-1">Maximum file size: 50MB</p>
+                                        </label>
+                                    </div>
+
+                                    <!-- Preview Table -->
+                                    <div x-show="importPreviewData.length > 0" class="mt-6">
+                                        <h4 class="text-sm font-bold text-gray-900 mb-3 flex items-center justify-between">
+                                            Data Preview
+                                            <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full" x-text="importPreviewData.length + ' rows found'"></span>
+                                        </h4>
+                                        <div class="max-h-[300px] overflow-y-auto border border-gray-200 rounded-xl">
+                                            <table class="min-w-full divide-y divide-gray-200 text-xs">
+                                                <thead class="bg-gray-50 sticky top-0">
+                                                    <tr>
+                                                        <th class="px-4 py-2 text-left font-bold text-gray-500">Name</th>
+                                                        <th class="px-4 py-2 text-left font-bold text-gray-500">Acronym</th>
+                                                        <th class="px-4 py-2 text-left font-bold text-gray-500">Organization</th>
+                                                        <th class="px-4 py-2 text-left font-bold text-gray-500">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-100">
+                                                    <template x-for="(row, index) in importPreviewData" :key="index">
+                                                        <tr>
+                                                            <td class="px-4 py-2" x-text="row.name"></td>
+                                                            <td class="px-4 py-2" x-text="row.acronym"></td>
+                                                            <td class="px-4 py-2" x-text="row.organization"></td>
+                                                            <td class="px-4 py-2">
+                                                                <span :class="row.is_duplicate ? 'text-red-600 font-bold' : 'text-green-600 font-bold'"
+                                                                      x-text="row.status"></span>
+                                                            </td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                        <button type="button"
+                                @click="processImport"
+                                :disabled="importing || !importPath"
+                                class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-sm font-bold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto active:scale-95 transition-all disabled:opacity-50">
+                            <i x-show="importing" class="ri-loader-4-line animate-spin mr-2"></i>
+                            Confirm Import
+                        </button>
+                        <button type="button"
+                                @click="showImportModal = false"
+                                class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto active:scale-95 transition-all">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection

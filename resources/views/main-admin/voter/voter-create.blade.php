@@ -37,6 +37,9 @@
 
         submit() {
             if (!this.validate()) return;
+            if (!confirm('Are you sure you want to submit and create this voter?')) {
+                return;
+            }
             this.loading = true;
             const payload = new FormData();
             payload.append('voter_code', this.formData.voter_code);

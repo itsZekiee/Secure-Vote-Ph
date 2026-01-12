@@ -7,6 +7,14 @@ use Illuminate\Http\Request;
 
 class SubAdminDashboardController extends Controller
 {
+    private function getView($name)
+    {
+        if (auth()->check() && auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            return "admin.$name";
+        }
+        return "main-admin.$name";
+    }
+
     /**
      * Show the sub-admin dashboard with assigned elections
      */
@@ -47,7 +55,7 @@ class SubAdminDashboardController extends Controller
             return $election;
         });
 
-        return view('main-admin.sub-admin-dashboard', compact('recentForms', 'stats'));
+        return view($this->getView('sub-admin-dashboard'), compact('recentForms', 'stats'));
     }
 
     /**

@@ -482,14 +482,44 @@
             });
 
             document.getElementById('useMyLocation').addEventListener('click', function() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(position) {
-                        const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
-                        map.setCenter(pos);
-                        map.setZoom(17);
-                        setLocation(pos.lat, pos.lng);
-                    }, () => alert('Error: The Geolocation service failed.'));
-                } else alert("Error: Your browser doesn't support geolocation.");
+                const btn = this;
+                const originalContent = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ri-loader-4-line animate-spin mr-2"></i>Locating...';
+
+            // Ensure we use high accuracy and watch for changes if needed
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+
+                    // Use a higher zoom for better precision confirmation
+                    map.setCenter(pos);
+                    map.setZoom(19); // Increased zoom for better accuracy display
+                    setLocation(pos.lat, pos.lng);
+
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                }, (error) => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalContent;
+                        let msg = 'Error: The Geolocation service failed.';
+                        if (error.code === 1) msg = 'Error: Permission denied.';
+                        else if (error.code === 2) msg = 'Error: Position unavailable.';
+                        else if (error.code === 3) msg = 'Error: Timeout.';
+                        alert(msg);
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                    alert("Error: Your browser doesn't support geolocation.");
+                }
             });
         }
 

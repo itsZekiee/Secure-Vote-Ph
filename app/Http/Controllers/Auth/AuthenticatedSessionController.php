@@ -26,7 +26,7 @@ class AuthenticatedSessionController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        
+
 
         if (!$user) {
             throw ValidationException::withMessages([
@@ -89,17 +89,24 @@ class AuthenticatedSessionController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
-            'apikey' => config('services.supabase.service_key'),
-            'Content-Type' => 'application/json',
-        ])->post(
-                config('services.supabase.url') . '/auth/v1/otp',
-                [
-                    'email' => $user->email,
-                    'type' => 'email',
-                ]
-            );
+        try {
+            Http::timeout(10)->withHeaders([
+                'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
+                'apikey' => config('services.supabase.service_key'),
+                'Content-Type' => 'application/json',
+            ])->post(
+                    config('services.supabase.url') . '/auth/v1/otp',
+                    [
+                        'email' => $user->email,
+                        'type' => 'email',
+                    ]
+                );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Supabase OTP connection error: ' . $e->getMessage());
+            throw ValidationException::withMessages([
+                'email' => 'Failed to connect to the authentication service. Please check your internet connection and try again.',
+            ]);
+        }
 
         /*
         |--------------------------------------------------------------------------

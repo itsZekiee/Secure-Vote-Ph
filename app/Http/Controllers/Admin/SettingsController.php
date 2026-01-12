@@ -15,7 +15,12 @@ class SettingsController extends Controller
     {
         $settings = Setting::all()->keyBy('key');
 
-        return view('main-admin.settings', compact('settings'));
+        $view = 'main-admin.settings';
+        if (auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            $view = 'admin.settings';
+        }
+
+        return view($view, compact('settings'));
     }
 
     public function update(Request $request)
