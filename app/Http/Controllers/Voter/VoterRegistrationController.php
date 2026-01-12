@@ -129,7 +129,9 @@ class VoterRegistrationController extends Controller
             : 'Registration submitted! Please wait 1 to 24 hours for admin approval of your registration before you can Sign In.';
 
         return redirect()->route('voter.registration.index', $election->code)
-            ->with('success', $msg);
+            ->with('success', $msg)
+            ->with('switch_to_login', true)
+            ->with('registered_email', $request->email);
     }
 
     /**

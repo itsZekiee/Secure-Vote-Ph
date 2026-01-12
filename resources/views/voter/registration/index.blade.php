@@ -631,14 +631,40 @@
             const headerIcon = document.getElementById('form-header-icon');
             const headerTitle = document.getElementById('form-header-title');
             const headerSubtitle = document.getElementById('form-header-subtitle');
+            
 
             let isSignInMode = {{ $registrationOver ? 'true' : 'false' }};
 
-            if (isSignInMode) {
+                    @if(session('switch_to_login'))
+            // Auto switch to Sign In after successful registration
+            isSignInMode = true;
+
+            registerForm.classList.add('hidden');
+            signinForm.classList.remove('hidden');
+
+            toggleText.textContent = "Don't have an account?";
+            toggleBtnText.textContent = 'Create Account';
+            toggleIcon.className = 'fas fa-user-plus';
+
+            headerIcon.className = 'fas fa-sign-in-alt text-white text-2xl';
+            headerTitle.textContent = 'Welcome Back';
+            headerSubtitle.textContent = 'Sign in to access your election';
+        @endif
+
+
+                    if (isSignInMode) {
+                registerForm.classList.add('hidden');
+                signinForm.classList.remove('hidden');
+
+                toggleText.textContent = "Don't have an account?";
+                toggleBtnText.textContent = 'Create Account';
+                toggleIcon.className = 'fas fa-user-plus';
+
                 headerIcon.className = 'fas fa-sign-in-alt text-white text-2xl';
                 headerTitle.textContent = 'Welcome Back';
                 headerSubtitle.textContent = 'Sign in to access your election';
             }
+
 
             toggleBtn.addEventListener('click', function () {
                 isSignInMode = !isSignInMode;
