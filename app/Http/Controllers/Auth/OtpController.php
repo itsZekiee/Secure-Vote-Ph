@@ -12,7 +12,7 @@ use App\Services\AuditLogger;
     class OtpController extends Controller
     {
 
-        // Show OTP verification form
+        // Show OTP verification form from Supabase
         public function show()
         {
             abort_unless(session()->has('otp_email'), 403);
