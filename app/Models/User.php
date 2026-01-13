@@ -28,6 +28,12 @@ class User extends Authenticatable
         'phone',
         'position',
         'department',
+        'student_id',
+        'timezone',
+        'language',
+        'date_format',
+        'last_login_at',
+        'last_login_ip',
         'failed_login_attempts',
         'locked_until',
         'is_permanently_blocked',
@@ -50,7 +56,8 @@ class User extends Authenticatable
         'security_preferences' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'deleted_at' => 'datetime'
+        'deleted_at' => 'datetime',
+        'last_login_at' => 'datetime',
     ];
 
     // User role constants

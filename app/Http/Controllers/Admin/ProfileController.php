@@ -20,6 +20,11 @@ class ProfileController extends Controller
             'username' => ['nullable', 'string', 'max:255', 'unique:users,username,' . $user->id],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'phone' => ['nullable', 'string', 'max:20'],
+            'student_id' => ['nullable', 'string', 'max:50'],
+            'department' => ['nullable', 'string', 'max:255'],
+            'timezone' => ['required', 'string', 'max:100'],
+            'language' => ['required', 'string', 'max:10'],
+            'date_format' => ['required', 'string', 'max:20'],
         ]);
 
         // Combine names for the 'name' field
