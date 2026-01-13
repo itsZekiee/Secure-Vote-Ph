@@ -42,11 +42,13 @@ class AuthenticatedSessionController extends Controller
         $hasExistingSession = \DB::table('sessions')
             ->where('user_id', $user->id)
             ->where('id', '!=', session()->getId())
+            // Only consider sessions that haven't expired (default lifetime is 120 mins)
+            ->where('last_activity', '>=', now()->subMinutes(config('session.lifetime', 120))->getTimestamp())
             ->exists();
 
         if ($hasExistingSession) {
             throw ValidationException::withMessages([
-                'email' => 'You are already logged in on another device. Please log out there first.',
+                'email' => 'You are already logged in on another device. Please log out there first (Strict One-Device Policy).',
             ]);
         }
 

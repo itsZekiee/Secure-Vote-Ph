@@ -82,11 +82,12 @@ class AuthController extends Controller
         $hasExistingSession = \DB::table('sessions')
             ->where('user_id', $user->id)
             ->where('id', '!=', session()->getId())
+            ->where('last_activity', '>=', now()->subMinutes(config('session.lifetime', 120))->getTimestamp())
             ->exists();
 
         if ($hasExistingSession) {
             return back()->withErrors([
-                'email' => 'You are already logged in on another device. Please log out there first.',
+                'email' => 'You are already logged in on another device. Please log out there first (Strict One-Device Policy).',
             ]);
         }
 

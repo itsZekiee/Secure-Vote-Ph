@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
+use App\Services\AuditLogger;
 
 class VoterOtpController extends Controller
 {
@@ -64,6 +65,13 @@ class VoterOtpController extends Controller
         Auth::loginUsingId(
             $userId,
             session('remember_me', false)
+        );
+
+        $user = User::find($userId);
+        AuditLogger::log(
+            'LOGIN',
+            'Auth',
+            "Voter logged in: " . ($user->email ?? $userId)
         );
 
         session()->forget([
