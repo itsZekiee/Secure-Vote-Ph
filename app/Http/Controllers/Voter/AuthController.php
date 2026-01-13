@@ -78,8 +78,20 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
+        // One Session Per User Policy
+        $hasExistingSession = \DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->where('id', '!=', session()->getId())
+            ->exists();
+
+        if ($hasExistingSession) {
+            return back()->withErrors([
+                'email' => 'You are already logged in on another device. Please log out there first.',
+            ]);
+        }
+
         // 🔐 Send OTP via Supabase
-        Http::withHeaders([
+        \Illuminate\Support\Facades\Http::withHeaders([
             'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
             'apikey' => config('services.supabase.service_key'),
             'Content-Type' => 'application/json',

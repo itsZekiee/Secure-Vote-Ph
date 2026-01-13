@@ -651,6 +651,7 @@
                                     </div>
                                 </div>
 
+                                @if(auth()->user()->role === \App\Models\User::ROLE_SUPER_ADMIN)
                                 <!-- Active Sessions Manager -->
                                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
                                     <div class="p-6 sm:p-8">
@@ -759,6 +760,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
 
                                 <!-- 2FA Recovery Codes -->
                                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
@@ -814,6 +816,7 @@
                                     </div>
                                 </div>
 
+                                @if(auth()->user()->role === \App\Models\User::ROLE_SUPER_ADMIN)
                                 <!-- Security Notification Preferences -->
                                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
                                     <div class="p-6 sm:p-8">
@@ -863,6 +866,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
 
                                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
                                     <div class="p-6 sm:p-8">

@@ -28,11 +28,25 @@ class AuthenticatedSessionController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-
-
         if (!$user) {
             throw ValidationException::withMessages([
                 'email' => __('The provided credentials do not match our records.'),
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Check for existing session (One Session Per User Policy)
+        |--------------------------------------------------------------------------
+        */
+        $hasExistingSession = \DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->where('id', '!=', session()->getId())
+            ->exists();
+
+        if ($hasExistingSession) {
+            throw ValidationException::withMessages([
+                'email' => 'You are already logged in on another device. Please log out there first.',
             ]);
         }
 

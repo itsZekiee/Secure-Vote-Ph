@@ -504,61 +504,6 @@
                             </div>
                         </section>
 
-                        <section>
-                            <div class="flex items-center gap-3 mb-6">
-                                <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100">
-                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-semibold text-slate-900">Demographic Insights</h3>
-                                    <p class="text-sm text-slate-500">Voter distribution and participation</p>
-                                </div>
-                            </div>
-
-                            <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm mb-6">
-                                <h3 class="text-lg font-semibold mb-4">Voter Turnout by Age Group</h3>
-                                <div class="h-64 mb-4">
-                                    <canvas id="ageChart"></canvas>
-                                </div>
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    <template x-for="group in demographicData.ageGroups" :key="group.label">
-                                        <div class="text-center p-3 bg-slate-50 rounded-lg">
-                                            <div class="text-xs text-slate-600" x-text="group.label"></div>
-                                            <div class="text-lg font-semibold text-slate-900 mt-1" x-text="group.votes"></div>
-                                            <div class="text-xs text-slate-500" x-text="`of ${group.total}`"></div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-                                    <h3 class="text-lg font-semibold mb-4">Regional Distribution</h3>
-                                    <div class="space-y-3">
-                                        <template x-for="region in demographicData.regions" :key="region.name">
-                                            <div>
-                                                <div class="flex items-center justify-between mb-1">
-                                                    <span class="text-sm font-medium text-slate-700" x-text="region.name"></span>
-                                                    <span class="text-sm text-slate-600" x-text="`${region.votes} (${region.percent}%)`"></span>
-                                                </div>
-                                                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                                    <div class="h-full bg-indigo-500 rounded-full transition-all" :style="`width: ${region.percent}%`"></div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-
-                                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-                                    <h3 class="text-lg font-semibold mb-4">Ballot Collection Channels</h3>
-                                    <div class="h-64">
-                                        <canvas id="channelsChart"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
 
                         <section>
                             <div class="flex items-center gap-3 mb-6">
@@ -584,7 +529,7 @@
                                         </div>
                                     </div>
                                     <div class="text-3xl font-bold text-slate-900" x-text="realtimeMetrics.failedLogins"></div>
-                                    <div class="text-xs text-slate-500 mt-1">Unsuccessful attempts</div>
+                                    <div class="text-xs text-slate-500 mt-1">Total unsuccessful attempts</div>
                                 </div>
 
                                 <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
@@ -785,13 +730,9 @@
         <script>
             document.addEventListener('alpine:init', () => {
                 let vpmChart = null;
-                let ageChart = null;
-                let channelsChart = null;
 
                 const buildCharts = (data) => {
                     if (vpmChart) vpmChart.destroy();
-                    if (ageChart) ageChart.destroy();
-                    if (channelsChart) channelsChart.destroy();
 
                     const vpmCtx = document.getElementById('vpmChart')?.getContext('2d');
                     if (vpmCtx) {
@@ -817,46 +758,6 @@
                             }
                         });
                     }
-
-                    const ageCtx = document.getElementById('ageChart')?.getContext('2d');
-                    if (ageCtx) {
-                        ageChart = new Chart(ageCtx, {
-                            type: 'bar',
-                            data: {
-                                labels: data.demographicData.ageGroups.map(g => g.label),
-                                datasets: [{
-                                    label: 'Votes',
-                                    data: data.demographicData.ageGroups.map(g => g.votes),
-                                    backgroundColor: '#6366F1'
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { display: false } },
-                                scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
-                            }
-                        });
-                    }
-
-                    const channelsCtx = document.getElementById('channelsChart')?.getContext('2d');
-                    if (channelsCtx) {
-                        channelsChart = new Chart(channelsCtx, {
-                            type: 'doughnut',
-                            data: {
-                                labels: data.demographicData.submissionMethods.map(s => s.method),
-                                datasets: [{
-                                    data: data.demographicData.submissionMethods.map(s => s.count),
-                                    backgroundColor: ['#6366F1', '#8B5CF6', '#10B981']
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { position: 'bottom' } }
-                            }
-                        });
-                    }
                 };
 
                 const updateCharts = () => {
@@ -873,8 +774,6 @@
 
                     if (!data || !data.currentElection) {
                         if (vpmChart) vpmChart.destroy(); vpmChart = null;
-                        if (ageChart) ageChart.destroy(); ageChart = null;
-                        if (channelsChart) channelsChart.destroy(); channelsChart = null;
                         return;
                     }
                     buildCharts(data.currentElection);
