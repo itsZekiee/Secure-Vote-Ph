@@ -274,15 +274,25 @@
                                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
                                     <div class="p-6 sm:p-8">
                                         <div class="flex items-center justify-between gap-4 mb-8">
-                                            <div class="flex items-center gap-4">
-                                                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-sm">
-                                                    {{ substr(auth()->user()->name, 0, 1) }}
+                                                <div class="flex items-center gap-4">
+                                                    <div class="relative group/avatar">
+                                                        <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md overflow-hidden">
+                                                            @if(auth()->user()->profile_photo)
+                                                                <img src="{{ Storage::url(auth()->user()->profile_photo) }}" alt="Profile" class="w-full h-full object-cover">
+                                                            @else
+                                                                {{ substr(auth()->user()->name, 0, 1) }}
+                                                            @endif
+                                                        </div>
+                                                        <label class="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-lg shadow-sm border border-slate-100 flex items-center justify-center text-slate-600 hover:text-indigo-600 cursor-pointer transition-all hover:scale-110">
+                                                            <i class="ri-camera-line text-sm"></i>
+                                                            <input type="file" name="profile_photo" class="hidden">
+                                                        </label>
+                                                    </div>
+                                                    <div>
+                                                        <h3 class="text-lg font-bold text-slate-900">Personal Profile</h3>
+                                                        <p class="text-xs text-slate-500 font-medium">Update account identity</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h3 class="text-lg font-bold text-slate-900">Personal Profile</h3>
-                                                    <p class="text-xs text-slate-500 font-medium">Update account identity</p>
-                                                </div>
-                                            </div>
                                             <div x-show="!isEditing">
                                                 <button @click="isEditing = true" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 transition-all flex items-center gap-2">
                                                     <i class="ri-edit-line"></i>
@@ -384,6 +394,15 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <div class="space-y-1.5">
+                                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account Status</label>
+                                                        <div class="relative">
+                                                            <i class="ri-checkbox-circle-line absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500"></i>
+                                                            <div class="w-full bg-emerald-50/50 border border-emerald-100 rounded-xl px-12 py-3 text-sm font-bold text-emerald-700">
+                                                                {{ auth()->user()->is_active ? 'Active' : 'Flagged/Inactive' }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -426,6 +445,132 @@
                                                             <input type="text" name="phone" value="{{ auth()->user()->phone }}"
                                                                    class="w-full bg-white ring-1 ring-slate-200 rounded-xl px-12 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 transition-all border-none"
                                                                    placeholder="+63 9XX XXX XXXX">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Organization Info -->
+                                            <div class="space-y-6 pt-4">
+                                                <h4 class="text-[11px] font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                                                    <span class="w-8 h-px bg-indigo-100"></span>
+                                                    Organization Info
+                                                </h4>
+
+                                                <div class="grid sm:grid-cols-2 gap-4">
+                                                    <div class="space-y-1.5">
+                                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Student/Employee ID</label>
+                                                        <template x-if="!isEditing">
+                                                            <div class="w-full bg-slate-50 border border-slate-100 rounded-xl px-5 py-3 text-sm font-bold text-slate-700">
+                                                                {{ auth()->user()->student_id ?? 'Not set' }}
+                                                            </div>
+                                                        </template>
+                                                        <div x-show="isEditing" class="relative group">
+                                                            <i class="ri-id-card-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+                                                            <input type="text" name="student_id" value="{{ auth()->user()->student_id }}"
+                                                                   class="w-full bg-white ring-1 ring-slate-200 rounded-xl px-12 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 transition-all border-none"
+                                                                   placeholder="2021-00123-MN-0">
+                                                        </div>
+                                                    </div>
+                                                    <div class="space-y-1.5">
+                                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Department / Unit</label>
+                                                        <template x-if="!isEditing">
+                                                            <div class="w-full bg-slate-50 border border-slate-100 rounded-xl px-5 py-3 text-sm font-bold text-slate-700">
+                                                                {{ auth()->user()->department ?? 'Not set' }}
+                                                            </div>
+                                                        </template>
+                                                        <div x-show="isEditing" class="relative group">
+                                                            <i class="ri-building-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
+                                                            <input type="text" name="department" value="{{ auth()->user()->department }}"
+                                                                   class="w-full bg-white ring-1 ring-slate-200 rounded-xl px-12 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 transition-all border-none"
+                                                                   placeholder="College of Computer Studies">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Regional Settings -->
+                                            <div class="space-y-6 pt-4">
+                                                <h4 class="text-[11px] font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                                                    <span class="w-8 h-px bg-indigo-100"></span>
+                                                    Regional Settings
+                                                </h4>
+
+                                                <div class="grid sm:grid-cols-2 gap-4">
+                                                    <div class="space-y-1.5">
+                                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Timezone</label>
+                                                        <template x-if="!isEditing">
+                                                            <div class="w-full bg-slate-50 border border-slate-100 rounded-xl px-5 py-3 text-sm font-bold text-slate-700">
+                                                                {{ auth()->user()->timezone ?? 'Asia/Manila (GMT+8)' }}
+                                                            </div>
+                                                        </template>
+                                                        <div x-show="isEditing" class="relative group">
+                                                            <i class="ri-time-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors z-10"></i>
+                                                            <select name="timezone" class="w-full bg-white ring-1 ring-slate-200 rounded-xl px-12 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 transition-all border-none appearance-none">
+                                                                <option value="Asia/Manila" {{ auth()->user()->timezone == 'Asia/Manila' ? 'selected' : '' }}>Asia/Manila (GMT+8)</option>
+                                                                <option value="UTC" {{ auth()->user()->timezone == 'UTC' ? 'selected' : '' }}>UTC (GMT+0)</option>
+                                                                <option value="Asia/Singapore" {{ auth()->user()->timezone == 'Asia/Singapore' ? 'selected' : '' }}>Asia/Singapore (GMT+8)</option>
+                                                            </select>
+                                                            <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="space-y-1.5">
+                                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Language / Locale</label>
+                                                        <template x-if="!isEditing">
+                                                            <div class="w-full bg-slate-50 border border-slate-100 rounded-xl px-5 py-3 text-sm font-bold text-slate-700">
+                                                                {{ auth()->user()->language == 'en' ? 'English (US)' : (auth()->user()->language == 'fil' ? 'Filipino' : 'English (US)') }}
+                                                            </div>
+                                                        </template>
+                                                        <div x-show="isEditing" class="relative group">
+                                                            <i class="ri-global-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors z-10"></i>
+                                                            <select name="language" class="w-full bg-white ring-1 ring-slate-200 rounded-xl px-12 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 transition-all border-none appearance-none">
+                                                                <option value="en" {{ auth()->user()->language == 'en' ? 'selected' : '' }}>English (US)</option>
+                                                                <option value="fil" {{ auth()->user()->language == 'fil' ? 'selected' : '' }}>Filipino</option>
+                                                            </select>
+                                                            <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="grid sm:grid-cols-2 gap-4">
+                                                    <div class="space-y-1.5">
+                                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Date Format preference</label>
+                                                        <template x-if="!isEditing">
+                                                            <div class="w-full bg-slate-50 border border-slate-100 rounded-xl px-5 py-3 text-sm font-bold text-slate-700">
+                                                                {{ auth()->user()->date_format ?? 'Oct 24, 2025' }}
+                                                            </div>
+                                                        </template>
+                                                        <div x-show="isEditing" class="relative group">
+                                                            <i class="ri-calendar-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors z-10"></i>
+                                                            <select name="date_format" class="w-full bg-white ring-1 ring-slate-200 rounded-xl px-12 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 transition-all border-none appearance-none">
+                                                                <option value="M d, Y" {{ auth()->user()->date_format == 'M d, Y' ? 'selected' : '' }}>Oct 24, 2025 (M d, Y)</option>
+                                                                <option value="Y-m-d" {{ auth()->user()->date_format == 'Y-m-d' ? 'selected' : '' }}>2025-10-24 (Y-m-d)</option>
+                                                                <option value="d/m/Y" {{ auth()->user()->date_format == 'd/m/Y' ? 'selected' : '' }}>24/10/2025 (d/m/Y)</option>
+                                                            </select>
+                                                            <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Security Metadata (Read-Only) -->
+                                            <div class="space-y-6 pt-4">
+                                                <h4 class="text-[11px] font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+                                                    <span class="w-8 h-px bg-indigo-100"></span>
+                                                    Security Metadata
+                                                </h4>
+
+                                                <div class="grid sm:grid-cols-1 gap-4">
+                                                    <div class="space-y-1.5">
+                                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Last Login</label>
+                                                        <div class="w-full bg-slate-50 border border-slate-100 rounded-xl px-5 py-3 text-sm font-bold text-slate-700 flex items-center gap-3">
+                                                            <i class="ri-history-line text-slate-400"></i>
+                                                            <span>
+                                                                @if(auth()->user()->last_login_at)
+                                                                    {{ auth()->user()->last_login_at->format('M d, Y, h:i A') }} from {{ auth()->user()->last_login_ip ?? 'Unknown IP' }}
+                                                                @else
+                                                                    No login history recorded
+                                                                @endif
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
