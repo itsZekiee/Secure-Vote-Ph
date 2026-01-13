@@ -255,7 +255,7 @@
                                         </svg>
                                     </li>
                                     <li class="flex items-center">
-                                        <div class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/30">
+                                        <div class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all">
                                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
                                                 <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
