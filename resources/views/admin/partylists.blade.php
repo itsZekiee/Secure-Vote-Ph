@@ -492,12 +492,12 @@
 
                                     <!-- File Upload -->
                                     <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-indigo-400 transition-colors bg-slate-50/50">
-                                        <input type="file" @change="handleFileSelect" class="hidden" id="csvFileUpload" accept=".csv">
+                                        <input type="file" @change="handleFileSelect" class="hidden" id="csvFileUpload" accept=".csv,.xml">
                                         <label for="csvFileUpload" class="cursor-pointer">
                                             <div class="w-12 h-12 bg-white rounded-full shadow-sm border border-gray-200 flex items-center justify-center mx-auto mb-3">
                                                 <i class="ri-file-upload-line text-gray-400 text-xl"></i>
                                             </div>
-                                            <span class="text-sm font-bold text-gray-900" x-text="importFile ? importFile.name : 'Choose CSV file'"></span>
+                                            <span class="text-sm font-bold text-gray-900" x-text="importFile ? importFile.name : 'Choose file'"></span>
                                             <p class="text-xs text-gray-500 mt-1">Maximum file size: 50MB</p>
                                         </label>
                                     </div>

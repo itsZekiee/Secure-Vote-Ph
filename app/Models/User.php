@@ -31,6 +31,8 @@ class User extends Authenticatable
         'failed_login_attempts',
         'locked_until',
         'is_permanently_blocked',
+        'recovery_codes',
+        'security_preferences',
     ];
 
     protected $hidden = [
@@ -44,6 +46,8 @@ class User extends Authenticatable
         'is_active' => 'boolean',
         'locked_until' => 'datetime',
         'is_permanently_blocked' => 'boolean',
+        'recovery_codes' => 'array',
+        'security_preferences' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'

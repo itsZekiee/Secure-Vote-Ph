@@ -12,6 +12,7 @@
                 shareEmail: '',
                 adminSuggestions: [],
                 sharing: false,
+                auditSearchQuery: '',
                 elections: (() => {
                     const raw = @json($elections ?? []);
                     return (raw || []).map(e => ({
@@ -99,6 +100,16 @@
                         return this.elections.find(e => e.id === this.selectedElection) || null;
                     }
                     return null;
+                },
+                getActionColor(action) {
+                    const colors = {
+                        'CREATE': 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                        'UPDATE': 'bg-amber-50 text-amber-700 border-amber-100',
+                        'DELETE': 'bg-rose-50 text-rose-700 border-rose-100',
+                        'LOGIN': 'bg-sky-50 text-sky-700 border-sky-100',
+                        'VOTE_CAST': 'bg-purple-50 text-purple-700 border-purple-100'
+                    };
+                    return colors[action] || 'bg-slate-50 text-slate-700 border-slate-100';
                 },
                 get currentStats() {
                     if (this.currentElection) {

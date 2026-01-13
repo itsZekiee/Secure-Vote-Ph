@@ -12,6 +12,23 @@
                 shareEmail: '',
                 adminSuggestions: [],
                 sharing: false,
+                auditSearchQuery: '',
+                auditLogs: (() => {
+                    const raw = @json($auditLogs ?? []);
+                    return (raw || []).map(log => {
+                        let roleDisplay = 'System';
+                        if (log.user) {
+                            const r = log.user.role?.toLowerCase();
+                            roleDisplay = (r === 'super-admin' || r === 'admin') ? 'Admin' : 'Voter';
+                        }
+                        return {
+                            ...log,
+                            user_name: log.user ? log.user.name : 'System',
+                            user_email: log.user ? log.user.email : '',
+                            user_role: roleDisplay
+                        };
+                    });
+                })(),
                 elections: (() => {
                     const raw = @json($elections ?? []);
                     return (raw || []).map(e => ({
@@ -99,6 +116,28 @@
                         return this.elections.find(e => e.id === this.selectedElection) || null;
                     }
                     return null;
+                },
+                get filteredAuditLogs() {
+                    const q = this.auditSearchQuery.trim().toLowerCase();
+                    if (!q) return this.auditLogs;
+                    return this.auditLogs.filter(log => {
+                        return (log.user_name && log.user_name.toLowerCase().includes(q)) ||
+                               (log.user_email && log.user_email.toLowerCase().includes(q)) ||
+                               (log.user_role && log.user_role.toLowerCase().includes(q)) ||
+                               (log.action && log.action.toLowerCase().includes(q)) ||
+                               (log.module && log.module.toLowerCase().includes(q)) ||
+                               (log.description && log.description.toLowerCase().includes(q));
+                    });
+                },
+                getActionColor(action) {
+                    const colors = {
+                        'CREATE': 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                        'UPDATE': 'bg-amber-50 text-amber-700 border-amber-100',
+                        'DELETE': 'bg-rose-50 text-rose-700 border-rose-100',
+                        'LOGIN': 'bg-sky-50 text-sky-700 border-sky-100',
+                        'VOTE_CAST': 'bg-purple-50 text-purple-700 border-purple-100'
+                    };
+                    return colors[action] || 'bg-slate-50 text-slate-700 border-slate-100';
                 },
                 get currentStats() {
                     if (this.currentElection) {
@@ -254,6 +293,78 @@
                                 </div>
                                 <div class="text-xs">
                                     Click a row to view analytics • Scroll for more elections
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audit Logs Table -->
+                        <div class="mt-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h2 class="text-2xl font-extrabold text-slate-900">Audit Logs</h2>
+                                    <p class="text-sm text-slate-500 mt-1">Track system activities and data modifications</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 bg-white border border-gray-200 px-3 py-2 rounded-lg shadow-sm w-full sm:max-w-xs">
+                                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                        </svg>
+                                        <input x-model="auditSearchQuery" type="text" placeholder="Search logs..." class="flex-1 text-sm outline-none border-none focus:ring-0 p-0" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-gray-200 rounded-2xl shadow overflow-hidden">
+                                <div class="responsive-table-container">
+                                    <div class="max-h-[420px] overflow-y-auto">
+                                        <table class="w-full text-sm">
+                                            <thead class="bg-slate-50 sticky top-0 z-10">
+                                            <tr class="text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                                <th class="px-6 py-4 border-b border-gray-100">User</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">Role</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">Action</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">Module</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">Description</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">IP Address</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">Date</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-100">
+                                            <template x-for="log in filteredAuditLogs" :key="log.id">
+                                                <tr class="hover:bg-slate-50 transition-colors">
+                                                    <td class="px-6 py-4">
+                                                        <div class="font-medium text-slate-900" x-text="log.user_name || 'System'"></div>
+                                                        <div class="text-xs text-slate-500" x-text="log.user_email"></div>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <span :class="log.user_role === 'Admin' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-slate-50 text-slate-700 border-slate-100'"
+                                                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
+                                                              x-text="log.user_role">
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <span :class="getActionColor(log.action)" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border">
+                                                            <span x-text="log.action"></span>
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4 text-slate-600" x-text="log.module"></td>
+                                                    <td class="px-6 py-4 text-slate-600">
+                                                        <div class="max-w-xs truncate" :title="log.description" x-text="log.description"></div>
+                                                    </td>
+                                                    <td class="px-6 py-4 text-slate-500 font-mono text-xs" x-text="log.ip_address"></td>
+                                                    <td class="px-6 py-4 text-slate-600 whitespace-nowrap" x-text="formatDate(log.created_at)"></td>
+                                                </tr>
+                                            </template>
+                                            <template x-if="filteredAuditLogs.length === 0">
+                                                <tr>
+                                                    <td colspan="7" class="px-6 py-10 text-center text-slate-500">
+                                                        No audit logs found matching your search.
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>

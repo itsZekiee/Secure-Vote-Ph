@@ -629,7 +629,7 @@ class CandidateController extends Controller
     public function importPreview(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv|max:51200',
+            'file' => 'required|file|mimes:xlsx,xls,csv,xml,tsv|max:51200',
         ]);
 
         $file = $request->file('file');
@@ -753,21 +753,21 @@ class CandidateController extends Controller
                 $orgName = $row['organization'] ?? null;
                 $orgId = null;
                 if ($orgName) {
-                    $org = Organization::where('name', 'LIKE', $orgName)->first();
+                    $org = Organization::where('name', 'LIKE', trim($orgName))->first();
                     $orgId = $org ? $org->id : null;
                 }
 
                 $partyName = $row['political_affiliation'] ?? null;
                 $partyId = null;
                 if ($partyName) {
-                    $party = Partylist::where('name', 'LIKE', $partyName)->first();
+                    $party = Partylist::where('name', 'LIKE', trim($partyName))->first();
                     $partyId = $party ? $party->id : null;
                 }
 
                 $posTitle = $row['designated_position'] ?? null;
                 $posId = null;
                 if ($posTitle) {
-                    $pos = Position::where('title', 'LIKE', $posTitle)
+                    $pos = Position::where('title', 'LIKE', trim($posTitle))
                         ->when($electionId, function($q) use ($electionId) {
                             return $q->where('election_id', $electionId);
                         })->first();
