@@ -57,6 +57,17 @@ class VoterOtpController extends Controller
         }
 
         if (!$response_successful) {
+            // Record failed OTP attempt
+            \Illuminate\Support\Facades\DB::table('failed_logins')->insert([
+                'user_id' => $userId,
+                'election_id' => session('election_id'),
+                'email' => $email,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'reason' => 'Invalid OTP',
+                'created_at' => now(),
+            ]);
+
             return back()->withErrors([
                 'token' => 'Invalid or expired verification code.',
             ]);
