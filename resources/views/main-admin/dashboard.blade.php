@@ -7,6 +7,11 @@
                 selectedElection: null,
                 searchQuery: '',
                 statusFilter: 'all',
+                showShareModal: false,
+                shareElectionId: null,
+                shareEmail: '',
+                adminSuggestions: [],
+                sharing: false,
                 elections: (() => {
                     const raw = @json($elections ?? []);
                     return (raw || []).map(e => ({
@@ -39,6 +44,45 @@
                 },
                 viewReports(id) {
                     window.location.href = `/admin/reports?form_id=${id}`;
+                },
+                openShareModal(id) {
+                    this.shareElectionId = id;
+                    this.shareEmail = '';
+                    this.adminSuggestions = [];
+                    this.showShareModal = true;
+                },
+                async searchAdmins() {
+                    if (this.shareEmail.length < 2) {
+                        this.adminSuggestions = [];
+                        return;
+                    }
+                    const response = await fetch(`/admin/elections/search-admins?q=${this.shareEmail}`);
+                    this.adminSuggestions = await response.json();
+                },
+                async shareAccess() {
+                    if (!this.shareEmail) return;
+                    this.sharing = true;
+                    try {
+                        const response = await fetch(`/admin/elections/${this.shareElectionId}/assign-sub-admin`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ email: this.shareEmail })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert(data.message);
+                            this.showShareModal = false;
+                        } else {
+                            alert(data.error || 'Failed to share access');
+                        }
+                    } catch (e) {
+                        alert('An error occurred');
+                    } finally {
+                        this.sharing = false;
+                    }
                 },
                 get filteredElections() {
                     const q = this.searchQuery.trim().toLowerCase();
@@ -184,6 +228,11 @@
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                                             </svg>
                                                             Reports
+                                                        </button>
+                                                        <button @click.stop="openShareModal(election.id)" class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors" title="Share Access">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                                                            </svg>
                                                         </button>
                                                         <button @click.stop="editElection(election.id)" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -453,6 +502,58 @@
                             </div>
 
                             <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold flex items-center gap-2">
+                                        <i class="ri-history-line text-slate-600"></i>
+                                        System Audit Logs
+                                    </h3>
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent Activity</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="text-left text-xs font-semibold text-slate-500 border-b border-slate-50">
+                                                <th class="px-4 py-3">Name</th>
+                                                <th class="px-4 py-3">Action</th>
+                                                <th class="px-4 py-3">Module</th>
+                                                <th class="px-4 py-3">Description</th>
+                                                <th class="px-4 py-3 text-right">Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-50">
+                                            @forelse($auditLogs ?? [] as $log)
+                                                <tr class="hover:bg-slate-50 transition-colors">
+                                                    <td class="px-4 py-3">
+                                                        <div class="font-medium text-slate-900">{{ $log->user->name ?? 'System' }}</div>
+                                                        <div class="text-[10px] text-slate-400">{{ $log->ip_address }}</div>
+                                                    </td>
+                                                    <td class="px-4 py-3">
+                                                        <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-tight
+                                                            @if($log->action === 'CREATE') bg-emerald-50 text-emerald-600
+                                                            @elseif($log->action === 'UPDATE') bg-amber-50 text-amber-600
+                                                            @elseif($log->action === 'DELETE') bg-red-50 text-red-600
+                                                            @elseif($log->action === 'LOGIN') bg-blue-50 text-blue-600
+                                                            @else bg-slate-100 text-slate-600 @endif">
+                                                            {{ $log->action }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-slate-600 font-medium">{{ $log->module }}</td>
+                                                    <td class="px-4 py-3 text-slate-500 max-w-xs truncate">{{ $log->description }}</td>
+                                                    <td class="px-4 py-3 text-right text-slate-400 text-xs">
+                                                        {{ $log->created_at->diffForHumans() }}
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="5" class="px-4 py-10 text-center text-slate-400 italic">No activity recorded yet</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                                 <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
                                     <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
@@ -489,6 +590,82 @@
                     </div>
                 </div>
             </main>
+
+            <!-- Share Access Modal -->
+            <div x-show="showShareModal"
+                 class="fixed inset-0 z-[9999] overflow-y-auto"
+                 x-cloak>
+                <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                    <div x-show="showShareModal"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         class="fixed inset-0 transition-opacity bg-slate-900/50 backdrop-blur-sm"
+                         @click="showShareModal = false"></div>
+
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+                    <div x-show="showShareModal"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         class="inline-block w-full max-w-md p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-3xl sm:align-middle">
+
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Share Access</h3>
+                            <button @click="showShareModal = false" class="text-slate-400 hover:text-slate-600 transition-colors">
+                                <i class="ri-close-line text-2xl"></i>
+                            </button>
+                        </div>
+
+                        <p class="text-sm text-slate-500 mb-6">Enter the email of an administrator you want to share this election with.</p>
+
+                        <div class="space-y-4">
+                            <div class="relative">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Admin Email</label>
+                                <div class="relative">
+                                    <i class="ri-mail-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="email"
+                                           x-model="shareEmail"
+                                           @input.debounce.300ms="searchAdmins()"
+                                           placeholder="admin@example.com"
+                                           class="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-700 focus:ring-0 focus:border-indigo-500/20 focus:bg-white transition-all">
+                                </div>
+
+                                <!-- Suggestions Dropdown -->
+                                <div x-show="adminSuggestions.length > 0"
+                                     class="absolute z-10 w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden"
+                                     x-cloak>
+                                    <template x-for="admin in adminSuggestions" :key="admin.id">
+                                        <button @click="shareEmail = admin.email; adminSuggestions = []"
+                                                class="w-full px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
+                                            <div class="font-bold text-slate-900" x-text="admin.name"></div>
+                                            <div class="text-xs text-slate-500" x-text="admin.email"></div>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <button @click="shareAccess()"
+                                    :disabled="sharing || !shareEmail"
+                                    class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <template x-if="!sharing">
+                                    <span>Share Access</span>
+                                </template>
+                                <template x-if="sharing">
+                                    <i class="ri-loader-4-line animate-spin text-lg"></i>
+                                </template>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 

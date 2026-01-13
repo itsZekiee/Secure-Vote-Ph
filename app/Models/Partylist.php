@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
+use App\Traits\Auditable;
+
 class Partylist extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids;
+    use HasFactory, SoftDeletes, HasUuids, Auditable;
 
     protected $fillable = [
         'name',

@@ -88,6 +88,14 @@ class VoterController extends Controller
     /**
      * Display a listing of voters.
      */
+    private function getView($name)
+    {
+        if (auth()->check() && auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            return "admin.$name";
+        }
+        return "main-admin.$name";
+    }
+
     public function index(Request $request)
     {
         $query = \App\Models\Voter::with(['election']);
@@ -108,13 +116,13 @@ class VoterController extends Controller
         $voters = $query->latest()->paginate(15);
         $forms = \App\Models\Election::where('created_by', auth()->id())->get();
 
-        return view('main-admin.voters', compact('voters', 'forms'));
+        return view($this->getView('voters'), compact('voters', 'forms'));
     }
 
     public function create()
     {
         $forms = \App\Models\Election::where('created_by', auth()->id())->get();
-        return view('main-admin.voter.voter-create', compact('forms'));
+        return view($this->getView('voter.voter-create'), compact('forms'));
     }
 
     public function store(Request $request)
@@ -163,14 +171,14 @@ class VoterController extends Controller
     public function show(string $id)
     {
         $voter = \App\Models\Voter::with(['election'])->findOrFail($id);
-        return view('main-admin.voter.view', compact('voter'));
+        return view($this->getView('voter.view'), compact('voter'));
     }
 
     public function edit(string $id)
     {
         $voter = \App\Models\Voter::with(['election'])->findOrFail($id);
         $forms = \App\Models\Election::where('created_by', auth()->id())->get();
-        return view('main-admin.voter.edit', compact('voter', 'forms'));
+        return view($this->getView('voter.edit'), compact('voter', 'forms'));
     }
 
     public function update(Request $request, string $id)
@@ -272,7 +280,7 @@ class VoterController extends Controller
             return response()->json(['voters' => $voters]);
         }
 
-        return view('main-admin.voters', compact('voters', 'forms'));
+        return view($this->getView('voters'), compact('voters', 'forms'));
     }
 
     public function export(Request $request)
@@ -363,7 +371,7 @@ class VoterController extends Controller
         $forms = \App\Models\Election::where('created_by', auth()->id())->get();
 
         // return view; the blade will handle collection vs paginator
-        return view('main-admin.voter.show', [
+        return view($this->getView('voter.show'), [
             'voters' => $voters,
             'importPath' => $storedPath,
             'forms' => $forms

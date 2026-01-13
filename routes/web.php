@@ -21,6 +21,7 @@ use App\Http\Controllers\Elections\Store as ElectionStoreController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\MagicLinkController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Voter\VoterOtpController;
 
 
@@ -33,12 +34,19 @@ use App\Http\Controllers\Voter\VoterOtpController;
 
 // Public routes
 Route::get('/', function () {
+    if (auth()->check()) {
+        if (auth()->user()->isAdmin() || auth()->user()->isElectionOfficer()) {
+            return redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('dashboard');
+    }
     return view('welcome');
 })->name('home');
 
 // Custom Authentication Routes for Welcome Page
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.submit');
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
+Route::post('auth/google/callback', [GoogleAuthController::class, 'handleCallback'])->name('auth.google.callback');
 
 Route::get('/otp', [OtpController::class, 'show'])->name('otp.form');
 Route::post('/otp', [OtpController::class, 'verify'])->name('otp.verify');
@@ -124,6 +132,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('export', [ElectionController::class, 'export'])->name('export');
         Route::post('{election}/toggle-status', [ElectionController::class, 'toggleStatus'])->name('toggle-status');
         Route::post('{election}/assign-sub-admin', [ElectionController::class, 'assignSubAdmin'])->name('assign-sub-admin');
+        Route::get('search-admins', [ElectionController::class, 'searchAdmins'])->name('search-admins');
         Route::post('{election}/remove-sub-admin', [ElectionController::class, 'removeSubAdmin'])->name('remove-sub-admin');
         Route::get('{election}/candidates', [ElectionController::class, 'candidates'])->name('candidates');
         Route::get('{election}/voters', [ElectionController::class, 'voters'])->name('voters');
@@ -140,6 +149,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::prefix('partylists')->name('partylists.')->group(function () {
         Route::get('search', [PartylistController::class, 'search'])->name('search');
         Route::get('export', [PartylistController::class, 'export'])->name('export');
+        Route::post('import-preview', [PartylistController::class, 'importPreview'])->name('import.preview');
+        Route::post('import-store', [PartylistController::class, 'importStore'])->name('import.store');
         Route::post('{partylist}/toggle-status', [PartylistController::class, 'toggleStatus'])->name('toggle-status');
         Route::get('{partylist}/members', [PartylistController::class, 'members'])->name('members');
         Route::post('{partylist}/add-member', [PartylistController::class, 'addMember'])->name('add-member');
@@ -154,6 +165,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('search', [CandidateController::class, 'search'])->name('search');
         Route::get('export', [CandidateController::class, 'export'])->name('export');
+        Route::post('import-preview', [CandidateController::class, 'importPreview'])->name('import.preview');
+        Route::post('import-store', [CandidateController::class, 'importStore'])->name('import.store');
         Route::post('{candidate}/toggle-status', [CandidateController::class, 'toggleStatus'])->name('toggle-status');
         Route::post('{candidate}/approve', [CandidateController::class, 'approve'])->name('approve');
         Route::post('{candidate}/reject', [CandidateController::class, 'reject'])->name('reject');

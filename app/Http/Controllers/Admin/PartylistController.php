@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\Partylist;
 use App\Models\Election;
+use App\Imports\PartylistImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +16,14 @@ use Illuminate\Support\Facades\Schema;
 
 class PartylistController extends Controller
 {
+    private function getView($name)
+    {
+        if (auth()->check() && auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            return "admin.$name";
+        }
+        return "main-admin.$name";
+    }
+
     public function index()
     {
         $partylists = Partylist::where(function($q) {
@@ -33,7 +43,7 @@ class PartylistController extends Controller
         $elections = Election::all();
         $organizations = Organization::where('is_active', 1)->orderBy('name')->get();
 
-        return view('main-admin.partylists', compact('partylists', 'elections', 'organizations'));
+        return view($this->getView('partylists'), compact('partylists', 'elections', 'organizations'));
     }
 
     public function create()
@@ -53,7 +63,7 @@ class PartylistController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('main-admin.partylist.partylists-create', compact('organizations', 'elections'));
+        return view($this->getView('partylist.partylists-create'), compact('organizations', 'elections'));
     }
 
     public function store(Request $request)
@@ -139,7 +149,7 @@ class PartylistController extends Controller
 
         $partylist->load(['election', 'organization', 'candidates.position', 'candidates.user']);
 
-        return view('main-admin.partylist.partylist-view', [
+        return view($this->getView('partylist.partylist-view'), [
             'partylist' => $partylist,
             'party' => $partylist
         ]);
@@ -176,7 +186,7 @@ class PartylistController extends Controller
 
         $partylist->load('organization');
 
-        return view('main-admin.partylist.partylist-edit', [
+        return view($this->getView('partylist.partylist-edit'), [
             'partylist' => $partylist,
             'party' => $partylist,
             'organizations' => $organizations,
@@ -394,7 +404,6 @@ class PartylistController extends Controller
 
         $partylists = Partylist::where('created_by', auth()->id())
             ->with(['election', 'organization'])
-            ->withCount(['candidates'])
             ->when($organization_id, function ($q) use ($organization_id) {
                 return $q->where('organization_id', $organization_id);
             })
@@ -417,30 +426,22 @@ class PartylistController extends Controller
         $callback = function () use ($partylists) {
             $file = fopen('php://output', 'w');
             fputcsv($file, [
-                'ID',
-                'Name',
+                'Party Name',
                 'Acronym',
-                'Organization',
                 'Description',
-                'Platform',
-                'Color',
-                'Status',
-                'Candidates Count',
-                'Created At'
+                'Platform & Agenda',
+                'Logo (Image)',
+                'Organization'
             ]);
 
             foreach ($partylists as $partylist) {
                 fputcsv($file, [
-                    $partylist->id,
                     $partylist->name,
                     $partylist->acronym,
-                    $partylist->organization ? $partylist->organization->name : 'N/A',
                     $partylist->description,
                     $partylist->platform,
-                    $partylist->color,
-                    ucfirst($partylist->status),
-                    $partylist->candidates_count,
-                    $partylist->created_at->format('Y-m-d H:i:s')
+                    $partylist->logo,
+                    $partylist->organization ? $partylist->organization->name : ''
                 ]);
             }
 
@@ -450,11 +451,147 @@ class PartylistController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    public function importPreview(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:51200',
+        ]);
+
+        $file = $request->file('file');
+
+        try {
+            $sheets = Excel::toCollection(new PartylistImport(), $file);
+            $rows = $sheets->first() ?? collect();
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Error reading file: ' . $e->getMessage()], 422);
+        }
+
+        if ($rows->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'The uploaded file is empty or has no data.'], 422);
+        }
+
+        $data = $rows->map(function ($row) {
+            $name = $row['party_name'] ?? ($row['name'] ?? null);
+            $acronym = $row['acronym'] ?? null;
+            $organizationName = $row['organization'] ?? null;
+
+            if (!$name) return null;
+
+            // Check for duplication in existing data
+            $isDuplicate = Partylist::where('name', $name)->exists();
+
+            return [
+                'name' => $name,
+                'acronym' => $acronym,
+                'description' => $row['description'] ?? null,
+                'platform' => $row['platform_agenda'] ?? ($row['platform'] ?? null),
+                'logo' => $row['logo_image'] ?? ($row['logo'] ?? null),
+                'organization' => $organizationName,
+                'is_duplicate' => $isDuplicate,
+                'status' => $isDuplicate ? 'Duplicate' : 'Clear'
+            ];
+        })->filter()->values();
+
+        $storedPath = $file->store('imports');
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'importPath' => $storedPath
+        ]);
+    }
+
+    public function importStore(Request $request)
+    {
+        $request->validate([
+            'import_path' => 'required|string',
+            'election_id' => 'nullable|exists:elections,id'
+        ]);
+
+        $path = $request->input('import_path');
+        $electionId = $request->input('election_id');
+
+        if (!Storage::disk('local')->exists($path)) {
+            return response()->json(['success' => false, 'message' => 'Import file not found.'], 422);
+        }
+
+        $fullPath = Storage::disk('local')->path($path);
+
+        try {
+            $sheets = Excel::toCollection(new PartylistImport(), $fullPath);
+            $rows = $sheets->first() ?? collect();
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Error reading stored file.'], 422);
+        }
+
+        $created = 0;
+        $skipped = 0;
+
+        DB::beginTransaction();
+        try {
+            foreach ($rows as $row) {
+                $name = $row['party_name'] ?? ($row['name'] ?? null);
+                if (!$name) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Check duplication
+                if (Partylist::where('name', $name)->exists()) {
+                    $skipped++;
+                    continue;
+                }
+
+                $orgName = $row['organization'] ?? null;
+                $orgId = null;
+                if ($orgName) {
+                    $org = Organization::where('name', 'LIKE', $orgName)->first();
+                    if ($org) {
+                        $orgId = $org->id;
+                    }
+                }
+
+                // Default org if none found and user has one?
+                // For now, if no org found, we might need a default or error.
+                // Let's assume organization must exist or it's nullable in DB?
+                // Partylist model says organization_id is required in store() validation.
+                if (!$orgId) {
+                    // Try to find any organization created by this user
+                    $defaultOrg = Organization::where('created_by', auth()->id())->first();
+                    $orgId = $defaultOrg ? $defaultOrg->id : null;
+                }
+
+                Partylist::create([
+                    'name' => $name,
+                    'acronym' => $row['acronym'] ?? null,
+                    'description' => $row['description'] ?? null,
+                    'platform' => $row['platform_agenda'] ?? ($row['platform'] ?? null),
+                    'logo' => $row['logo_image'] ?? ($row['logo'] ?? null),
+                    'organization_id' => $orgId,
+                    'election_id' => $electionId,
+                    'status' => 'active',
+                    'created_by' => auth()->id(),
+                ]);
+                $created++;
+            }
+            DB::commit();
+            Storage::disk('local')->delete($path);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Error importing data: ' . $e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully imported $created partylists. Skipped $skipped duplicates or invalid rows."
+        ]);
+    }
+
     public function members(Partylist $partylist)
     {
         $members = $partylist->candidates()->with('user')->get();
 
-        return view('main-admin.partylists-members', [
+        return view($this->getView('partylists-members'), [
             'partylist' => $partylist,
             'party' => $partylist,
             'members' => $members
@@ -551,7 +688,7 @@ class PartylistController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('main-admin.partylists-candidates', [
+        return view($this->getView('partylists-candidates'), [
             'partylist' => $partylist,
             'party' => $partylist,
             'candidates' => $candidates
@@ -582,7 +719,7 @@ class PartylistController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('main-admin.organization-partylists', [
+        return view($this->getView('organization-partylists'), [
             'organization' => $organization,
             'partylists' => $partylists
         ]);
