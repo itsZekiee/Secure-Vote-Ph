@@ -159,7 +159,7 @@
                                     <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700">
                                         <i class="ri-upload-cloud-line text-lg text-indigo-600"></i>
                                         <span class="sm:inline">Import</span>
-                                        <input type="file" name="file" accept=".xlsx,.xls,.csv,.xml,.tsv" required class="sr-only" onchange="checkFile(this)" />
+                                        <input type="file" name="file" accept=".csv,.xml,.xlsx,.xls,.tsv" required class="sr-only" onchange="checkFile(this)" />
                                     </label>
                                     <button type="submit" class="ml-2 inline-flex items-center gap-2 px-3 py-1 bg-indigo-600 text-white rounded text-xs font-bold hover:bg-indigo-700 transition-colors">
                                         Upload

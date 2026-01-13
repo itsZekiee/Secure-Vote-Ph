@@ -951,7 +951,7 @@ document.addEventListener('alpine:init', () => {
                                                 <button type="button" id="useMyLocation"
                                                         class="w-full sm:w-auto px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:shadow-lg font-semibold transition-all flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap">
                                                     <i class="ri-map-pin-user-line text-lg"></i>
-                                                    Use My Location
+                                                    Current Location
                                                 </button>
                                             </div>
                                         </div>
@@ -1203,13 +1203,13 @@ document.addEventListener('alpine:init', () => {
                             lng: position.coords.longitude
                         };
                         map.setCenter(pos);
-                        map.setZoom(17);
+                        map.setZoom(19); // Higher zoom for better accuracy
                         setLocation(pos.lat, pos.lng);
                     }, function() {
                         alert('Error: The Geolocation service failed.');
                     }, {
                         enableHighAccuracy: true,
-                        timeout: 5000,
+                        timeout: 10000, // Increased timeout
                         maximumAge: 0
                     });
                 } else {

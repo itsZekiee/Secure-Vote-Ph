@@ -774,12 +774,22 @@ class CandidateController extends Controller
                     $posId = $pos ? $pos->id : null;
                 }
 
+                $nameParts = explode(' ', trim($fullName));
+                $lastName = count($nameParts) > 1 ? array_pop($nameParts) : '';
+                $firstName = implode(' ', $nameParts);
+                if (empty($firstName)) {
+                    $firstName = $lastName;
+                    $lastName = '';
+                }
+
                 Candidate::create([
                     'user_id' => $existingUser->id,
                     'election_id' => $electionId,
                     'organization_id' => $orgId,
                     'partylist_id' => $partyId,
                     'position_id' => $posId,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
                     'name' => $fullName,
                     'platform' => $row['platform_statement'] ?? ($row['platform'] ?? null),
                     'photo' => $row['profile_photo'] ?? ($row['photo'] ?? null),

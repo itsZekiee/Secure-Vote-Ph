@@ -34,6 +34,7 @@
         platform: '{{ old('platform', $party->platform ?? '') }}',
         color: '{{ old('color', $party->color ?? '#3b82f6') }}',
         organization_id: '{{ old('organization_id', $party->organization_id ?? '') }}',
+        organization_name: '{{ old('organization_name', $party->organization_name ?? ($party->organization->name ?? '')) }}',
         election_id: '{{ old('election_id', $party->election_id ?? '') }}',
         status: '{{ old('status', $party->status ?? 'active') }}',
         logo: null,
@@ -392,6 +393,9 @@
                                     <select x-model="formData.organization_id"
                                             class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all text-gray-900">
                                         <option value="">Select Organization</option>
+                                        @if(empty($party->organization_id) && !empty($party->organization_name))
+                                            <option value="" disabled selected>{{ $party->organization_name }} (Imported)</option>
+                                        @endif
                                         @foreach($organizations ?? [] as $org)
                                             <option value="{{ $org->id }}">{{ $org->name }}</option>
                                         @endforeach

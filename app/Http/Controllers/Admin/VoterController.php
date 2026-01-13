@@ -396,7 +396,7 @@ class VoterController extends Controller
         $hashedPassword = \Illuminate\Support\Facades\Hash::make($tempPassword);
 
         if (!Storage::disk('local')->exists($path)) {
-            return back()->withErrors(['file' => 'Import file not found. Please re-upload.']);
+            return response()->json(['success' => false, 'message' => 'Import file not found.'], 422);
         }
 
         $fullPath = Storage::disk('local')->path($path);
@@ -405,7 +405,7 @@ class VoterController extends Controller
             $sheets = Excel::toCollection(new VoterImport(), $fullPath);
             $rows = $sheets->first() ?? collect();
         } catch (\Throwable $e) {
-            return back()->withErrors(['file' => 'Error reading stored file: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Error reading stored file.'], 422);
         }
 
         $created = 0;
@@ -440,26 +440,44 @@ class VoterController extends Controller
                     'registration_status' => $registrationStatus,
                 ];
 
-                \App\Models\Voter::create($data);
+                $voter = \App\Models\Voter::create($data);
+
+                // If approved, create user account
+                if ($registrationStatus === 'approved') {
+                    $nameParts = explode(' ', trim($name));
+                    $lastName = count($nameParts) > 1 ? array_pop($nameParts) : '';
+                    $firstName = implode(' ', $nameParts);
+                    if (empty($firstName)) {
+                        $firstName = $lastName;
+                        $lastName = '';
+                    }
+
+                    $user = User::create([
+                        'name' => $name,
+                        'first_name' => $firstName,
+                        'last_name' => $lastName,
+                        'email' => $email,
+                        'password' => $hashedPassword,
+                        'role' => 'voter',
+                        'is_active' => true,
+                    ]);
+
+                    $voter->update(['user_id' => $user->id]);
+                    $this->assignVoterRole($user);
+                }
 
                 $created++;
             }
-
             DB::commit();
-        } catch (\Throwable $e) {
+            Storage::disk('local')->delete($path);
+        } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['general' => 'Import failed: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Error importing data: ' . $e->getMessage()], 500);
         }
 
-        // Optionally delete the stored import file to avoid clutter
-        try {
-            Storage::delete($path);
-        } catch (\Throwable $e) {
-            // ignore
-        }
-
-        return redirect()->route('admin.voters.index')
-            ->with('success', "Imported {$created} voters. Skipped {$skipped} invalid or duplicate rows.")
-            ->with('temp_password_display', $tempPassword);
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully imported $created voters. Skipped $skipped duplicates or invalid rows."
+        ]);
     }
 }
