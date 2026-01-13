@@ -631,7 +631,13 @@
             const headerTitle = document.getElementById('form-header-title');
             const headerSubtitle = document.getElementById('form-header-subtitle');
 
+
             let isSignInMode = {{ ($registrationOver || session('success')) ? 'true' : 'false' }};
+
+            @if(session('switch_to_login'))
+            // Auto switch to Sign In after successful registration
+            isSignInMode = true;
+            @endif
 
             if (isSignInMode) {
                 registerForm.classList.add('hidden');
@@ -643,6 +649,7 @@
                 headerTitle.textContent = 'Welcome Back';
                 headerSubtitle.textContent = 'Sign in to access your election';
             }
+
 
             toggleBtn.addEventListener('click', function () {
                 isSignInMode = !isSignInMode;

@@ -16,60 +16,95 @@
             <nav class="hidden md:flex">
                 <ul class="flex gap-8">
                     <li>
-                        <a href="#geo" class="nav-link font-medium text-gray-900 hover:text-blue-900 focus:text-blue-900 transition-colors duration-200">
+                        <a href="#geo" class="nav-link inline-flex items-center h-10 font-medium text-gray-900
+                                  hover:text-blue-900 transition-colors duration-200">
                             Geo
                         </a>
+
                     </li>
                     <li>
-                        <a href="#security" class="nav-link font-medium text-gray-900 hover:text-blue-900 focus:text-blue-900 transition-colors duration-200">
+                        <a href="#security" class="nav-link inline-flex items-center h-10 font-medium text-gray-900
+                                  hover:text-blue-900 transition-colors duration-200">
                             Security
                         </a>
                     </li>
                     <li>
-                        <a href="#analytics" class="nav-link font-medium text-gray-900 hover:text-blue-900 focus:text-blue-900 transition-colors duration-200">
+                        <a href="#analytics" class="nav-link inline-flex items-center h-10 font-medium text-gray-900
+                                  hover:text-blue-900 transition-colors duration-200">
                             Analytics
                         </a>
                     </li>
                     <li>
-                        <a href="#faqs" class="nav-link font-medium text-gray-900 hover:text-blue-900 focus:text-blue-900 transition-colors duration-200">
+                        <a href="#faqs" class="nav-link inline-flex items-center h-10 font-medium text-gray-900
+                                  hover:text-blue-900 transition-colors duration-200">
                             FAQs
                         </a>
                     </li>
+
+                    <li>
+                        <a href="#auth" onclick="forceSignInAlpine()" class="inline-flex items-center h-10 px-3 gap-2 rounded-md
+                                  bg-gradient-to-r from-primary to-accent
+                                  text-sm font-semibold text-white
+                                  shadow-md hover:shadow-lg
+                                  transition-all duration-300">
+                            Sign In / Sign Up
+                        </a>
+
+                    </li>
+
                 </ul>
             </nav>
 
             <!-- Mobile Menu Button -->
             <div class="md:hidden">
-                <button id="mobile-menu-button" class="text-gray-900 hover:text-blue-900 focus:text-blue-900 transition-colors duration-200" aria-label="Toggle menu">
+                <button id="mobile-menu-button"
+                    class="text-gray-900 hover:text-blue-900 focus:text-blue-900 transition-colors duration-200"
+                    aria-label="Toggle menu">
                     <i class="ri-menu-line text-xl transition-transform duration-300"></i>
                 </button>
             </div>
         </div>
 
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="md:hidden overflow-hidden transition-all duration-300 ease-in-out" style="max-height: 0; opacity: 0;">
+        <div id="mobile-menu" class="md:hidden overflow-hidden transition-all duration-300 ease-in-out"
+            style="max-height: 0; opacity: 0;">
             <nav class="mt-4 pb-4">
                 <ul class="space-y-3">
                     <li>
-                        <a href="#geo" class="nav-link block py-2 px-4 font-medium text-gray-900 hover:text-blue-900 hover:bg-gray-100 focus:text-blue-900 focus:bg-gray-100 transition-all duration-200 rounded-lg text-center">
+                        <a href="#geo"
+                            class="nav-link block py-2 px-4 font-medium text-gray-900 hover:text-blue-900 hover:bg-gray-100 focus:text-blue-900 focus:bg-gray-100 transition-all duration-200 rounded-lg text-center">
                             Geo
                         </a>
                     </li>
                     <li>
-                        <a href="#security" class="nav-link block py-2 px-4 font-medium text-gray-900 hover:text-blue-900 hover:bg-gray-100 focus:text-blue-900 focus:bg-gray-100 transition-all duration-200 rounded-lg text-center">
+                        <a href="#security"
+                            class="nav-link block py-2 px-4 font-medium text-gray-900 hover:text-blue-900 hover:bg-gray-100 focus:text-blue-900 focus:bg-gray-100 transition-all duration-200 rounded-lg text-center">
                             Security
                         </a>
                     </li>
                     <li>
-                        <a href="#analytics" class="nav-link block py-2 px-4 font-medium text-gray-900 hover:text-blue-900 hover:bg-gray-100 focus:text-blue-900 focus:bg-gray-100 transition-all duration-200 rounded-lg text-center">
+                        <a href="#analytics"
+                            class="nav-link block py-2 px-4 font-medium text-gray-900 hover:text-blue-900 hover:bg-gray-100 focus:text-blue-900 focus:bg-gray-100 transition-all duration-200 rounded-lg text-center">
                             Analytics
                         </a>
                     </li>
                     <li>
-                        <a href="#faqs" class="nav-link block py-2 px-4 font-medium text-gray-900 hover:text-blue-900 hover:bg-gray-100 focus:text-blue-900 focus:bg-gray-100 transition-all duration-200 rounded-lg text-center">
+                        <a href="#faqs"
+                            class="nav-link block py-2 px-4 font-medium text-gray-900 hover:text-blue-900 hover:bg-gray-100 focus:text-blue-900 focus:bg-gray-100 transition-all duration-200 rounded-lg text-center">
                             FAQs
                         </a>
                     </li>
+
+                    <li>
+                        <a href="#auth" class="block py-3 px-6 rounded-xl
+                                  bg-gradient-to-r from-primary to-accent
+                                  text-white font-semibold shadow-md
+                                  hover:shadow-lg transition-all duration-300 text-center">
+                            <i class="ri-login-box-line mr-2"></i>
+                            Sign In / Sign Up
+                        </a>
+                    </li>
+
                 </ul>
             </nav>
         </div>
@@ -82,7 +117,7 @@
             const mobileMenu = document.getElementById('mobile-menu');
 
             if (mobileButton) {
-                mobileButton.addEventListener('click', function() {
+                mobileButton.addEventListener('click', function () {
                     const menuIcon = this.querySelector('i');
                     const isOpen = mobileMenu.style.maxHeight !== '0px' && mobileMenu.style.maxHeight !== '';
 
@@ -104,7 +139,7 @@
 
             // Smooth scroll functionality
             document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', function(e) {
+                link.addEventListener('click', function (e) {
                     e.preventDefault();
                     const targetId = this.getAttribute('href').substring(1);
                     const targetElement = document.getElementById(targetId);

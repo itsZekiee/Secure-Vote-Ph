@@ -10,8 +10,8 @@
                         <i class="ri-file-list-3-line text-white text-xl"></i>
                     </div>
                     <div class="min-w-0">
-                        <h1 class="text-2xl font-semibold leading-tight truncate">Import Preview</h1>
-                        <p class="text-sm text-gray-500 hidden sm:block">Review the fetched data before saving to the database</p>
+                        <h1 class="text-2xl font-semibold leading-tight truncate">Review Import</h1>
+                        <p class="text-sm text-gray-500 hidden sm:block">Verify the fetched voter data before final synchronization</p>
                     </div>
                 </div>
                 <div class="hidden lg:flex items-center gap-4 text-sm text-gray-600">
@@ -46,9 +46,9 @@
                         @csrf
                         <input type="hidden" name="import_path" value="{{ $importPath }}" />
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <!-- Election Selection -->
-                            <div class="space-y-2">
+                            <div class="space-y-2 lg:col-span-1">
                                 <label for="election_id" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Target Election Form</label>
                                 <div class="relative">
                                     <select name="election_id" id="election_id" required
@@ -66,7 +66,7 @@
                             </div>
 
                             <!-- Default Registration Status -->
-                            <div class="space-y-2">
+                            <div class="space-y-2 lg:col-span-1">
                                 <label for="registration_status" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Default Status</label>
                                 <div class="relative">
                                     <select name="registration_status" id="registration_status" required
@@ -83,7 +83,7 @@
                             </div>
 
                             <!-- Temporary Password -->
-                            <div class="space-y-2">
+                            <div class="space-y-2 lg:col-span-1">
                                 <label for="temp_password" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Temporary Password</label>
                                 <div class="relative">
                                     <input type="text" name="temp_password" id="temp_password" required
@@ -97,14 +97,14 @@
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="flex items-end gap-3">
+                            <div class="flex items-end gap-3 lg:col-span-1">
                                 <button type="submit"
-                                        class="flex-1 bg-emerald-600 text-white rounded-lg px-6 py-3 font-bold text-xs tracking-widest hover:bg-emerald-700 transition-all shadow-md flex items-center justify-center gap-2">
-                                    <i class="ri-check-double-line text-lg"></i>
-                                    CONFIRM IMPORT
+                                        class="flex-1 bg-indigo-600 text-white rounded-lg px-6 py-3 font-bold text-xs tracking-widest hover:bg-indigo-700 transition-all shadow-md flex items-center justify-center gap-2">
+                                    <i class="ri-upload-cloud-2-line text-lg"></i>
+                                    PROCEED IMPORT
                                 </button>
                                 <a href="{{ route('admin.voters.index') }}"
-                                   class="px-6 py-3 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest">
+                                   class="px-6 py-3 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest text-center">
                                     Cancel
                                 </a>
                             </div>

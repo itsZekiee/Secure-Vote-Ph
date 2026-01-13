@@ -332,7 +332,7 @@ class VoterController extends Controller
     public function importPreview(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv|max:51200',
+            'file' => 'required|file|mimes:xlsx,xls,csv,xml,tsv|max:51200',
         ]);
 
         $file = $request->file('file');
@@ -355,26 +355,25 @@ class VoterController extends Controller
 
             if (!$email && !$name) return null;
 
-            return (object) [
+            // Check if voter already exists
+            $isDuplicate = \App\Models\Voter::where('email', $email)->exists();
+
+            return [
                 'name' => $name,
                 'email' => $email,
                 'student_id' => $studentId,
                 'phone' => $row['phone'] ?? ($row['phone_number'] ?? ($row['phone number'] ?? null)),
-                'registration_status' => 'approved',
-                'created_at' => now(),
+                'is_duplicate' => $isDuplicate,
+                'status' => $isDuplicate ? 'Duplicate' : 'Clear'
             ];
-        })->filter();
+        })->filter()->values();
 
         $storedPath = $file->store('imports');
 
-        // Fetch forms/elections for selection
-        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
-
-        // return view; the blade will handle collection vs paginator
-        return view($this->getView('voter.show'), [
-            'voters' => $voters,
-            'importPath' => $storedPath,
-            'forms' => $forms
+        return response()->json([
+            'success' => true,
+            'data' => $voters,
+            'importPath' => $storedPath
         ]);
     }
 

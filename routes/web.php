@@ -48,20 +48,17 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('l
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
 Route::post('auth/google/callback', [GoogleAuthController::class, 'handleCallback'])->name('auth.google.callback');
 
-Route::get('/otp', [OtpController::class, 'show'])->name('otp.form');
-Route::post('/otp', [OtpController::class, 'verify'])->name('otp.verify');
+
+Route::middleware('guest')->group(function () {
+    Route::get('otp', [OtpController::class, 'show'])->name('otp.form');
+    Route::post('otp', [OtpController::class, 'verify'])->name('otp.verify');
+});
 
 Route::get('/voter/otp', [VoterOtpController::class, 'show'])
     ->name('voter.otp.form');
 
 Route::post('/voter/otp', [VoterOtpController::class, 'verify'])
     ->name('voter.otp.verify');
-
-
-Route::middleware('guest')->group(function () {
-    Route::get('otp', [OtpController::class, 'show'])->name('otp.form');
-    Route::post('otp', [OtpController::class, 'verify'])->name('otp.verify');
-});
 
 
 Route::get('/magic-link/callback', [MagicLinkController::class, 'handleMagicLink'])->name('magiclink.callback');
@@ -84,7 +81,7 @@ Route::get('/elections/register/{code}', [VoterElectionController::class, 'regis
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->group(function () {
 
     // Admin Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -103,6 +100,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::post('/settings/reset', [SettingsController::class, 'reset'])->name('settings.reset');
     Route::get('/settings/backup', [SettingsController::class, 'backup'])->name('settings.backup');
     Route::post('/settings/restore', [SettingsController::class, 'restore'])->name('settings.restore');
+
+    // Security Management
+    Route::delete('/settings/sessions/{session_id}', [SettingsController::class, 'logoutSession'])->name('settings.sessions.logout');
+    Route::post('/settings/sessions/logout-others', [SettingsController::class, 'logoutOtherSessions'])->name('settings.sessions.logout-others');
+    Route::post('/settings/recovery-codes/generate', [SettingsController::class, 'generateRecoveryCodes'])->name('settings.recovery-codes.generate');
+    Route::post('/settings/recovery-codes/show', [SettingsController::class, 'showRecoveryCodes'])->name('settings.recovery-codes.show');
+    Route::post('/settings/security-preferences', [SettingsController::class, 'updateSecurityPreferences'])->name('settings.security-preferences.update');
 
     // Profile Management
     Route::put('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
@@ -237,8 +241,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::prefix('system')->name('system.')->group(function () {
         Route::get('info', [AdminController::class, 'systemInfo'])->name('info');
         Route::get('logs', [AdminController::class, 'logs'])->name('logs');
-        Route::post('cache-clear', [AdminController::class, 'clearCache'])->name('cache-clear');
+        Route::post('cache-clear', [SettingsController::class, 'clearSystemCache'])->name('cache-clear');
+        Route::post('db-optimize', [SettingsController::class, 'optimizeDatabase'])->name('db-optimize');
+        Route::post('force-logout-all', [SettingsController::class, 'forceLogoutAll'])->name('force-logout-all');
+        Route::post('check-updates', [SettingsController::class, 'checkGitUpdates'])->name('check-updates');
+        Route::post('archive-election', [SettingsController::class, 'archiveElection'])->name('archive-election');
         Route::post('maintenance', [AdminController::class, 'toggleMaintenance'])->name('maintenance');
+
+        // IP Access Control
+        Route::post('ip-control', [SettingsController::class, 'storeIpControl'])->name('ip-control.store');
+        Route::delete('ip-control/{id}', [SettingsController::class, 'deleteIpControl'])->name('ip-control.delete');
     });
 
     // API Routes for AJAX calls

@@ -60,7 +60,10 @@ class DashboardController extends Controller
                 ];
             });
 
-        $auditLogs = AuditLog::with('user')->latest()->limit(50)->get();
+        $auditLogs = [];
+        if (auth()->user()->hasRole('super-admin')) {
+            $auditLogs = AuditLog::with('user')->latest()->limit(50)->get();
+        }
 
         $view = 'main-admin.dashboard';
         if (auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {

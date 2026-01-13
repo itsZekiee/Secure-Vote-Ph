@@ -454,7 +454,7 @@ class PartylistController extends Controller
     public function importPreview(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv|max:51200',
+            'file' => 'required|file|mimes:xlsx,xls,csv,xml,tsv|max:51200',
         ]);
 
         $file = $request->file('file');
@@ -545,7 +545,7 @@ class PartylistController extends Controller
                 $orgName = $row['organization'] ?? null;
                 $orgId = null;
                 if ($orgName) {
-                    $org = Organization::where('name', 'LIKE', $orgName)->first();
+                    $org = Organization::where('name', 'LIKE', trim($orgName))->first();
                     if ($org) {
                         $orgId = $org->id;
                     }
