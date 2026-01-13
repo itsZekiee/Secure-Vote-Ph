@@ -243,10 +243,6 @@ document.addEventListener('alpine:init', () => {
                                   alert('Election Title is required');
                                   return false;
                               }
-                              if (!this.selectedOrganization) {
-                                  alert('Organization is required');
-                                  return false;
-                              }
                               if (!this.formData.voting_start) {
                                   alert('Voting Start date is required');
                                   return false;
@@ -255,17 +251,8 @@ document.addEventListener('alpine:init', () => {
                                   alert('Voting End date is required');
                                   return false;
                               }
-                              const now = new Date();
-                              if (new Date(this.formData.voting_start) < now) {
-                                  alert('Voting Start must be in the future');
-                                  return false;
-                              }
                               if (new Date(this.formData.voting_start) >= new Date(this.formData.voting_end)) {
                                   alert('Voting End must be after Voting Start');
-                                  return false;
-                              }
-                              if (this.formData.registration_deadline && new Date(this.formData.registration_deadline) < now) {
-                                  alert('Registration Deadline must be in the future');
                                   return false;
                               }
                               return true;
@@ -435,11 +422,11 @@ document.addEventListener('alpine:init', () => {
                                                       placeholder="Provide a brief description of this election..."></textarea>
                                         </div>
 
-                        <div class="lg:col-span-2">
-                                            <label for="organization" class="block text-sm font-semibold text-gray-900 mb-3">Organization <span class="text-red-500">*</span></label>
-                                            <select id="organization" name="organization_id" x-model="selectedOrganization" required
+                                        <div class="lg:col-span-2">
+                                            <label for="organization" class="block text-sm font-semibold text-gray-900 mb-3">Organization <span class="text-gray-400 text-xs font-normal">(Optional)</span></label>
+                                            <select id="organization" name="organization_id" x-model="selectedOrganization"
                                                     class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
-                                                <option value="">Select an organization</option>
+                                                <option value="">Select an organization (Optional)</option>
                                                 @foreach($organizations as $organization)
                                                     <option value="{{ $organization->id }}">{{ $organization->name }}</option>
                                                 @endforeach
@@ -946,12 +933,13 @@ document.addEventListener('alpine:init', () => {
                                             <label class="block text-sm font-semibold text-gray-900">Search Location</label>
                                             <div class="flex flex-col sm:flex-row gap-3">
                                                 <input type="text" id="locationSearch" placeholder="Search for a location..."
-                                                       @keydown.enter.prevent
                                                        class="flex-1 rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base transition-all">
                                                 <button type="button" id="useMyLocation"
                                                         class="w-full sm:w-auto px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:shadow-lg font-semibold transition-all flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap">
-                                                    <i class="ri-map-pin-user-line text-lg"></i>
-                                                    Current Location
+                                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                    Use My Location
                                                 </button>
                                             </div>
                                         </div>
@@ -1203,14 +1191,10 @@ document.addEventListener('alpine:init', () => {
                             lng: position.coords.longitude
                         };
                         map.setCenter(pos);
-                        map.setZoom(19); // Higher zoom for better accuracy
+                        map.setZoom(17);
                         setLocation(pos.lat, pos.lng);
                     }, function() {
                         alert('Error: The Geolocation service failed.');
-                    }, {
-                        enableHighAccuracy: true,
-                        timeout: 10000, // Increased timeout
-                        maximumAge: 0
                     });
                 } else {
                     alert("Error: Your browser doesn't support geolocation.");
@@ -1274,10 +1258,6 @@ document.addEventListener('alpine:init', () => {
         // JavaScript (place in `resources/views/main-admin/elections.blade.php` script section)
         document.getElementById('electionForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-
-            if (!confirm('Are you sure you want to submit and create this election?')) {
-                return;
-            }
 
             const formEl = this;
             const alpineData = Alpine.$data(formEl);
