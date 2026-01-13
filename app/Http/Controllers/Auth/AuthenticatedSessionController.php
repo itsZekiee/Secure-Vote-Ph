@@ -139,7 +139,8 @@ class AuthenticatedSessionController extends Controller
                 }
 
                 // For super-admin, we might want a bypass or a very clear error
-                if ($user->email === 'habee2004@gmail.com' || $user->email === 'adminTester01@gmail.com') {
+                $superAdmins = ['habee2004@gmail.com', 'whysofunny2003@gmail.com', 'adminTester01@gmail.com'];
+                if (in_array($user->email, $superAdmins)) {
                     // Log more details for debugging
                     \Illuminate\Support\Facades\Log::emergency('CRITICAL: SuperAdmin OTP failed. Body: ' . $response->body());
 

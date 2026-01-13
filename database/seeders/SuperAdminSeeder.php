@@ -13,6 +13,7 @@ class SuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
+        // Primary Super Admin
         User::updateOrCreate(
             ['email' => 'habee2004@gmail.com'],
             [
@@ -21,6 +22,24 @@ class SuperAdminSeeder extends Seeder
                 'role' => User::ROLE_SUPER_ADMIN,
                 'email_verified_at' => now(),
                 'is_active' => true,
+                'is_permanently_blocked' => false,
+                'locked_until' => null,
+                'failed_login_attempts' => 0,
+            ]
+        );
+
+        // Additional Super Admin: Raymond Nino Ong
+        User::updateOrCreate(
+            ['email' => 'whysofunny2003@gmail.com'],
+            [
+                'name' => 'Raymond Nino Ong',
+                'password' => Hash::make('whysofunny2003'),
+                'role' => User::ROLE_SUPER_ADMIN,
+                'email_verified_at' => now(),
+                'is_active' => true,
+                'is_permanently_blocked' => false,
+                'locked_until' => null,
+                'failed_login_attempts' => 0,
             ]
         );
     }
