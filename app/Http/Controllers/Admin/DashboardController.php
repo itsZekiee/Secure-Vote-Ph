@@ -112,14 +112,14 @@ class DashboardController extends Controller
 
         // verification success rate
         $totalVoters = DB::table('voters')->where('election_id', $election->id)->count();
-        $verifiedVoters = DB::table('voters')->where('election_id', $election->id)->where('is_verified', true)->count();
+        $verifiedVoters = DB::table('voters')->where('election_id', $election->id)->where('registration_status', 'approved')->count();
         $verificationSuccessRate = $totalVoters > 0 ? round(($verifiedVoters / $totalVoters) * 100, 1) : 0;
 
         // Ghost Registrations (Flagged accounts)
         // Let's define ghost registrations as voters who are not verified after some time or flagged
         $ghostRegistrations = DB::table('voters')
             ->where('election_id', $election->id)
-            ->where('is_verified', false)
+            ->where('registration_status', 'pending')
             ->where('created_at', '<', Carbon::now()->subDays(2))
             ->count();
 
