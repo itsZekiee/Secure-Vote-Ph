@@ -336,9 +336,19 @@ class VoterController extends Controller
         ]);
 
         $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $readerType = null;
+
+        if ($extension === 'tsv') {
+            $readerType = \Maatwebsite\Excel\Excel::TSV;
+        } elseif ($extension === 'csv') {
+            $readerType = \Maatwebsite\Excel\Excel::CSV;
+        } elseif ($extension === 'xml') {
+            $readerType = \Maatwebsite\Excel\Excel::XML;
+        }
 
         try {
-            $sheets = Excel::toCollection(new VoterImport(), $file);
+            $sheets = Excel::toCollection(new VoterImport(), $file, null, $readerType);
             $rows = $sheets->first() ?? collect();
         } catch (\Throwable $e) {
             return back()->withErrors(['file' => 'Error reading file: ' . $e->getMessage()]);
@@ -400,9 +410,19 @@ class VoterController extends Controller
         }
 
         $fullPath = Storage::disk('local')->path($path);
+        $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        $readerType = null;
+
+        if ($extension === 'tsv') {
+            $readerType = \Maatwebsite\Excel\Excel::TSV;
+        } elseif ($extension === 'csv') {
+            $readerType = \Maatwebsite\Excel\Excel::CSV;
+        } elseif ($extension === 'xml') {
+            $readerType = \Maatwebsite\Excel\Excel::XML;
+        }
 
         try {
-            $sheets = Excel::toCollection(new VoterImport(), $fullPath);
+            $sheets = Excel::toCollection(new VoterImport(), $fullPath, null, $readerType);
             $rows = $sheets->first() ?? collect();
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Error reading stored file.'], 422);

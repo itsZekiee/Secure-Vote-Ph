@@ -458,9 +458,19 @@ class PartylistController extends Controller
         ]);
 
         $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $readerType = null;
+
+        if ($extension === 'tsv') {
+            $readerType = \Maatwebsite\Excel\Excel::TSV;
+        } elseif ($extension === 'csv') {
+            $readerType = \Maatwebsite\Excel\Excel::CSV;
+        } elseif ($extension === 'xml') {
+            $readerType = \Maatwebsite\Excel\Excel::XML;
+        }
 
         try {
-            $sheets = Excel::toCollection(new PartylistImport(), $file);
+            $sheets = Excel::toCollection(new PartylistImport(), $file, null, $readerType);
             $rows = $sheets->first() ?? collect();
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Error reading file: ' . $e->getMessage()], 422);
@@ -470,7 +480,7 @@ class PartylistController extends Controller
             return response()->json(['success' => false, 'message' => 'The uploaded file is empty or has no data.'], 422);
         }
 
-        $data = $rows->map(function ($row) {
+        $data = $rows->map(function ($row, $index) {
             $name = $row['party_name'] ?? ($row['name'] ?? null);
             $acronym = $row['acronym'] ?? null;
             $organizationName = $row['organization'] ?? null;
@@ -480,13 +490,23 @@ class PartylistController extends Controller
             // Check for duplication in existing data
             $isDuplicate = Partylist::where('name', $name)->exists();
 
+            $orgId = null;
+            if ($organizationName) {
+                $org = Organization::where('name', 'LIKE', trim($organizationName))->first();
+                if ($org) {
+                    $orgId = $org->id;
+                }
+            }
+
             return [
+                'index' => $index,
                 'name' => $name,
                 'acronym' => $acronym,
                 'description' => $row['description'] ?? null,
                 'platform' => $row['platform_agenda'] ?? ($row['platform'] ?? null),
                 'logo' => $row['logo_image'] ?? ($row['logo'] ?? null),
                 'organization' => $organizationName,
+                'organization_id' => $orgId,
                 'is_duplicate' => $isDuplicate,
                 'status' => $isDuplicate ? 'Duplicate' : 'Clear'
             ];
@@ -497,7 +517,8 @@ class PartylistController extends Controller
         return response()->json([
             'success' => true,
             'data' => $data,
-            'importPath' => $storedPath
+            'importPath' => $storedPath,
+            'organizations' => Organization::all(['id', 'name'])
         ]);
     }
 
@@ -505,20 +526,32 @@ class PartylistController extends Controller
     {
         $request->validate([
             'import_path' => 'required|string',
-            'election_id' => 'nullable|exists:elections,id'
+            'election_id' => 'nullable|exists:elections,id',
+            'overrides' => 'nullable|array'
         ]);
 
         $path = $request->input('import_path');
         $electionId = $request->input('election_id');
+        $overrides = $request->input('overrides', []);
 
         if (!Storage::disk('local')->exists($path)) {
             return response()->json(['success' => false, 'message' => 'Import file not found.'], 422);
         }
 
         $fullPath = Storage::disk('local')->path($path);
+        $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        $readerType = null;
+
+        if ($extension === 'tsv') {
+            $readerType = \Maatwebsite\Excel\Excel::TSV;
+        } elseif ($extension === 'csv') {
+            $readerType = \Maatwebsite\Excel\Excel::CSV;
+        } elseif ($extension === 'xml') {
+            $readerType = \Maatwebsite\Excel\Excel::XML;
+        }
 
         try {
-            $sheets = Excel::toCollection(new PartylistImport(), $fullPath);
+            $sheets = Excel::toCollection(new PartylistImport(), $fullPath, null, $readerType);
             $rows = $sheets->first() ?? collect();
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Error reading stored file.'], 422);
@@ -529,7 +562,7 @@ class PartylistController extends Controller
 
         DB::beginTransaction();
         try {
-            foreach ($rows as $row) {
+            foreach ($rows as $index => $row) {
                 $name = $row['party_name'] ?? ($row['name'] ?? null);
                 if (!$name) {
                     $skipped++;
@@ -542,21 +575,20 @@ class PartylistController extends Controller
                     continue;
                 }
 
-                $orgName = $row['organization'] ?? null;
-                $orgId = null;
-                if ($orgName) {
-                    $org = Organization::where('name', 'LIKE', trim($orgName))->first();
-                    if ($org) {
-                        $orgId = $org->id;
+                $orgId = $overrides[$index]['organization_id'] ?? null;
+
+                if (!$orgId) {
+                    $orgName = $row['organization'] ?? null;
+                    if ($orgName) {
+                        $org = Organization::where('name', 'LIKE', trim($orgName))->first();
+                        if ($org) {
+                            $orgId = $org->id;
+                        }
                     }
                 }
 
                 // Default org if none found and user has one?
-                // For now, if no org found, we might need a default or error.
-                // Let's assume organization must exist or it's nullable in DB?
-                // Partylist model says organization_id is required in store() validation.
                 if (!$orgId) {
-                    // Try to find any organization created by this user
                     $defaultOrg = Organization::where('created_by', auth()->id())->first();
                     $orgId = $defaultOrg ? $defaultOrg->id : null;
                 }

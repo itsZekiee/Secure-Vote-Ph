@@ -633,9 +633,19 @@ class CandidateController extends Controller
         ]);
 
         $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $readerType = null;
+
+        if ($extension === 'tsv') {
+            $readerType = \Maatwebsite\Excel\Excel::TSV;
+        } elseif ($extension === 'csv') {
+            $readerType = \Maatwebsite\Excel\Excel::CSV;
+        } elseif ($extension === 'xml') {
+            $readerType = \Maatwebsite\Excel\Excel::XML;
+        }
 
         try {
-            $sheets = Excel::toCollection(new CandidateImport(), $file);
+            $sheets = Excel::toCollection(new CandidateImport(), $file, null, $readerType);
             $rows = $sheets->first() ?? collect();
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Error reading file: ' . $e->getMessage()], 422);
@@ -645,23 +655,40 @@ class CandidateController extends Controller
             return response()->json(['success' => false, 'message' => 'The uploaded file is empty or has no data.'], 422);
         }
 
-        $data = $rows->map(function ($row) {
+        $data = $rows->map(function ($row, $index) {
             $fullName = $row['full_name'] ?? ($row['name'] ?? null);
             $email = $row['email'] ?? null;
+            $orgName = $row['organization'] ?? null;
+            $partylistName = $row['political_affiliation'] ?? ($row['partylist'] ?? null);
 
             if (!$fullName && !$email) return null;
 
             // Check for duplication in existing data
             $isDuplicate = false;
             if ($email) {
-                $isDuplicate = User::where('email', $email)->whereHas('candidate')->exists();
+                $isDuplicate = User::where('email', $email)->whereHas('candidacies')->exists();
+            }
+
+            $orgId = null;
+            if ($orgName) {
+                $org = Organization::where('name', 'LIKE', trim($orgName))->first();
+                if ($org) $orgId = $org->id;
+            }
+
+            $partylistId = null;
+            if ($partylistName) {
+                $pl = Partylist::where('name', 'LIKE', trim($partylistName))->first();
+                if ($pl) $partylistId = $pl->id;
             }
 
             return [
+                'index' => $index,
                 'full_name' => $fullName,
                 'email' => $email,
-                'organization' => $row['organization'] ?? null,
-                'political_affiliation' => $row['political_affiliation'] ?? null,
+                'organization' => $orgName,
+                'organization_id' => $orgId,
+                'political_affiliation' => $partylistName,
+                'partylist_id' => $partylistId,
                 'designated_position' => $row['designated_position'] ?? null,
                 'platform_statement' => $row['platform_statement'] ?? ($row['platform'] ?? null),
                 'profile_photo' => $row['profile_photo'] ?? ($row['photo'] ?? null),
@@ -675,7 +702,9 @@ class CandidateController extends Controller
         return response()->json([
             'success' => true,
             'data' => $data,
-            'importPath' => $storedPath
+            'importPath' => $storedPath,
+            'organizations' => Organization::all(['id', 'name']),
+            'partylists' => Partylist::all(['id', 'name', 'organization_id'])
         ]);
     }
 
@@ -683,20 +712,32 @@ class CandidateController extends Controller
     {
         $request->validate([
             'import_path' => 'required|string',
-            'election_id' => 'nullable|exists:elections,id'
+            'election_id' => 'nullable|exists:elections,id',
+            'overrides' => 'nullable|array'
         ]);
 
         $path = $request->input('import_path');
         $electionId = $request->input('election_id');
+        $overrides = $request->input('overrides', []);
 
         if (!Storage::disk('local')->exists($path)) {
             return response()->json(['success' => false, 'message' => 'Import file not found.'], 422);
         }
 
         $fullPath = Storage::disk('local')->path($path);
+        $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        $readerType = null;
+
+        if ($extension === 'tsv') {
+            $readerType = \Maatwebsite\Excel\Excel::TSV;
+        } elseif ($extension === 'csv') {
+            $readerType = \Maatwebsite\Excel\Excel::CSV;
+        } elseif ($extension === 'xml') {
+            $readerType = \Maatwebsite\Excel\Excel::XML;
+        }
 
         try {
-            $sheets = Excel::toCollection(new CandidateImport(), $fullPath);
+            $sheets = Excel::toCollection(new CandidateImport(), $fullPath, null, $readerType);
             $rows = $sheets->first() ?? collect();
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Error reading stored file.'], 422);
@@ -707,7 +748,7 @@ class CandidateController extends Controller
 
         DB::beginTransaction();
         try {
-            foreach ($rows as $row) {
+            foreach ($rows as $index => $row) {
                 $fullName = $row['full_name'] ?? ($row['name'] ?? null);
                 $email = $row['email'] ?? null;
 
@@ -721,6 +762,24 @@ class CandidateController extends Controller
                 if ($existingUser && Candidate::where('user_id', $existingUser->id)->exists()) {
                     $skipped++;
                     continue;
+                }
+
+                $orgId = $overrides[$index]['organization_id'] ?? null;
+                if (!$orgId) {
+                    $orgName = $row['organization'] ?? null;
+                    if ($orgName) {
+                        $org = Organization::where('name', 'LIKE', trim($orgName))->first();
+                        if ($org) $orgId = $org->id;
+                    }
+                }
+
+                $partylistId = $overrides[$index]['partylist_id'] ?? null;
+                if (!$partylistId) {
+                    $partylistName = $row['political_affiliation'] ?? ($row['partylist'] ?? null);
+                    if ($partylistName) {
+                        $pl = Partylist::where('name', 'LIKE', trim($partylistName))->first();
+                        if ($pl) $partylistId = $pl->id;
+                    }
                 }
 
                 if (!$existingUser) {
@@ -750,20 +809,6 @@ class CandidateController extends Controller
                     }
                 }
 
-                $orgName = $row['organization'] ?? null;
-                $orgId = null;
-                if ($orgName) {
-                    $org = Organization::where('name', 'LIKE', trim($orgName))->first();
-                    $orgId = $org ? $org->id : null;
-                }
-
-                $partyName = $row['political_affiliation'] ?? null;
-                $partyId = null;
-                if ($partyName) {
-                    $party = Partylist::where('name', 'LIKE', trim($partyName))->first();
-                    $partyId = $party ? $party->id : null;
-                }
-
                 $posTitle = $row['designated_position'] ?? null;
                 $posId = null;
                 if ($posTitle) {
@@ -786,7 +831,7 @@ class CandidateController extends Controller
                     'user_id' => $existingUser->id,
                     'election_id' => $electionId,
                     'organization_id' => $orgId,
-                    'partylist_id' => $partyId,
+                    'partylist_id' => $partylistId,
                     'position_id' => $posId,
                     'first_name' => $firstName,
                     'last_name' => $lastName,

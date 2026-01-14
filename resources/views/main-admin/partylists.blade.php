@@ -24,6 +24,7 @@
         importing: false,
         importFile: null,
         importPreviewData: [],
+        availableOrganizations: [],
         importPath: '',
         selectedImportElection: '',
 
@@ -48,6 +49,7 @@
             .then(data => {
                 if (data.success) {
                     this.importPreviewData = data.data;
+                    this.availableOrganizations = data.organizations;
                     this.importPath = data.importPath;
                 } else {
                     alert(data.message || 'Error processing file');
@@ -60,6 +62,14 @@
         processImport() {
             if (!this.importPath) return;
 
+            // Prepare overrides
+            const overrides = {};
+            this.importPreviewData.forEach(row => {
+                overrides[row.index] = {
+                    organization_id: row.organization_id
+                };
+            });
+
             this.importing = true;
             fetch('{{ route('admin.partylists.import.store') }}', {
                 method: 'POST',
@@ -69,7 +79,8 @@
                 },
                 body: JSON.stringify({
                     import_path: this.importPath,
-                    election_id: this.selectedImportElection
+                    election_id: this.selectedImportElection,
+                    overrides: overrides
                 })
             })
             .then(res => res.json())
@@ -508,6 +519,22 @@
                                             Data Preview
                                             <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full" x-text="importPreviewData.length + ' rows found'"></span>
                                         </h4>
+
+                                        <template x-if="importPreviewData.some(row => !row.organization_id)">
+                                            <div class="bg-amber-50 border-l-4 border-amber-400 p-3 mb-4">
+                                                <div class="flex">
+                                                    <div class="flex-shrink-0">
+                                                        <i class="ri-alert-line text-amber-400"></i>
+                                                    </div>
+                                                    <div class="ml-3">
+                                                        <p class="text-[10px] text-amber-700 font-medium">
+                                                            Some party lists are missing organization assignment. Please select an organization for them below.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+
                                         <div class="max-h-[300px] overflow-y-auto border border-gray-200 rounded-xl">
                                             <table class="min-w-full divide-y divide-gray-200 text-xs">
                                                 <thead class="bg-gray-50 sticky top-0">
@@ -523,7 +550,16 @@
                                                         <tr>
                                                             <td class="px-4 py-2" x-text="row.name"></td>
                                                             <td class="px-4 py-2" x-text="row.acronym"></td>
-                                                            <td class="px-4 py-2" x-text="row.organization"></td>
+                                                            <td class="px-4 py-2">
+                                                                <select x-model="row.organization_id"
+                                                                        class="w-full text-[10px] border border-gray-300 rounded-md py-1 px-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                                        :class="!row.organization_id ? 'border-amber-500 bg-amber-50' : ''">
+                                                                    <option value="">Select Organization</option>
+                                                                    <template x-for="org in availableOrganizations" :key="org.id">
+                                                                        <option :value="org.id" x-text="org.name" :selected="row.organization_id == org.id"></option>
+                                                                    </template>
+                                                                </select>
+                                                            </td>
                                                             <td class="px-4 py-2">
                                                                 <span :class="row.is_duplicate ? 'text-red-600 font-bold' : 'text-green-600 font-bold'"
                                                                       x-text="row.status"></span>
