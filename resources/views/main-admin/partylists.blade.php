@@ -27,6 +27,16 @@
         availableOrganizations: [],
         importPath: '',
         selectedImportElection: '',
+        globalOrganizationId: '',
+
+        applyToAll() {
+            if (this.importPreviewData.length === 0) return;
+            this.importPreviewData.forEach(row => {
+                if (this.globalOrganizationId) {
+                    row.organization_id = this.globalOrganizationId;
+                }
+            });
+        },
 
         handleFileSelect(e) {
             this.importFile = e.target.files[0];
@@ -501,6 +511,27 @@
                                         </select>
                                     </div>
 
+                                    <!-- Global Fallbacks -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                        <div>
+                                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Global Organization</label>
+                                            <select x-model="globalOrganizationId"
+                                                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
+                                                <option value="">Select Organization</option>
+                                                <template x-for="org in availableOrganizations" :key="org.id">
+                                                    <option :value="org.id" x-text="org.name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <button @click="applyToAll" type="button"
+                                                    class="w-full px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center h-[38px]">
+                                                <i class="ri-check-double-line mr-2"></i>
+                                                APPLY TO ALL
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <!-- File Upload -->
                                     <div class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-indigo-400 transition-colors bg-slate-50/50">
                                         <input type="file" @change="handleFileSelect" class="hidden" id="csvFileUpload" accept=".csv,.xml,.xlsx,.xls,.tsv">
@@ -548,7 +579,12 @@
                                                 <tbody class="bg-white divide-y divide-gray-100">
                                                     <template x-for="(row, index) in importPreviewData" :key="index">
                                                         <tr>
-                                                            <td class="px-4 py-2" x-text="row.name"></td>
+                                                            <td class="px-4 py-2">
+                                                                <div x-text="row.name"></div>
+                                                                <template x-for="alert in (row.alerts || [])">
+                                                                    <div class="text-[9px] text-red-500 font-bold mt-1" x-text="alert"></div>
+                                                                </template>
+                                                            </td>
                                                             <td class="px-4 py-2" x-text="row.acronym"></td>
                                                             <td class="px-4 py-2">
                                                                 <select x-model="row.organization_id"

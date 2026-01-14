@@ -31,6 +31,20 @@
         availablePartylists: [],
         importPath: '',
         selectedImportElection: '',
+        globalOrganizationId: '',
+        globalPartylistId: '',
+
+        applyToAll() {
+            if (this.importPreviewData.length === 0) return;
+            this.importPreviewData.forEach(row => {
+                if (this.globalOrganizationId) {
+                    row.organization_id = this.globalOrganizationId;
+                }
+                if (this.globalPartylistId) {
+                    row.partylist_id = this.globalPartylistId;
+                }
+            });
+        },
 
         handleFileSelect(e) {
             this.importFile = e.target.files[0];
@@ -461,15 +475,48 @@
 
                                 <div class="space-y-4">
                                     <!-- Election Selection -->
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-700 mb-1">Assign to Election (Optional)</label>
-                                        <select x-model="selectedImportElection"
-                                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
-                                            <option value="">None</option>
-                                            <template x-for="election in elections" :key="election.id">
-                                                <option :value="election.id" x-text="election.name || election.title"></option>
-                                            </template>
-                                        </select>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-700 mb-1">Assign to Election (Optional)</label>
+                                            <select x-model="selectedImportElection"
+                                                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
+                                                <option value="">None</option>
+                                                <template x-for="election in elections" :key="election.id">
+                                                    <option :value="election.id" x-text="election.name || election.title"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                        <div class="flex items-end">
+                                            <button @click="applyToAll" type="button"
+                                                    class="w-full px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center">
+                                                <i class="ri-check-double-line mr-2"></i>
+                                                APPLY TO ALL
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Global Fallbacks -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                        <div>
+                                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Global Organization</label>
+                                            <select x-model="globalOrganizationId"
+                                                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
+                                                <option value="">Select Organization</option>
+                                                <template x-for="org in availableOrganizations" :key="org.id">
+                                                    <option :value="org.id" x-text="org.name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Global Partylist</label>
+                                            <select x-model="globalPartylistId"
+                                                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
+                                                <option value="">Select Partylist</option>
+                                                <template x-for="pl in availablePartylists.filter(p => !globalOrganizationId || p.organization_id == globalOrganizationId)" :key="pl.id">
+                                                    <option :value="pl.id" x-text="pl.name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <!-- File Upload -->
@@ -522,6 +569,9 @@
                                                             <td class="px-4 py-2">
                                                                 <div class="font-medium text-gray-900" x-text="row.full_name"></div>
                                                                 <div class="text-[10px] text-gray-500" x-text="row.email"></div>
+                                                                <template x-for="alert in (row.alerts || [])">
+                                                                    <div class="text-[9px] text-red-500 font-bold mt-1" x-text="alert"></div>
+                                                                </template>
                                                             </td>
                                                             <td class="px-4 py-2">
                                                                 <select x-model="row.organization_id"
