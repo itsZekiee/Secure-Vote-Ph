@@ -658,15 +658,24 @@ class CandidateController extends Controller
             }
 
             $orgId = null;
+            $alerts = [];
             if ($orgName) {
                 $org = Organization::where('name', 'LIKE', trim($orgName))->first();
-                if ($org) $orgId = $org->id;
+                if ($org) {
+                    $orgId = $org->id;
+                } else {
+                    $alerts[] = "Organization '$orgName' not found";
+                }
             }
 
             $partylistId = null;
             if ($partylistName) {
                 $pl = Partylist::where('name', 'LIKE', trim($partylistName))->first();
-                if ($pl) $partylistId = $pl->id;
+                if ($pl) {
+                    $partylistId = $pl->id;
+                } else {
+                    $alerts[] = "Partylist '$partylistName' not found";
+                }
             }
 
             return [
@@ -681,7 +690,8 @@ class CandidateController extends Controller
                 'platform_statement' => $row['platform_statement'] ?? ($row['platform'] ?? null),
                 'profile_photo' => $row['profile_photo'] ?? ($row['photo'] ?? null),
                 'is_duplicate' => $isDuplicate,
-                'status' => $isDuplicate ? 'Duplicate' : 'Clear'
+                'status' => $isDuplicate ? 'Duplicate' : 'Clear',
+                'alerts' => $alerts
             ];
         })->filter()->values();
 
@@ -768,6 +778,11 @@ class CandidateController extends Controller
                         $pl = Partylist::where('name', 'LIKE', trim($partylistName))->first();
                         if ($pl) $partylistId = $pl->id;
                     }
+                }
+
+                if (!$orgId) {
+                    $skipped++;
+                    continue;
                 }
 
                 if (!$existingUser) {

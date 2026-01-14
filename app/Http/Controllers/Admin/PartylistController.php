@@ -491,10 +491,13 @@ class PartylistController extends Controller
             $isDuplicate = Partylist::where('name', $name)->exists();
 
             $orgId = null;
+            $alerts = [];
             if ($organizationName) {
                 $org = Organization::where('name', 'LIKE', trim($organizationName))->first();
                 if ($org) {
                     $orgId = $org->id;
+                } else {
+                    $alerts[] = "Organization '$organizationName' not found";
                 }
             }
 
@@ -508,7 +511,8 @@ class PartylistController extends Controller
                 'organization' => $organizationName,
                 'organization_id' => $orgId,
                 'is_duplicate' => $isDuplicate,
-                'status' => $isDuplicate ? 'Duplicate' : 'Clear'
+                'status' => $isDuplicate ? 'Duplicate' : 'Clear',
+                'alerts' => $alerts
             ];
         })->filter()->values();
 
@@ -587,10 +591,9 @@ class PartylistController extends Controller
                     }
                 }
 
-                // Default org if none found and user has one?
                 if (!$orgId) {
-                    $defaultOrg = Organization::where('created_by', auth()->id())->first();
-                    $orgId = $defaultOrg ? $defaultOrg->id : null;
+                    $skipped++;
+                    continue;
                 }
 
                 Partylist::create([
