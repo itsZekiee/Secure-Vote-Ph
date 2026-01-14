@@ -39,7 +39,7 @@ class ElectionController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $organizations = Organization::where('created_by', auth()->id())->get();
+        $organizations = Organization::all();
         $positions = collect();
 
         return view($this->getView('elections'), compact('elections', 'organizations', 'positions'));
@@ -47,7 +47,7 @@ class ElectionController extends Controller
 
     public function create()
     {
-        $organizations = Organization::where('created_by', auth()->id())->get();
+        $organizations = Organization::all();
         $positions = collect();
 
         return view($this->getView('elections'), compact('organizations', 'positions'));
@@ -59,7 +59,7 @@ class ElectionController extends Controller
         if (!$this->canUserManageElection($election)) {
             abort(403);
         }
-        $organizations = Organization::where('created_by', auth()->id())->get();
+        $organizations = Organization::all();
         return view($this->getView('elections.edit'), compact('election', 'organizations'));
     }
 

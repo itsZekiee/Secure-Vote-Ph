@@ -24,6 +24,7 @@
         importing: false,
         importFile: null,
         importPreviewData: [],
+        availableOrganizations: [],
         importPath: '',
         selectedImportElection: '',
 
@@ -48,6 +49,7 @@
             .then(data => {
                 if (data.success) {
                     this.importPreviewData = data.data;
+                    this.availableOrganizations = data.organizations;
                     this.importPath = data.importPath;
                 } else {
                     alert(data.message || 'Error processing file');
@@ -60,6 +62,14 @@
         processImport() {
             if (!this.importPath) return;
 
+            // Prepare overrides
+            const overrides = {};
+            this.importPreviewData.forEach(row => {
+                overrides[row.index] = {
+                    organization_id: row.organization_id
+                };
+            });
+
             this.importing = true;
             fetch('{{ route('admin.partylists.import.store') }}', {
                 method: 'POST',
@@ -69,7 +79,8 @@
                 },
                 body: JSON.stringify({
                     import_path: this.importPath,
-                    election_id: this.selectedImportElection
+                    election_id: this.selectedImportElection,
+                    overrides: overrides
                 })
             })
             .then(res => res.json())
