@@ -60,6 +60,10 @@ Route::get('/voter/otp', [VoterOtpController::class, 'show'])
 Route::post('/voter/otp', [VoterOtpController::class, 'verify'])
     ->name('voter.otp.verify');
 
+Route::post('/otp/resend', [OtpController::class, 'resend'])
+    ->name('otp.resend');
+
+
 
 Route::get('/magic-link/callback', [MagicLinkController::class, 'handleMagicLink'])->name('magiclink.callback');
 

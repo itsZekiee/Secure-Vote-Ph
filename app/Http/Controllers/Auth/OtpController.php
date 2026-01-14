@@ -22,7 +22,38 @@ use App\Services\AuditLogger;
             ]);
         }
 
-        public function verify(Request $request)
+    public function resend(Request $request)
+    {
+        $email = session('otp_email');
+
+        if (!$email) {
+            return redirect()->route('home')->withErrors([
+                'token' => 'Session expired. Please login again.',
+            ]);
+        }
+
+        $response = Http::withHeaders([
+            'apikey' => config('services.supabase.anon_key'),
+            'Content-Type' => 'application/json',
+        ])->post(
+                config('services.supabase.url') . '/auth/v1/otp',
+                [
+                    'email' => $email,
+                    'type' => 'email',
+                ]
+            );
+
+        if (!$response->successful()) {
+            return back()->withErrors([
+                'token' => 'Failed to resend verification code. Please try again.',
+            ]);
+        }
+
+        return back()->with('success', 'A new verification code has been sent.');
+    }
+
+
+    public function verify(Request $request)
         {
             $request->validate([
                 'token' => 'required',
@@ -96,7 +127,10 @@ use App\Services\AuditLogger;
                 'otp_user_id',
                 'local_otp',
                 'remember_me',
+                'otp_last_sent',
             ]);
+
+            
 
             $request->session()->regenerate();
 

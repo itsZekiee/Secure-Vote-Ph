@@ -80,10 +80,14 @@
                     <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest mb-4">Didn't receive the
                         code?</p>
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <button type="button"
-                            class="text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:text-indigo-700 transition-colors">
-                            Resend Code
-                        </button>
+                        <form method="POST" action="{{ route('otp.resend') }}">
+    @csrf
+    <button type="submit"
+        class="text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:text-indigo-700 transition-colors">
+        Resend Code
+    </button>
+</form>
+
                         <span class="hidden sm:block w-1.5 h-1.5 rounded-full bg-slate-200"></span>
                         <a href="{{ $back_route ?? route('home') }}"
                             class="text-slate-500 font-black text-[10px] uppercase tracking-widest hover:text-slate-700 transition-colors">
