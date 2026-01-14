@@ -97,20 +97,10 @@ class CandidateController extends Controller
                   });
             })->select('id', 'title')->get();
 
-        $organizations = Organization::where(function($q) {
-                $q->where('created_by', auth()->id());
-            })->select('id', 'name')->get();
+        $organizations = Organization::all();
 
         // Partylists that belong to allowed elections or created by user
-        $partylists = Partylist::where(function($q) {
-                $q->where('created_by', auth()->id())
-                  ->orWhereHas('election', function($qe) {
-                      $qe->where('created_by', auth()->id())
-                         ->orWhereHas('subAdmins', function($qs) {
-                             $qs->where('user_id', auth()->id());
-                         });
-                  });
-            })->select('id', 'name', 'organization_id')->get();
+        $partylists = Partylist::all();
 
         $commonPositions = [
             'President',
@@ -395,9 +385,7 @@ class CandidateController extends Controller
             ? Election::whereIn('status', ['active', 'draft'])->get()
             : Election::all();
 
-        $partylists = (Schema::hasColumn('partylists', 'status'))
-            ? Partylist::where('status', 'active')->get()
-            : Partylist::all();
+        $partylists = Partylist::all();
 
         // Added organizations because edit.blade.php requires it
         $organizations = Organization::all();
