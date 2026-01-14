@@ -72,7 +72,7 @@ class VoterRegistrationController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:voters,email,NULL,id,election_id,' . (string)$election->id,
             'phone' => 'required|string|max:20',
-            'student_id' => 'nullable|string|max:50',
+            'student_id' => 'required|string|max:50',
             'password' => 'required|string|min:6|confirmed',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
@@ -232,17 +232,22 @@ class VoterRegistrationController extends Controller
         ]]);
 
         // 🔐 Send OTP (Email)
-        Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
-            'apikey' => config('services.supabase.service_key'),
-            'Content-Type' => 'application/json',
-        ])->post(
-                config('services.supabase.url') . '/auth/v1/otp',
-                [
-                    'email' => $voter->email,
-                    'type' => 'email',
-                ]
-            );
+        try {
+            Http::timeout(10)->withHeaders([
+                'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
+                'apikey' => config('services.supabase.service_key'),
+                'Content-Type' => 'application/json',
+            ])->post(
+                    config('services.supabase.url') . '/auth/v1/otp',
+                    [
+                        'email' => $voter->email,
+                        'type' => 'email',
+                    ]
+                );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Supabase Voter OTP connection error: ' . $e->getMessage());
+            return back()->withErrors(['login' => 'Failed to connect to the authentication service. Please check your internet connection and try again.'])->withInput();
+        }
 
         // 🔑 Keep current session data for voter
         session([
@@ -259,7 +264,7 @@ class VoterRegistrationController extends Controller
             'remember_me' => $request->has('remember'),
         ]);
 
-        
+
         // Redirect to OTP form instead of welcome
         return redirect()->route('voter.otp.form')
             ->with('success', 'A verification code has been sent to your email.');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Election;
 use App\Models\Organization;
 use App\Models\Partylist;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,14 @@ class ElectionController extends Controller
             $election->subAdmins()->where('user_id', auth()->id())->exists();
     }
 
+    private function getView($name)
+    {
+        if (auth()->check() && auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            return "admin.$name";
+        }
+        return "main-admin.$name";
+    }
+
     public function index()
     {
         $elections = Election::where('created_by', auth()->id())
@@ -30,18 +39,18 @@ class ElectionController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $organizations = Organization::where('created_by', auth()->id())->get();
+        $organizations = Organization::all();
         $positions = collect();
 
-        return view('main-admin.elections', compact('elections', 'organizations', 'positions'));
+        return view($this->getView('elections'), compact('elections', 'organizations', 'positions'));
     }
 
     public function create()
     {
-        $organizations = Organization::where('created_by', auth()->id())->get();
+        $organizations = Organization::all();
         $positions = collect();
 
-        return view('main-admin.elections', compact('organizations', 'positions'));
+        return view($this->getView('elections'), compact('organizations', 'positions'));
     }
 
     public function edit(string $id)
@@ -50,8 +59,8 @@ class ElectionController extends Controller
         if (!$this->canUserManageElection($election)) {
             abort(403);
         }
-        $organizations = Organization::where('created_by', auth()->id())->get();
-        return view('main-admin.elections.edit', compact('election', 'organizations'));
+        $organizations = Organization::all();
+        return view($this->getView('elections.edit'), compact('election', 'organizations'));
     }
 
     public function store(Request $request)
@@ -202,7 +211,7 @@ class ElectionController extends Controller
 
         $positions = $election->positions;
 
-        return view('main-admin.elections.show', compact('election', 'voter', 'positions'));
+        return view($this->getView('elections.show'), compact('election', 'voter', 'positions'));
     }
 
     public function update(Request $request, string $id)
@@ -399,19 +408,59 @@ class ElectionController extends Controller
     {
         $election = Election::findOrFail($id);
         if ($election->created_by !== auth()->id()) {
-            return response()->json(['error' => 'Only the creator can assign sub-admins'], 403);
+            return response()->json(['error' => 'Only the creator can share access'], 403);
         }
 
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id'
+            'email' => 'required|email|exists:users,email'
         ]);
 
         try {
-            $election->subAdmins()->attach($validated['user_id']);
-            return response()->json(['success' => true, 'message' => 'Sub-admin assigned successfully']);
+            $user = \App\Models\User::where('email', $validated['email'])->first();
+
+            if (!$user->isAdmin() && !$user->hasRole('admin') && !$user->hasRole('super-admin')) {
+                return response()->json(['error' => 'Only administrators can be given access'], 422);
+            }
+
+            if ($election->subAdmins()->where('user_id', $user->id)->exists()) {
+                return response()->json(['error' => 'This user already has access'], 422);
+            }
+
+            if ($user->id === auth()->id()) {
+                return response()->json(['error' => 'You already have access as the creator'], 422);
+            }
+
+            $election->subAdmins()->attach($user->id);
+
+            AuditLogger::log(
+                'SHARE_ACCESS',
+                'Elections',
+                "Shared access for election: {$election->title} with user: {$user->email}"
+            );
+
+            return response()->json(['success' => true, 'message' => 'Access shared successfully with ' . $user->name]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to assign sub-admin'], 422);
+            return response()->json(['error' => 'Failed to share access'], 422);
         }
+    }
+
+    public function searchAdmins(Request $request)
+    {
+        $query = $request->get('q', '');
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $admins = \App\Models\User::where('email', 'like', "%{$query}%")
+            ->where(function($q) {
+                $q->where('role', 'admin')
+                  ->orWhere('role', 'super-admin');
+            })
+            ->where('id', '!=', auth()->id())
+            ->limit(10)
+            ->get(['id', 'name', 'email']);
+
+        return response()->json($admins);
     }
 
     public function removeSubAdmin(Request $request, string $id)

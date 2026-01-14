@@ -28,9 +28,17 @@ class User extends Authenticatable
         'phone',
         'position',
         'department',
+        'student_id',
+        'timezone',
+        'language',
+        'date_format',
+        'last_login_at',
+        'last_login_ip',
         'failed_login_attempts',
         'locked_until',
         'is_permanently_blocked',
+        'recovery_codes',
+        'security_preferences',
     ];
 
     protected $hidden = [
@@ -44,12 +52,16 @@ class User extends Authenticatable
         'is_active' => 'boolean',
         'locked_until' => 'datetime',
         'is_permanently_blocked' => 'boolean',
+        'recovery_codes' => 'array',
+        'security_preferences' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'deleted_at' => 'datetime'
+        'deleted_at' => 'datetime',
+        'last_login_at' => 'datetime',
     ];
 
     // User role constants
+    const ROLE_SUPER_ADMIN = 'super-admin';
     const ROLE_ADMIN = 'admin';
     const ROLE_ELECTION_OFFICER = 'election_officer';
     const ROLE_VOTER = 'voter';
@@ -156,7 +168,7 @@ class User extends Authenticatable
      */
     public function isAdmin()
     {
-        return $this->hasRole(self::ROLE_ADMIN);
+        return $this->role === self::ROLE_ADMIN || $this->role === self::ROLE_SUPER_ADMIN;
     }
 
     /**

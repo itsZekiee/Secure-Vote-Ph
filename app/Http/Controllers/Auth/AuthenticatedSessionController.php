@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
 use App\Http\Controllers\Auth\OtpController;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OtpMail;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -26,11 +28,27 @@ class AuthenticatedSessionController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        
-
         if (!$user) {
             throw ValidationException::withMessages([
                 'email' => __('The provided credentials do not match our records.'),
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Check for existing session (One Session Per User Policy)
+        |--------------------------------------------------------------------------
+        */
+        $hasExistingSession = \DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->where('id', '!=', session()->getId())
+            // Only consider sessions that haven't expired (default lifetime is 120 mins)
+            ->where('last_activity', '>=', now()->subMinutes(config('session.lifetime', 120))->getTimestamp())
+            ->exists();
+
+        if ($hasExistingSession) {
+            throw ValidationException::withMessages([
+                'email' => 'You are already logged in on another device. Please log out there first (Strict One-Device Policy).',
             ]);
         }
 
@@ -62,6 +80,16 @@ class AuthenticatedSessionController extends Controller
         */
 
         if (!Auth::validate($request->only('email', 'password'))) {
+            // Record failed login attempt
+            \Illuminate\Support\Facades\DB::table('failed_logins')->insert([
+                'user_id' => $user->id,
+                'email' => $request->email,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'reason' => 'Invalid credentials',
+                'created_at' => now(),
+            ]);
+
             $user->increment('failed_login_attempts');
             $attempts = $user->failed_login_attempts;
 
@@ -89,33 +117,101 @@ class AuthenticatedSessionController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
-            'apikey' => config('services.supabase.service_key'),
-            'Content-Type' => 'application/json',
-        ])->post(
-                config('services.supabase.url') . '/auth/v1/otp',
-                [
-                    'email' => $user->email,
-                    'type' => 'email',
-                ]
-            );
+        try {
+            // Generate a local OTP as a fallback or for Mail delivery
+            $localOtp = str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Store OTP Session Data
-        |--------------------------------------------------------------------------
-        */
+            $response = Http::timeout(10)->withHeaders([
+                'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
+                'apikey' => config('services.supabase.service_key'),
+                'Content-Type' => 'application/json',
+            ])->post(
+                    config('services.supabase.url') . '/auth/v1/otp',
+                    [
+                        'email' => $user->email,
+                        'type' => 'email',
+                    ]
+                );
 
-        session([
-            'otp_email' => $user->email,
-            'otp_user_id' => $user->id,
-            'remember_me' => $request->boolean('remember'),
-        ]);
+            if ($response->successful()) {
+                session([
+                    'otp_email' => $user->email,
+                    'otp_user_id' => $user->id,
+                    'remember_me' => $request->boolean('remember'),
+                ]);
 
-        return redirect()
-            ->route('otp.form')
-            ->with('success', 'A verification code has been sent to your email.');
+                return redirect()
+                    ->route('otp.form')
+                    ->with('success', 'A verification code has been sent to your email.');
+            } else {
+                \Illuminate\Support\Facades\Log::error('Supabase OTP Error: ' . $response->body());
+
+                // Fallback to Laravel Mail if Supabase fails
+                try {
+                    Mail::to($user->email)->send(new OtpMail($localOtp));
+
+                    session([
+                        'otp_email' => $user->email,
+                        'otp_user_id' => $user->id,
+                        'local_otp' => $localOtp,
+                        'remember_me' => $request->boolean('remember'),
+                    ]);
+
+                    return redirect()
+                        ->route('otp.form')
+                        ->with('success', 'Verification code sent via email (Supabase unavailable).');
+                } catch (\Exception $mailEx) {
+                    \Illuminate\Support\Facades\Log::error('Mail Fallback Failed: ' . $mailEx->getMessage());
+                }
+
+                // For super-admin, we might want a bypass or a very clear error
+                $superAdmins = ['habee2004@gmail.com', 'whysofunny2003@gmail.com', 'adminTester01@gmail.com'];
+                if (in_array($user->email, $superAdmins)) {
+                    // Log more details for debugging
+                    \Illuminate\Support\Facades\Log::emergency('CRITICAL: SuperAdmin OTP failed. Body: ' . $response->body());
+
+                    // Ensure session data is set before redirecting for super admin bypass
+                    session([
+                        'otp_email' => $user->email,
+                        'otp_user_id' => $user->id,
+                        'remember_me' => $request->boolean('remember'),
+                    ]);
+
+                    return redirect()
+                        ->route('otp.form')
+                        ->with('success', 'OTP service is temporarily unavailable. Use your backup security code.');
+                }
+
+                throw ValidationException::withMessages([
+                    'email' => 'Failed to send verification code. Please try again later.',
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Supabase OTP connection error: ' . $e->getMessage());
+
+            // Fallback to Laravel Mail if Supabase connection fails
+            try {
+                Mail::to($user->email)->send(new OtpMail($localOtp));
+
+                session([
+                    'otp_email' => $user->email,
+                    'otp_user_id' => $user->id,
+                    'local_otp' => $localOtp,
+                    'remember_me' => $request->boolean('remember'),
+                ]);
+
+                return redirect()
+                    ->route('otp.form')
+                    ->with('success', 'Verification code sent via email (Auth service connection error).');
+            } catch (\Exception $mailEx) {
+                \Illuminate\Support\Facades\Log::error('Mail Fallback Failed (after connection error): ' . $mailEx->getMessage());
+            }
+
+            throw ValidationException::withMessages([
+                'email' => 'Failed to connect to the authentication service. Please check your internet connection and try again.',
+            ]);
+        }
+
     }
 
     public function destroy(Request $request)

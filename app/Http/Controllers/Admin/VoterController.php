@@ -88,6 +88,14 @@ class VoterController extends Controller
     /**
      * Display a listing of voters.
      */
+    private function getView($name)
+    {
+        if (auth()->check() && auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            return "admin.$name";
+        }
+        return "main-admin.$name";
+    }
+
     public function index(Request $request)
     {
         $query = \App\Models\Voter::with(['election']);
@@ -108,13 +116,13 @@ class VoterController extends Controller
         $voters = $query->latest()->paginate(15);
         $forms = \App\Models\Election::where('created_by', auth()->id())->get();
 
-        return view('main-admin.voters', compact('voters', 'forms'));
+        return view($this->getView('voters'), compact('voters', 'forms'));
     }
 
     public function create()
     {
         $forms = \App\Models\Election::where('created_by', auth()->id())->get();
-        return view('main-admin.voter.voter-create', compact('forms'));
+        return view($this->getView('voter.voter-create'), compact('forms'));
     }
 
     public function store(Request $request)
@@ -163,14 +171,14 @@ class VoterController extends Controller
     public function show(string $id)
     {
         $voter = \App\Models\Voter::with(['election'])->findOrFail($id);
-        return view('main-admin.voter.view', compact('voter'));
+        return view($this->getView('voter.view'), compact('voter'));
     }
 
     public function edit(string $id)
     {
         $voter = \App\Models\Voter::with(['election'])->findOrFail($id);
         $forms = \App\Models\Election::where('created_by', auth()->id())->get();
-        return view('main-admin.voter.edit', compact('voter', 'forms'));
+        return view($this->getView('voter.edit'), compact('voter', 'forms'));
     }
 
     public function update(Request $request, string $id)
@@ -272,7 +280,7 @@ class VoterController extends Controller
             return response()->json(['voters' => $voters]);
         }
 
-        return view('main-admin.voters', compact('voters', 'forms'));
+        return view($this->getView('voters'), compact('voters', 'forms'));
     }
 
     public function export(Request $request)
@@ -324,13 +332,23 @@ class VoterController extends Controller
     public function importPreview(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv|max:51200',
+            'file' => 'required|file|mimes:xlsx,xls,csv,xml,tsv|max:51200',
         ]);
 
         $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $readerType = null;
+
+        if ($extension === 'tsv') {
+            $readerType = \Maatwebsite\Excel\Excel::TSV;
+        } elseif ($extension === 'csv') {
+            $readerType = \Maatwebsite\Excel\Excel::CSV;
+        } elseif ($extension === 'xml') {
+            $readerType = \Maatwebsite\Excel\Excel::XML;
+        }
 
         try {
-            $sheets = Excel::toCollection(new VoterImport(), $file);
+            $sheets = Excel::toCollection(new VoterImport(), $file, null, $readerType);
             $rows = $sheets->first() ?? collect();
         } catch (\Throwable $e) {
             return back()->withErrors(['file' => 'Error reading file: ' . $e->getMessage()]);
@@ -347,26 +365,25 @@ class VoterController extends Controller
 
             if (!$email && !$name) return null;
 
-            return (object) [
+            // Check if voter already exists
+            $isDuplicate = \App\Models\Voter::where('email', $email)->exists();
+
+            return [
                 'name' => $name,
                 'email' => $email,
                 'student_id' => $studentId,
                 'phone' => $row['phone'] ?? ($row['phone_number'] ?? ($row['phone number'] ?? null)),
-                'registration_status' => 'approved',
-                'created_at' => now(),
+                'is_duplicate' => $isDuplicate,
+                'status' => $isDuplicate ? 'Duplicate' : 'Clear'
             ];
-        })->filter();
+        })->filter()->values();
 
         $storedPath = $file->store('imports');
 
-        // Fetch forms/elections for selection
-        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
-
-        // return view; the blade will handle collection vs paginator
-        return view('main-admin.voter.show', [
-            'voters' => $voters,
-            'importPath' => $storedPath,
-            'forms' => $forms
+        return response()->json([
+            'success' => true,
+            'data' => $voters,
+            'importPath' => $storedPath
         ]);
     }
 
@@ -389,16 +406,26 @@ class VoterController extends Controller
         $hashedPassword = \Illuminate\Support\Facades\Hash::make($tempPassword);
 
         if (!Storage::disk('local')->exists($path)) {
-            return back()->withErrors(['file' => 'Import file not found. Please re-upload.']);
+            return response()->json(['success' => false, 'message' => 'Import file not found.'], 422);
         }
 
         $fullPath = Storage::disk('local')->path($path);
+        $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        $readerType = null;
+
+        if ($extension === 'tsv') {
+            $readerType = \Maatwebsite\Excel\Excel::TSV;
+        } elseif ($extension === 'csv') {
+            $readerType = \Maatwebsite\Excel\Excel::CSV;
+        } elseif ($extension === 'xml') {
+            $readerType = \Maatwebsite\Excel\Excel::XML;
+        }
 
         try {
-            $sheets = Excel::toCollection(new VoterImport(), $fullPath);
+            $sheets = Excel::toCollection(new VoterImport(), $fullPath, null, $readerType);
             $rows = $sheets->first() ?? collect();
         } catch (\Throwable $e) {
-            return back()->withErrors(['file' => 'Error reading stored file: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Error reading stored file.'], 422);
         }
 
         $created = 0;
@@ -433,26 +460,44 @@ class VoterController extends Controller
                     'registration_status' => $registrationStatus,
                 ];
 
-                \App\Models\Voter::create($data);
+                $voter = \App\Models\Voter::create($data);
+
+                // If approved, create user account
+                if ($registrationStatus === 'approved') {
+                    $nameParts = explode(' ', trim($name));
+                    $lastName = count($nameParts) > 1 ? array_pop($nameParts) : '';
+                    $firstName = implode(' ', $nameParts);
+                    if (empty($firstName)) {
+                        $firstName = $lastName;
+                        $lastName = '';
+                    }
+
+                    $user = User::create([
+                        'name' => $name,
+                        'first_name' => $firstName,
+                        'last_name' => $lastName,
+                        'email' => $email,
+                        'password' => $hashedPassword,
+                        'role' => 'voter',
+                        'is_active' => true,
+                    ]);
+
+                    $voter->update(['user_id' => $user->id]);
+                    $this->assignVoterRole($user);
+                }
 
                 $created++;
             }
-
             DB::commit();
-        } catch (\Throwable $e) {
+            Storage::disk('local')->delete($path);
+        } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['general' => 'Import failed: ' . $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Error importing data: ' . $e->getMessage()], 500);
         }
 
-        // Optionally delete the stored import file to avoid clutter
-        try {
-            Storage::delete($path);
-        } catch (\Throwable $e) {
-            // ignore
-        }
-
-        return redirect()->route('admin.voters.index')
-            ->with('success', "Imported {$created} voters. Skipped {$skipped} invalid or duplicate rows.")
-            ->with('temp_password_display', $tempPassword);
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully imported $created voters. Skipped $skipped duplicates or invalid rows."
+        ]);
     }
 }

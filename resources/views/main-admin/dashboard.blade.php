@@ -7,6 +7,28 @@
                 selectedElection: null,
                 searchQuery: '',
                 statusFilter: 'all',
+                showShareModal: false,
+                shareElectionId: null,
+                shareEmail: '',
+                adminSuggestions: [],
+                sharing: false,
+                auditSearchQuery: '',
+                auditLogs: (() => {
+                    const raw = @json($auditLogs ?? []);
+                    return (raw || []).map(log => {
+                        let roleDisplay = 'System';
+                        if (log.user) {
+                            const r = log.user.role?.toLowerCase();
+                            roleDisplay = (r === 'super-admin' || r === 'admin') ? 'Admin' : 'Voter';
+                        }
+                        return {
+                            ...log,
+                            user_name: log.user ? log.user.name : 'System',
+                            user_email: log.user ? log.user.email : '',
+                            user_role: roleDisplay
+                        };
+                    });
+                })(),
                 elections: (() => {
                     const raw = @json($elections ?? []);
                     return (raw || []).map(e => ({
@@ -40,6 +62,45 @@
                 viewReports(id) {
                     window.location.href = `/admin/reports?form_id=${id}`;
                 },
+                openShareModal(id) {
+                    this.shareElectionId = id;
+                    this.shareEmail = '';
+                    this.adminSuggestions = [];
+                    this.showShareModal = true;
+                },
+                async searchAdmins() {
+                    if (this.shareEmail.length < 2) {
+                        this.adminSuggestions = [];
+                        return;
+                    }
+                    const response = await fetch(`/admin/elections/search-admins?q=${this.shareEmail}`);
+                    this.adminSuggestions = await response.json();
+                },
+                async shareAccess() {
+                    if (!this.shareEmail) return;
+                    this.sharing = true;
+                    try {
+                        const response = await fetch(`/admin/elections/${this.shareElectionId}/assign-sub-admin`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ email: this.shareEmail })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            alert(data.message);
+                            this.showShareModal = false;
+                        } else {
+                            alert(data.error || 'Failed to share access');
+                        }
+                    } catch (e) {
+                        alert('An error occurred');
+                    } finally {
+                        this.sharing = false;
+                    }
+                },
                 get filteredElections() {
                     const q = this.searchQuery.trim().toLowerCase();
                     const allowedStatuses = ['active', 'scheduled', 'completed'];
@@ -55,6 +116,28 @@
                         return this.elections.find(e => e.id === this.selectedElection) || null;
                     }
                     return null;
+                },
+                get filteredAuditLogs() {
+                    const q = this.auditSearchQuery.trim().toLowerCase();
+                    if (!q) return this.auditLogs;
+                    return this.auditLogs.filter(log => {
+                        return (log.user_name && log.user_name.toLowerCase().includes(q)) ||
+                               (log.user_email && log.user_email.toLowerCase().includes(q)) ||
+                               (log.user_role && log.user_role.toLowerCase().includes(q)) ||
+                               (log.action && log.action.toLowerCase().includes(q)) ||
+                               (log.module && log.module.toLowerCase().includes(q)) ||
+                               (log.description && log.description.toLowerCase().includes(q));
+                    });
+                },
+                getActionColor(action) {
+                    const colors = {
+                        'CREATE': 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                        'UPDATE': 'bg-amber-50 text-amber-700 border-amber-100',
+                        'DELETE': 'bg-rose-50 text-rose-700 border-rose-100',
+                        'LOGIN': 'bg-sky-50 text-sky-700 border-sky-100',
+                        'VOTE_CAST': 'bg-purple-50 text-purple-700 border-purple-100'
+                    };
+                    return colors[action] || 'bg-slate-50 text-slate-700 border-slate-100';
                 },
                 get currentStats() {
                     if (this.currentElection) {
@@ -185,6 +268,11 @@
                                                             </svg>
                                                             Reports
                                                         </button>
+                                                        <button @click.stop="openShareModal(election.id)" class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors" title="Share Access">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                                                            </svg>
+                                                        </button>
                                                         <button @click.stop="editElection(election.id)" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -205,6 +293,78 @@
                                 </div>
                                 <div class="text-xs">
                                     Click a row to view analytics • Scroll for more elections
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Audit Logs Table -->
+                        <div class="mt-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h2 class="text-2xl font-extrabold text-slate-900">Audit Logs</h2>
+                                    <p class="text-sm text-slate-500 mt-1">Track system activities and data modifications</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 bg-white border border-gray-200 px-3 py-2 rounded-lg shadow-sm w-full sm:max-w-xs">
+                                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                        </svg>
+                                        <input x-model="auditSearchQuery" type="text" placeholder="Search logs..." class="flex-1 text-sm outline-none border-none focus:ring-0 p-0" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-gray-200 rounded-2xl shadow overflow-hidden">
+                                <div class="responsive-table-container">
+                                    <div class="max-h-[420px] overflow-y-auto">
+                                        <table class="w-full text-sm">
+                                            <thead class="bg-slate-50 sticky top-0 z-10">
+                                            <tr class="text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                                                <th class="px-6 py-4 border-b border-gray-100">User</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">Role</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">Action</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">Module</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">Description</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">IP Address</th>
+                                                <th class="px-6 py-4 border-b border-gray-100">Date</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-100">
+                                            <template x-for="log in filteredAuditLogs" :key="log.id">
+                                                <tr class="hover:bg-slate-50 transition-colors">
+                                                    <td class="px-6 py-4">
+                                                        <div class="font-medium text-slate-900" x-text="log.user_name || 'System'"></div>
+                                                        <div class="text-xs text-slate-500" x-text="log.user_email"></div>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <span :class="log.user_role === 'Admin' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-slate-50 text-slate-700 border-slate-100'"
+                                                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border"
+                                                              x-text="log.user_role">
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <span :class="getActionColor(log.action)" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border">
+                                                            <span x-text="log.action"></span>
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4 text-slate-600" x-text="log.module"></td>
+                                                    <td class="px-6 py-4 text-slate-600">
+                                                        <div class="max-w-xs truncate" :title="log.description" x-text="log.description"></div>
+                                                    </td>
+                                                    <td class="px-6 py-4 text-slate-500 font-mono text-xs" x-text="log.ip_address"></td>
+                                                    <td class="px-6 py-4 text-slate-600 whitespace-nowrap" x-text="formatDate(log.created_at)"></td>
+                                                </tr>
+                                            </template>
+                                            <template x-if="filteredAuditLogs.length === 0">
+                                                <tr>
+                                                    <td colspan="7" class="px-6 py-10 text-center text-slate-500">
+                                                        No audit logs found matching your search.
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -344,61 +504,6 @@
                             </div>
                         </section>
 
-                        <section>
-                            <div class="flex items-center gap-3 mb-6">
-                                <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100">
-                                    <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-lg font-semibold text-slate-900">Demographic Insights</h3>
-                                    <p class="text-sm text-slate-500">Voter distribution and participation</p>
-                                </div>
-                            </div>
-
-                            <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm mb-6">
-                                <h3 class="text-lg font-semibold mb-4">Voter Turnout by Age Group</h3>
-                                <div class="h-64 mb-4">
-                                    <canvas id="ageChart"></canvas>
-                                </div>
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    <template x-for="group in demographicData.ageGroups" :key="group.label">
-                                        <div class="text-center p-3 bg-slate-50 rounded-lg">
-                                            <div class="text-xs text-slate-600" x-text="group.label"></div>
-                                            <div class="text-lg font-semibold text-slate-900 mt-1" x-text="group.votes"></div>
-                                            <div class="text-xs text-slate-500" x-text="`of ${group.total}`"></div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-                                    <h3 class="text-lg font-semibold mb-4">Regional Distribution</h3>
-                                    <div class="space-y-3">
-                                        <template x-for="region in demographicData.regions" :key="region.name">
-                                            <div>
-                                                <div class="flex items-center justify-between mb-1">
-                                                    <span class="text-sm font-medium text-slate-700" x-text="region.name"></span>
-                                                    <span class="text-sm text-slate-600" x-text="`${region.votes} (${region.percent}%)`"></span>
-                                                </div>
-                                                <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                                    <div class="h-full bg-indigo-500 rounded-full transition-all" :style="`width: ${region.percent}%`"></div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-
-                                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-                                    <h3 class="text-lg font-semibold mb-4">Ballot Collection Channels</h3>
-                                    <div class="h-64">
-                                        <canvas id="channelsChart"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
 
                         <section>
                             <div class="flex items-center gap-3 mb-6">
@@ -424,7 +529,7 @@
                                         </div>
                                     </div>
                                     <div class="text-3xl font-bold text-slate-900" x-text="realtimeMetrics.failedLogins"></div>
-                                    <div class="text-xs text-slate-500 mt-1">Unsuccessful attempts</div>
+                                    <div class="text-xs text-slate-500 mt-1">Total unsuccessful attempts</div>
                                 </div>
 
                                 <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
@@ -449,6 +554,58 @@
                                         </div>
                                     </div>
                                     <div class="text-sm text-slate-600">No security threats detected. All verification systems running normally.</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h3 class="text-lg font-semibold flex items-center gap-2">
+                                        <i class="ri-history-line text-slate-600"></i>
+                                        System Audit Logs
+                                    </h3>
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent Activity</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="text-left text-xs font-semibold text-slate-500 border-b border-slate-50">
+                                                <th class="px-4 py-3">Name</th>
+                                                <th class="px-4 py-3">Action</th>
+                                                <th class="px-4 py-3">Module</th>
+                                                <th class="px-4 py-3">Description</th>
+                                                <th class="px-4 py-3 text-right">Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-50">
+                                            @forelse($auditLogs ?? [] as $log)
+                                                <tr class="hover:bg-slate-50 transition-colors">
+                                                    <td class="px-4 py-3">
+                                                        <div class="font-medium text-slate-900">{{ $log->user->name ?? 'System' }}</div>
+                                                        <div class="text-[10px] text-slate-400">{{ $log->ip_address }}</div>
+                                                    </td>
+                                                    <td class="px-4 py-3">
+                                                        <span class="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-tight
+                                                            @if($log->action === 'CREATE') bg-emerald-50 text-emerald-600
+                                                            @elseif($log->action === 'UPDATE') bg-amber-50 text-amber-600
+                                                            @elseif($log->action === 'DELETE') bg-red-50 text-red-600
+                                                            @elseif($log->action === 'LOGIN') bg-blue-50 text-blue-600
+                                                            @else bg-slate-100 text-slate-600 @endif">
+                                                            {{ $log->action }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-slate-600 font-medium">{{ $log->module }}</td>
+                                                    <td class="px-4 py-3 text-slate-500 max-w-xs truncate">{{ $log->description }}</td>
+                                                    <td class="px-4 py-3 text-right text-slate-400 text-xs">
+                                                        {{ $log->created_at->diffForHumans() }}
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="5" class="px-4 py-10 text-center text-slate-400 italic">No activity recorded yet</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
 
@@ -489,6 +646,82 @@
                     </div>
                 </div>
             </main>
+
+            <!-- Share Access Modal -->
+            <div x-show="showShareModal"
+                 class="fixed inset-0 z-[9999] overflow-y-auto"
+                 x-cloak>
+                <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                    <div x-show="showShareModal"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         class="fixed inset-0 transition-opacity bg-slate-900/50 backdrop-blur-sm"
+                         @click="showShareModal = false"></div>
+
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+                    <div x-show="showShareModal"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         class="inline-block w-full max-w-md p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-3xl sm:align-middle">
+
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight">Share Access</h3>
+                            <button @click="showShareModal = false" class="text-slate-400 hover:text-slate-600 transition-colors">
+                                <i class="ri-close-line text-2xl"></i>
+                            </button>
+                        </div>
+
+                        <p class="text-sm text-slate-500 mb-6">Enter the email of an administrator you want to share this election with.</p>
+
+                        <div class="space-y-4">
+                            <div class="relative">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Admin Email</label>
+                                <div class="relative">
+                                    <i class="ri-mail-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="email"
+                                           x-model="shareEmail"
+                                           @input.debounce.300ms="searchAdmins()"
+                                           placeholder="admin@example.com"
+                                           class="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-700 focus:ring-0 focus:border-indigo-500/20 focus:bg-white transition-all">
+                                </div>
+
+                                <!-- Suggestions Dropdown -->
+                                <div x-show="adminSuggestions.length > 0"
+                                     class="absolute z-10 w-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-xl overflow-hidden"
+                                     x-cloak>
+                                    <template x-for="admin in adminSuggestions" :key="admin.id">
+                                        <button @click="shareEmail = admin.email; adminSuggestions = []"
+                                                class="w-full px-4 py-3 text-left text-sm hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
+                                            <div class="font-bold text-slate-900" x-text="admin.name"></div>
+                                            <div class="text-xs text-slate-500" x-text="admin.email"></div>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <button @click="shareAccess()"
+                                    :disabled="sharing || !shareEmail"
+                                    class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <template x-if="!sharing">
+                                    <span>Share Access</span>
+                                </template>
+                                <template x-if="sharing">
+                                    <i class="ri-loader-4-line animate-spin text-lg"></i>
+                                </template>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -497,13 +730,9 @@
         <script>
             document.addEventListener('alpine:init', () => {
                 let vpmChart = null;
-                let ageChart = null;
-                let channelsChart = null;
 
                 const buildCharts = (data) => {
                     if (vpmChart) vpmChart.destroy();
-                    if (ageChart) ageChart.destroy();
-                    if (channelsChart) channelsChart.destroy();
 
                     const vpmCtx = document.getElementById('vpmChart')?.getContext('2d');
                     if (vpmCtx) {
@@ -529,46 +758,6 @@
                             }
                         });
                     }
-
-                    const ageCtx = document.getElementById('ageChart')?.getContext('2d');
-                    if (ageCtx) {
-                        ageChart = new Chart(ageCtx, {
-                            type: 'bar',
-                            data: {
-                                labels: data.demographicData.ageGroups.map(g => g.label),
-                                datasets: [{
-                                    label: 'Votes',
-                                    data: data.demographicData.ageGroups.map(g => g.votes),
-                                    backgroundColor: '#6366F1'
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { display: false } },
-                                scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
-                            }
-                        });
-                    }
-
-                    const channelsCtx = document.getElementById('channelsChart')?.getContext('2d');
-                    if (channelsCtx) {
-                        channelsChart = new Chart(channelsCtx, {
-                            type: 'doughnut',
-                            data: {
-                                labels: data.demographicData.submissionMethods.map(s => s.method),
-                                datasets: [{
-                                    data: data.demographicData.submissionMethods.map(s => s.count),
-                                    backgroundColor: ['#6366F1', '#8B5CF6', '#10B981']
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: { legend: { position: 'bottom' } }
-                            }
-                        });
-                    }
                 };
 
                 const updateCharts = () => {
@@ -585,8 +774,6 @@
 
                     if (!data || !data.currentElection) {
                         if (vpmChart) vpmChart.destroy(); vpmChart = null;
-                        if (ageChart) ageChart.destroy(); ageChart = null;
-                        if (channelsChart) channelsChart.destroy(); channelsChart = null;
                         return;
                     }
                     buildCharts(data.currentElection);

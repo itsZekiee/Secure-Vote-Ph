@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'voter.auth' => \App\Http\Middleware\VoterAuth::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'subadmin' => \App\Http\Middleware\SubAdminMiddleware::class,
+            'ip.control' => \App\Http\Middleware\IpAccessControlMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

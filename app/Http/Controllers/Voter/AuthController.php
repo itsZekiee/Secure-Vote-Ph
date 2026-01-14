@@ -69,17 +69,42 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+        $user = User::where('email', $request->email)->first();
+        $electionId = session('election_id');
+
         // Check credentials WITHOUT logging in
         if (!Auth::validate($request->only('email', 'password'))) {
+            // Record failed login attempt
+            \Illuminate\Support\Facades\DB::table('failed_logins')->insert([
+                'user_id' => $user->id ?? null,
+                'election_id' => $electionId,
+                'email' => $request->email,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+                'reason' => 'Invalid credentials',
+                'created_at' => now(),
+            ]);
+
             return back()->withErrors([
                 'email' => 'Invalid email or password.',
             ]);
         }
 
-        $user = User::where('email', $request->email)->first();
+        // One Session Per User Policy
+        $hasExistingSession = \DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->where('id', '!=', session()->getId())
+            ->where('last_activity', '>=', now()->subMinutes(config('session.lifetime', 120))->getTimestamp())
+            ->exists();
+
+        if ($hasExistingSession) {
+            return back()->withErrors([
+                'email' => 'You are already logged in on another device. Please log out there first (Strict One-Device Policy).',
+            ]);
+        }
 
         // 🔐 Send OTP via Supabase
-        Http::withHeaders([
+        \Illuminate\Support\Facades\Http::withHeaders([
             'Authorization' => 'Bearer ' . config('services.supabase.service_key'),
             'apikey' => config('services.supabase.service_key'),
             'Content-Type' => 'application/json',

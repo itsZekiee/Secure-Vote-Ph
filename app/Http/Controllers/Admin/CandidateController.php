@@ -8,6 +8,8 @@ use App\Models\Election;
 use App\Models\Organization;
 use App\Models\Partylist;
 use App\Models\Position;
+use App\Imports\CandidateImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -19,6 +21,14 @@ use Illuminate\Http\JsonResponse;
 
 class CandidateController extends Controller
 {
+    private function getView($name)
+    {
+        if (auth()->check() && auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            return "admin.$name";
+        }
+        return "main-admin.$name";
+    }
+
     /**
      * Display a listing of candidates
      */
@@ -38,7 +48,9 @@ class CandidateController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('main-admin.candidates', compact('candidates'));
+        $elections = Election::where('created_by', auth()->id())->get();
+
+        return view($this->getView('candidates'), compact('candidates', 'elections'));
     }
 
     /**
@@ -85,20 +97,10 @@ class CandidateController extends Controller
                   });
             })->select('id', 'title')->get();
 
-        $organizations = Organization::where(function($q) {
-                $q->where('created_by', auth()->id());
-            })->select('id', 'name')->get();
+        $organizations = Organization::all();
 
         // Partylists that belong to allowed elections or created by user
-        $partylists = Partylist::where(function($q) {
-                $q->where('created_by', auth()->id())
-                  ->orWhereHas('election', function($qe) {
-                      $qe->where('created_by', auth()->id())
-                         ->orWhereHas('subAdmins', function($qs) {
-                             $qs->where('user_id', auth()->id());
-                         });
-                  });
-            })->select('id', 'name', 'organization_id')->get();
+        $partylists = Partylist::all();
 
         $commonPositions = [
             'President',
@@ -110,7 +112,7 @@ class CandidateController extends Controller
             'Representative'
         ];
 
-        return view('main-admin.candidate.candidate-create', compact(
+        return view($this->getView('candidate.candidate-create'), compact(
             'users',
             'positions',
             'elections',
@@ -353,7 +355,7 @@ class CandidateController extends Controller
 
         $candidate->load(['user', 'election', 'position', 'partylist', 'votes']);
 
-        return view('main-admin.candidate.show', compact('candidate'));
+        return view($this->getView('candidate.show'), compact('candidate'));
     }
 
     /**
@@ -383,9 +385,7 @@ class CandidateController extends Controller
             ? Election::whereIn('status', ['active', 'draft'])->get()
             : Election::all();
 
-        $partylists = (Schema::hasColumn('partylists', 'status'))
-            ? Partylist::where('status', 'active')->get()
-            : Partylist::all();
+        $partylists = Partylist::all();
 
         // Added organizations because edit.blade.php requires it
         $organizations = Organization::all();
@@ -397,7 +397,7 @@ class CandidateController extends Controller
             $positions = Position::all();
         }
 
-        return view('main-admin.candidate.edit', compact('candidate', 'users', 'elections', 'partylists', 'positions', 'organizations'));
+        return view($this->getView('candidate.edit'), compact('candidate', 'users', 'elections', 'partylists', 'positions', 'organizations'));
     }
 
     /**
@@ -569,22 +569,12 @@ class CandidateController extends Controller
         return response()->json(['candidates' => $candidates]);
     }
 
-    /**
-     * Export candidates data
-     */
     public function export(Request $request)
     {
-        $format = $request->get('format', 'csv');
-
         $candidates = Candidate::where('created_by', auth()->id())
-            ->with(['user', 'election', 'position', 'partylist'])
-            ->withCount(['votes'])
+            ->with(['user', 'election', 'position', 'partylist', 'organization'])
             ->orderBy('created_at', 'desc')
             ->get();
-
-        if ($format === 'json') {
-            return response()->json(['candidates' => $candidates]);
-        }
 
         $filename = 'candidates_' . now()->format('Y-m-d_H-i-s') . '.csv';
 
@@ -597,20 +587,24 @@ class CandidateController extends Controller
             $file = fopen('php://output', 'w');
 
             fputcsv($file, [
-                'ID', 'Name', 'Email', 'Election', 'Position', 'Partylist', 'Status', 'Votes', 'Created At'
+                'Full Name',
+                'Email',
+                'Organization',
+                'Political Affiliation',
+                'Designated Position',
+                'Platform Statement',
+                'Profile Photo'
             ]);
 
             foreach ($candidates as $candidate) {
                 fputcsv($file, [
-                    $candidate->id,
-                    $candidate->user->name,
-                    $candidate->user->email,
-                    optional($candidate->election)->title,
-                    optional($candidate->position)->title,
-                    $candidate->partylist->name ?? 'Independent',
-                    $candidate->status,
-                    $candidate->votes_count,
-                    $candidate->created_at->format('Y-m-d H:i:s')
+                    $candidate->user ? $candidate->user->name : ($candidate->name ?? ''),
+                    $candidate->user ? $candidate->user->email : '',
+                    $candidate->organization ? $candidate->organization->name : '',
+                    $candidate->partylist ? $candidate->partylist->name : 'Independent',
+                    $candidate->position ? $candidate->position->title : '',
+                    $candidate->platform,
+                    $candidate->photo
                 ]);
             }
 
@@ -618,6 +612,251 @@ class CandidateController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function importPreview(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv,xml,tsv|max:51200',
+        ]);
+
+        $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension());
+        $readerType = null;
+
+        if ($extension === 'tsv') {
+            $readerType = \Maatwebsite\Excel\Excel::TSV;
+        } elseif ($extension === 'csv') {
+            $readerType = \Maatwebsite\Excel\Excel::CSV;
+        } elseif ($extension === 'xml') {
+            $readerType = \Maatwebsite\Excel\Excel::XML;
+        }
+
+        try {
+            $sheets = Excel::toCollection(new CandidateImport(), $file, null, $readerType);
+            $rows = $sheets->first() ?? collect();
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Error reading file: ' . $e->getMessage()], 422);
+        }
+
+        if ($rows->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'The uploaded file is empty or has no data.'], 422);
+        }
+
+        $data = $rows->map(function ($row, $index) {
+            $fullName = $row['full_name'] ?? ($row['name'] ?? null);
+            $email = $row['email'] ?? null;
+            $orgName = $row['organization'] ?? null;
+            $partylistName = $row['political_affiliation'] ?? ($row['partylist'] ?? null);
+
+            if (!$fullName && !$email) return null;
+
+            // Check for duplication in existing data
+            $isDuplicate = false;
+            if ($email) {
+                $isDuplicate = User::where('email', $email)->whereHas('candidacies')->exists();
+            }
+
+            $orgId = null;
+            $alerts = [];
+            if ($orgName) {
+                $org = Organization::where('name', 'LIKE', trim($orgName))->first();
+                if ($org) {
+                    $orgId = $org->id;
+                } else {
+                    $alerts[] = "Organization '$orgName' not found";
+                }
+            }
+
+            $partylistId = null;
+            if ($partylistName) {
+                $pl = Partylist::where('name', 'LIKE', trim($partylistName))->first();
+                if ($pl) {
+                    $partylistId = $pl->id;
+                } else {
+                    $alerts[] = "Partylist '$partylistName' not found";
+                }
+            }
+
+            return [
+                'index' => $index,
+                'full_name' => $fullName,
+                'email' => $email,
+                'organization' => $orgName,
+                'organization_id' => $orgId,
+                'political_affiliation' => $partylistName,
+                'partylist_id' => $partylistId,
+                'designated_position' => $row['designated_position'] ?? null,
+                'platform_statement' => $row['platform_statement'] ?? ($row['platform'] ?? null),
+                'profile_photo' => $row['profile_photo'] ?? ($row['photo'] ?? null),
+                'is_duplicate' => $isDuplicate,
+                'status' => $isDuplicate ? 'Duplicate' : 'Clear',
+                'alerts' => $alerts
+            ];
+        })->filter()->values();
+
+        $storedPath = $file->store('imports');
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'importPath' => $storedPath,
+            'organizations' => Organization::all(['id', 'name']),
+            'partylists' => Partylist::all(['id', 'name', 'organization_id'])
+        ]);
+    }
+
+    public function importStore(Request $request)
+    {
+        $request->validate([
+            'import_path' => 'required|string',
+            'election_id' => 'nullable|exists:elections,id',
+            'overrides' => 'nullable|array'
+        ]);
+
+        $path = $request->input('import_path');
+        $electionId = $request->input('election_id');
+        $overrides = $request->input('overrides', []);
+
+        if (!Storage::disk('local')->exists($path)) {
+            return response()->json(['success' => false, 'message' => 'Import file not found.'], 422);
+        }
+
+        $fullPath = Storage::disk('local')->path($path);
+        $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        $readerType = null;
+
+        if ($extension === 'tsv') {
+            $readerType = \Maatwebsite\Excel\Excel::TSV;
+        } elseif ($extension === 'csv') {
+            $readerType = \Maatwebsite\Excel\Excel::CSV;
+        } elseif ($extension === 'xml') {
+            $readerType = \Maatwebsite\Excel\Excel::XML;
+        }
+
+        try {
+            $sheets = Excel::toCollection(new CandidateImport(), $fullPath, null, $readerType);
+            $rows = $sheets->first() ?? collect();
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Error reading stored file.'], 422);
+        }
+
+        $created = 0;
+        $skipped = 0;
+
+        DB::beginTransaction();
+        try {
+            foreach ($rows as $index => $row) {
+                $fullName = $row['full_name'] ?? ($row['name'] ?? null);
+                $email = $row['email'] ?? null;
+
+                if (!$fullName || !$email) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Check duplication
+                $existingUser = User::where('email', $email)->first();
+                if ($existingUser && Candidate::where('user_id', $existingUser->id)->exists()) {
+                    $skipped++;
+                    continue;
+                }
+
+                $orgId = $overrides[$index]['organization_id'] ?? null;
+                if (!$orgId) {
+                    $orgName = $row['organization'] ?? null;
+                    if ($orgName) {
+                        $org = Organization::where('name', 'LIKE', trim($orgName))->first();
+                        if ($org) $orgId = $org->id;
+                    }
+                }
+
+                $partylistId = $overrides[$index]['partylist_id'] ?? null;
+                if (!$partylistId) {
+                    $partylistName = $row['political_affiliation'] ?? ($row['partylist'] ?? null);
+                    if ($partylistName) {
+                        $pl = Partylist::where('name', 'LIKE', trim($partylistName))->first();
+                        if ($pl) $partylistId = $pl->id;
+                    }
+                }
+
+                if (!$orgId) {
+                    $skipped++;
+                    continue;
+                }
+
+                if (!$existingUser) {
+                    // Create user as voter first? Or just a user.
+                    $existingUser = User::create([
+                        'name' => $fullName,
+                        'email' => $email,
+                        'password' => Hash::make(Str::random(12)),
+                    ]);
+
+                    // Attempt to assign role
+                    try {
+                        if (method_exists($existingUser, 'assignRole')) {
+                            $existingUser->assignRole('voter');
+                        } else if (Schema::hasTable('roles')) {
+                            $voterRole = DB::table('roles')->where('name', 'voter')->first();
+                            if ($voterRole) {
+                                DB::table('model_has_roles')->insert([
+                                    'role_id' => $voterRole->id,
+                                    'model_type' => get_class($existingUser),
+                                    'model_id' => $existingUser->id
+                                ]);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning('Could not assign role to imported candidate: ' . $e->getMessage());
+                    }
+                }
+
+                $posTitle = $row['designated_position'] ?? null;
+                $posId = null;
+                if ($posTitle) {
+                    $pos = Position::where('title', 'LIKE', trim($posTitle))
+                        ->when($electionId, function($q) use ($electionId) {
+                            return $q->where('election_id', $electionId);
+                        })->first();
+                    $posId = $pos ? $pos->id : null;
+                }
+
+                $nameParts = explode(' ', trim($fullName));
+                $lastName = count($nameParts) > 1 ? array_pop($nameParts) : '';
+                $firstName = implode(' ', $nameParts);
+                if (empty($firstName)) {
+                    $firstName = $lastName;
+                    $lastName = '';
+                }
+
+                Candidate::create([
+                    'user_id' => $existingUser->id,
+                    'election_id' => $electionId,
+                    'organization_id' => $orgId,
+                    'partylist_id' => $partylistId,
+                    'position_id' => $posId,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'name' => $fullName,
+                    'platform' => $row['platform_statement'] ?? ($row['platform'] ?? null),
+                    'photo' => $row['profile_photo'] ?? ($row['photo'] ?? null),
+                    'status' => 'active',
+                    'created_by' => auth()->id(),
+                ]);
+                $created++;
+            }
+            DB::commit();
+            Storage::disk('local')->delete($path);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Error importing data: ' . $e->getMessage()], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Successfully imported $created candidates. Skipped $skipped duplicates or invalid rows."
+        ]);
     }
 
 

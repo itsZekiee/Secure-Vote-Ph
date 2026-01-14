@@ -15,6 +15,14 @@ use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
+    private function getView($name)
+    {
+        if (auth()->check() && auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            return "admin.$name";
+        }
+        return "main-admin.$name";
+    }
+
     public function dashboard()
     {
         $stats = [
@@ -26,7 +34,7 @@ class AdminController extends Controller
             'total_organizations' => Organization::count(),
         ];
 
-        return view('main-admin.dashboard', compact('stats'));
+        return view($this->getView('dashboard'), compact('stats'));
     }
 
     public function voters()
@@ -35,7 +43,7 @@ class AdminController extends Controller
             ->with('organization')
             ->paginate(15);
 
-        return view('main-admin.voters', compact('voters'));
+        return view($this->getView('voters'), compact('voters'));
     }
 
     public function getDashboardStats()
@@ -158,13 +166,12 @@ class AdminController extends Controller
             'mail_driver' => config('mail.default'),
         ];
 
-        return view('main-admin.system.info', compact('info'));
+        return view($this->getView('system.info'), compact('info'));
     }
 
     public function logs()
     {
-        // Implementation for viewing logs
-        return view('main-admin.system.logs');
+        return view($this->getView('system.logs'));
     }
 
     public function clearCache()
@@ -189,7 +196,7 @@ class AdminController extends Controller
     public function notifications()
     {
         // Implementation for notifications
-        return view('main-admin.notifications.index');
+        return view($this->getView('notifications.index'));
     }
 
     public function markAsRead($id)
@@ -213,7 +220,7 @@ class AdminController extends Controller
     public function backupIndex()
     {
         // Implementation for backup listing
-        return view('main-admin.backup.index');
+        return view($this->getView('backup.index'));
     }
 
     public function createBackup()

@@ -8,6 +8,7 @@ use App\Models\Organization;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\AuditLog;
 
 class DashboardController extends Controller
 {
@@ -59,7 +60,17 @@ class DashboardController extends Controller
                 ];
             });
 
-        return view('main-admin.dashboard', compact('elections'));
+        $auditLogs = [];
+        if (auth()->user()->hasRole('super-admin')) {
+            $auditLogs = AuditLog::with('user')->latest()->limit(50)->get();
+        }
+
+        $view = 'main-admin.dashboard';
+        if (auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            $view = 'admin.dashboard';
+        }
+
+        return view($view, compact('elections', 'auditLogs'));
     }
 
     /**
@@ -73,11 +84,6 @@ class DashboardController extends Controller
             ->where('last_activity', '>=', $thirtyMinutesAgo)
             ->count();
 
-        $activeAuthenticated = DB::table('sessions')
-            ->where('last_activity', '>=', $thirtyMinutesAgo)
-            ->whereNotNull('user_id')
-            ->count();
-
         // Average time to vote: avg difference between voter.created_at and votes.voted_at (seconds)
         $avgSeconds = DB::table('votes')
             ->join('voters', 'votes.voter_id', '=', 'voters.id')
@@ -85,47 +91,60 @@ class DashboardController extends Controller
             ->whereNotNull('votes.voted_at')
             ->avg(DB::raw('TIMESTAMPDIFF(SECOND, voters.created_at, votes.voted_at)'));
 
-        $avgTimeToVote = $avgSeconds ? round($avgSeconds) : 0; // seconds
+        $avgTimeToVote = $avgSeconds ? round($avgSeconds / 60, 1) : 0; // minutes
 
-        // Failed login attempts (ghost registrations): count in last 24 hours and total
-        // failed_logins table uses `created_at` timestamp
-        $failedLast24 = DB::table('failed_logins')
-            ->where('created_at', '>=', Carbon::now()->subDay())
+        // Failed login attempts: count total for this election if linked, or globally if not
+        $failedLoginsCount = DB::table('failed_logins')
+            ->where(function($query) use ($election) {
+                $query->where('election_id', $election->id)
+                      ->orWhereNull('election_id');
+            })
             ->count();
 
-        $failedTotal = DB::table('failed_logins')->count();
-
-        // suspicious IPs: number of distinct IPs with > X failed attempts in last 24h
+        // suspicious IPs: number of distinct IPs with > 5 failed attempts in last 24h
         $suspiciousIPs = DB::table('failed_logins')
             ->select('ip_address', DB::raw('COUNT(*) as cnt'))
             ->where('created_at', '>=', Carbon::now()->subDay())
             ->groupBy('ip_address')
             ->having('cnt', '>', 5)
+            ->get()
             ->count();
 
-        // verification success rate: if elections require verification, compute ratio
-        $verificationSuccessRate = 100;
-        if ($election->require_verification ?? false) {
-            $totalVerificationAttempts = DB::table('voters')->where('election_id', $election->id)->count();
-            $verified = DB::table('voters')->where('election_id', $election->id)->where('is_verified', true)->count();
-            $verificationSuccessRate = $totalVerificationAttempts > 0 ? round(($verified / $totalVerificationAttempts) * 100, 1) : 100;
+        // verification success rate
+        $totalVoters = DB::table('voters')->where('election_id', $election->id)->count();
+        $verifiedVoters = DB::table('voters')->where('election_id', $election->id)->where('registration_status', 'approved')->count();
+        $verificationSuccessRate = $totalVoters > 0 ? round(($verifiedVoters / $totalVoters) * 100, 1) : 0;
+
+        // Ghost Registrations (Flagged accounts)
+        // Let's define ghost registrations as voters who are not verified after some time or flagged
+        $ghostRegistrations = DB::table('voters')
+            ->where('election_id', $election->id)
+            ->where('registration_status', 'pending')
+            ->where('created_at', '<', Carbon::now()->subDays(2))
+            ->count();
+
+        // Votes trend: Votes per minute for the last 10 minutes
+        $votesPerMinute = [];
+        for ($i = 9; $i >= 0; $i--) {
+            $minute = Carbon::now()->subMinutes($i);
+            $count = DB::table('votes')
+                ->where('election_id', $election->id)
+                ->whereBetween('voted_at', [
+                    $minute->copy()->startOfMinute(),
+                    $minute->copy()->endOfMinute()
+                ])
+                ->count();
+            $votesPerMinute[] = $count;
         }
 
         return [
-            'votesPerMinute' => [],
-            'avgTimeToVote' => $avgTimeToVote, // seconds
-            'activeSessions' => [
-                'total' => $activeSessionsTotal,
-                'authenticated' => $activeAuthenticated,
-                'guest' => max(0, $activeSessionsTotal - $activeAuthenticated),
-            ],
-            'failedLogins' => [
-                'last24h' => $failedLast24,
-                'total' => $failedTotal,
-            ],
+            'votesPerMinute' => $votesPerMinute,
+            'avgTimeToVote' => $avgTimeToVote,
+            'activeSessions' => $activeSessionsTotal,
+            'failedLogins' => $failedLoginsCount,
             'suspiciousIPs' => $suspiciousIPs,
             'verificationSuccessRate' => $verificationSuccessRate,
-            'ghostRegistrations' => $failedLast24,
+            'ghostRegistrations' => $ghostRegistrations,
         ];
     }
 

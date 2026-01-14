@@ -325,11 +325,10 @@
                                     <div class="mb-5">
                                         <label class="block text-sm font-semibold text-slate-700 mb-2">
                                             <i class="fas fa-id-card text-brand-accent mr-2"></i>Student/Employee ID
-                                            (Optional)
                                         </label>
-                                        <input type="text" name="student_id" value="{{ old('student_id') }}"
+                                        <input type="text" name="student_id" value="{{ old('student_id') }}" required
                                             class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700"
-                                            placeholder="Enter your ID if available">
+                                            placeholder="Enter your ID">
                                     </div>
 
                                     <div class="mb-5">
@@ -631,35 +630,21 @@
             const headerIcon = document.getElementById('form-header-icon');
             const headerTitle = document.getElementById('form-header-title');
             const headerSubtitle = document.getElementById('form-header-subtitle');
-            
 
-            let isSignInMode = {{ $registrationOver ? 'true' : 'false' }};
 
-                    @if(session('switch_to_login'))
+            let isSignInMode = {{ ($registrationOver || session('success')) ? 'true' : 'false' }};
+
+            @if(session('switch_to_login'))
             // Auto switch to Sign In after successful registration
             isSignInMode = true;
+            @endif
 
-            registerForm.classList.add('hidden');
-            signinForm.classList.remove('hidden');
-
-            toggleText.textContent = "Don't have an account?";
-            toggleBtnText.textContent = 'Create Account';
-            toggleIcon.className = 'fas fa-user-plus';
-
-            headerIcon.className = 'fas fa-sign-in-alt text-white text-2xl';
-            headerTitle.textContent = 'Welcome Back';
-            headerSubtitle.textContent = 'Sign in to access your election';
-        @endif
-
-
-                    if (isSignInMode) {
+            if (isSignInMode) {
                 registerForm.classList.add('hidden');
                 signinForm.classList.remove('hidden');
-
                 toggleText.textContent = "Don't have an account?";
                 toggleBtnText.textContent = 'Create Account';
                 toggleIcon.className = 'fas fa-user-plus';
-
                 headerIcon.className = 'fas fa-sign-in-alt text-white text-2xl';
                 headerTitle.textContent = 'Welcome Back';
                 headerSubtitle.textContent = 'Sign in to access your election';

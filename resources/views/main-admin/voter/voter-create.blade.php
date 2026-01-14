@@ -58,6 +58,7 @@
             payload.append('form_id', this.formData.form_id);
             payload.append('registration_status', this.formData.registration_status);
             payload.append('_token', document.querySelector('input[name=_token]').value);
+<<<<<<< HEAD
 
             fetch('{{ route('admin.voters.store') }}', {
                 method: 'POST',
@@ -80,6 +81,32 @@
     }"
          x-init="generateVoterCode()"
          class="min-h-screen bg-slate-50 flex">
+=======
+
+            fetch('{{ route('admin.voters.store') }}', {
+                method: 'POST',
+                body: payload,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    this.showSuccess = true;
+                } else {
+                    this.errors = data.errors || { general: ['Unable to create voter'] };
+                }
+            })
+            .catch(() => {
+                this.errors = { general: ['Server error. Try again.'] };
+            })
+            .finally(() => this.loading = false);
+        }
+        }"
+
+
+             x-init="generateVoterCode()"
+             class="min-h-screen bg-slate-50 flex">
+>>>>>>> 2f41f18306464da59f47efe8f18f83f85e760719
 
         <x-admin-sidebar />
 

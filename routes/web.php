@@ -21,6 +21,7 @@ use App\Http\Controllers\Elections\Store as ElectionStoreController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\MagicLinkController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Voter\VoterOtpController;
 
 
@@ -33,27 +34,31 @@ use App\Http\Controllers\Voter\VoterOtpController;
 
 // Public routes
 Route::get('/', function () {
+    if (auth()->check()) {
+        if (auth()->user()->isAdmin() || auth()->user()->isElectionOfficer()) {
+            return redirect()->route('admin.dashboard');
+        }
+        return redirect()->route('dashboard');
+    }
     return view('welcome');
 })->name('home');
 
 // Custom Authentication Routes for Welcome Page
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.submit');
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
-
-Route::get('/otp', [OtpController::class, 'show'])->name('otp.form');
-Route::post('/otp', [OtpController::class, 'verify'])->name('otp.verify');
-
-Route::get('/voter/otp', [VoterOtpController::class, 'show'])
-    ->name('voter.otp.form');
-
-Route::post('/voter/otp', [VoterOtpController::class, 'verify'])
-    ->name('voter.otp.verify');
+Route::post('auth/google/callback', [GoogleAuthController::class, 'handleCallback'])->name('auth.google.callback');
 
 
 Route::middleware('guest')->group(function () {
     Route::get('otp', [OtpController::class, 'show'])->name('otp.form');
     Route::post('otp', [OtpController::class, 'verify'])->name('otp.verify');
 });
+
+Route::get('/voter/otp', [VoterOtpController::class, 'show'])
+    ->name('voter.otp.form');
+
+Route::post('/voter/otp', [VoterOtpController::class, 'verify'])
+    ->name('voter.otp.verify');
 
 
 Route::get('/magic-link/callback', [MagicLinkController::class, 'handleMagicLink'])->name('magiclink.callback');
@@ -76,7 +81,7 @@ Route::get('/elections/register/{code}', [VoterElectionController::class, 'regis
 | Admin Routes
 |--------------------------------------------------------------------------
 */
-Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->group(function () {
 
     // Admin Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -95,6 +100,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::post('/settings/reset', [SettingsController::class, 'reset'])->name('settings.reset');
     Route::get('/settings/backup', [SettingsController::class, 'backup'])->name('settings.backup');
     Route::post('/settings/restore', [SettingsController::class, 'restore'])->name('settings.restore');
+
+    // Security Management
+    Route::delete('/settings/sessions/{session_id}', [SettingsController::class, 'logoutSession'])->name('settings.sessions.logout');
+    Route::post('/settings/sessions/logout-others', [SettingsController::class, 'logoutOtherSessions'])->name('settings.sessions.logout-others');
+    Route::post('/settings/recovery-codes/generate', [SettingsController::class, 'generateRecoveryCodes'])->name('settings.recovery-codes.generate');
+    Route::post('/settings/recovery-codes/show', [SettingsController::class, 'showRecoveryCodes'])->name('settings.recovery-codes.show');
+    Route::post('/settings/security-preferences', [SettingsController::class, 'updateSecurityPreferences'])->name('settings.security-preferences.update');
 
     // Profile Management
     Route::put('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('profile.update');
@@ -124,6 +136,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::get('export', [ElectionController::class, 'export'])->name('export');
         Route::post('{election}/toggle-status', [ElectionController::class, 'toggleStatus'])->name('toggle-status');
         Route::post('{election}/assign-sub-admin', [ElectionController::class, 'assignSubAdmin'])->name('assign-sub-admin');
+        Route::get('search-admins', [ElectionController::class, 'searchAdmins'])->name('search-admins');
         Route::post('{election}/remove-sub-admin', [ElectionController::class, 'removeSubAdmin'])->name('remove-sub-admin');
         Route::get('{election}/candidates', [ElectionController::class, 'candidates'])->name('candidates');
         Route::get('{election}/voters', [ElectionController::class, 'voters'])->name('voters');
@@ -140,6 +153,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::prefix('partylists')->name('partylists.')->group(function () {
         Route::get('search', [PartylistController::class, 'search'])->name('search');
         Route::get('export', [PartylistController::class, 'export'])->name('export');
+        Route::post('import-preview', [PartylistController::class, 'importPreview'])->name('import.preview');
+        Route::post('import-store', [PartylistController::class, 'importStore'])->name('import.store');
         Route::post('{partylist}/toggle-status', [PartylistController::class, 'toggleStatus'])->name('toggle-status');
         Route::get('{partylist}/members', [PartylistController::class, 'members'])->name('members');
         Route::post('{partylist}/add-member', [PartylistController::class, 'addMember'])->name('add-member');
@@ -154,6 +169,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('search', [CandidateController::class, 'search'])->name('search');
         Route::get('export', [CandidateController::class, 'export'])->name('export');
+        Route::post('import-preview', [CandidateController::class, 'importPreview'])->name('import.preview');
+        Route::post('import-store', [CandidateController::class, 'importStore'])->name('import.store');
         Route::post('{candidate}/toggle-status', [CandidateController::class, 'toggleStatus'])->name('toggle-status');
         Route::post('{candidate}/approve', [CandidateController::class, 'approve'])->name('approve');
         Route::post('{candidate}/reject', [CandidateController::class, 'reject'])->name('reject');
@@ -224,8 +241,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::prefix('system')->name('system.')->group(function () {
         Route::get('info', [AdminController::class, 'systemInfo'])->name('info');
         Route::get('logs', [AdminController::class, 'logs'])->name('logs');
-        Route::post('cache-clear', [AdminController::class, 'clearCache'])->name('cache-clear');
+        Route::post('cache-clear', [SettingsController::class, 'clearSystemCache'])->name('cache-clear');
+        Route::post('db-optimize', [SettingsController::class, 'optimizeDatabase'])->name('db-optimize');
+        Route::post('force-logout-all', [SettingsController::class, 'forceLogoutAll'])->name('force-logout-all');
+        Route::post('check-updates', [SettingsController::class, 'checkGitUpdates'])->name('check-updates');
+        Route::post('archive-election', [SettingsController::class, 'archiveElection'])->name('archive-election');
         Route::post('maintenance', [AdminController::class, 'toggleMaintenance'])->name('maintenance');
+
+        // IP Access Control
+        Route::post('ip-control', [SettingsController::class, 'storeIpControl'])->name('ip-control.store');
+        Route::delete('ip-control/{id}', [SettingsController::class, 'deleteIpControl'])->name('ip-control.delete');
     });
 
     // API Routes for AJAX calls

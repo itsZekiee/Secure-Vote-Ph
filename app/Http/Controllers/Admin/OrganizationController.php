@@ -12,6 +12,14 @@ use Illuminate\Validation\Rule;
 
 class OrganizationController extends Controller
 {
+    private function getView($name)
+    {
+        if (auth()->check() && auth()->user()->hasRole('admin') && !auth()->user()->hasRole('super-admin')) {
+            return "admin.$name";
+        }
+        return "main-admin.$name";
+    }
+
     /**
      * Display a listing of organizations
      */
@@ -22,7 +30,7 @@ class OrganizationController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('main-admin.organizations', compact('organizations'));
+        return view($this->getView('organizations'), compact('organizations'));
     }
 
     /**
@@ -30,7 +38,7 @@ class OrganizationController extends Controller
      */
     public function create()
     {
-        return view('main-admin.organizations.create');
+        return view($this->getView('organizations.create'));
     }
 
     /**
@@ -105,7 +113,7 @@ class OrganizationController extends Controller
         $partyCreateUrl = route('admin.partylists.create', ['organization_id' => $organization->id]);
         $partylists = $organization->partylists;
 
-        return view('main-admin.organizations.organization-view', compact('organization', 'membersUrl', 'partyCreateUrl', 'partylists', 'stats'));
+        return view($this->getView('organizations.organization-view'), compact('organization', 'membersUrl', 'partyCreateUrl', 'partylists', 'stats'));
     }
 
     /**
@@ -118,7 +126,7 @@ class OrganizationController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        return view('main-admin.organizations.organization-edit', compact('organization'));
+        return view($this->getView('organizations.organization-edit'), compact('organization'));
     }
 
     /**
