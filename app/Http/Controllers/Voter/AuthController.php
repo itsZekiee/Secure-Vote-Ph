@@ -123,6 +123,17 @@ class AuthController extends Controller
             'remember_me' => $request->boolean('remember'),
         ]);
 
+        Http::withHeaders([
+            'apikey' => config('services.supabase.anon_key'),
+            'Content-Type' => 'application/json',
+        ])->post(
+                config('services.supabase.url') . '/auth/v1/otp',
+                [
+                    'email' => $user->email,
+                    'type' => 'email',
+                ]
+            );
+
         return redirect()
             ->route('voter.otp.form')
             ->with('success', 'A verification code has been sent to your email.');
