@@ -3,176 +3,203 @@
 
 @section('content')
     <div x-data="{
-                formData: {
-                    name: '',
-                    acronym: '',
-                    description: '',
-                    platform: '',
-                    logo: null,
-                    logoName: '',
-                    color: '#3b82f6',
-                    organization_id: '',
-                    election_id: '',
-                    status: 'active'
-                },
-                errors: {},
-                loading: false,
-                logoPreview: null,
-                logoDragOver: false,
-                currentStep: 1,
-                showPreview: false,
-                isDirty: false,
-                showModal: false,
-                modalType: 'success',
-                modalTitle: '',
-                modalMessage: '',
+                                        formData: {
+                                            name: '',
+                                            acronym: '',
+                                            description: '',
+                                            platform: '',
+                                            logo: null,
+                                            logoName: '',
+                                            color: '#3b82f6',
+                                            organization_id: '',
+                                            election_id: '',
+                                            status: 'active'
+                                        },
+                                        errors: {},
+                                        loading: false,
+                                        logoPreview: null,
+                                        logoDragOver: false,
+                                        currentStep: 1,
+                                        showPreview: false,
+                                        isDirty: false,
+                                        showModal: false,
+                                        modalType: 'success',
+                                        modalTitle: '',
+                                        modalMessage: '',
 
-                progressPercent() {
-                    const fields = ['name','acronym','description','platform','organization_id','logo'];
-                    const filled = fields.reduce((acc, key) => acc + (this.formData[key] ? 1 : 0), 0);
-                    return Math.round((filled / fields.length) * 100);
-                },
+                                        progressPercent() {
+                                            const fields = ['name','acronym','description','platform','organization_id','logo'];
+                                            const filled = fields.reduce((acc, key) => acc + (this.formData[key] ? 1 : 0), 0);
+                                            return Math.round((filled / fields.length) * 100);
+                                        },
 
-                nextStep() {
-                    if (this.validateStep1()) this.currentStep = 2;
-                },
+                                        nextStep() {
+                                            if (this.validateStep1()) this.currentStep = 2;
+                                        },
 
-                prevStep() { this.currentStep = 1; },
+                                        prevStep() { this.currentStep = 1; },
 
-                    validateStep1() {
-                    const requiredFields = ['name', 'organization_id'];
-                    let valid = true;
-                    this.errors = {};
-                    requiredFields.forEach(field => {
-                        if (!this.formData[field]) {
-                            this.errors[field] = ['This field is required'];
-                            valid = false;
-                        }
-                    });
-                    if (!valid) this.showNotification('Please fill in all required fields', 'error');
-                    return valid;
-                },
+                                            validateStep1() {
+                                            const requiredFields = ['name', 'organization_id'];
+                                            let valid = true;
+                                            this.errors = {};
+                                            requiredFields.forEach(field => {
+                                                if (!this.formData[field]) {
+                                                    this.errors[field] = ['This field is required'];
+                                                    valid = false;
+                                                }
+                                            });
+                                            if (!valid) this.showNotification('Please fill in all required fields', 'error');
+                                            return valid;
+                                        },
 
-                async submitForm() {
-                    if (!this.validateStep1()) return;
-                    if (!confirm('Are you sure you want to submit and create this partylist?')) {
-                        return;
-                    }
-                    this.loading = true;
-                    this.errors = {};
+                                        async submitForm() {
+                                            if (!this.validateStep1()) return;
+                                            if (!confirm('Are you sure you want to submit and create this partylist?')) {
+                                                return;
+                                            }
+                                            this.loading = true;
+                                            this.errors = {};
 
-                    try {
-                        const payload = new FormData();
-                        Object.keys(this.formData).forEach(k => {
-                            if (this.formData[k] !== null && this.formData[k] !== '') {
-                                if (k === 'logo' && this.formData.logo instanceof File) {
-                                    payload.append('logo', this.formData.logo);
-                                } else if (k !== 'logo' && k !== 'logoName') {
-                                    payload.append(k, this.formData[k]);
-                                }
-                            }
-                        });
+                                            try {
+                                                const payload = new FormData();
+                                                Object.keys(this.formData).forEach(k => {
+                                                    if (this.formData[k] !== null && this.formData[k] !== '') {
+                                                        if (k === 'logo' && this.formData.logo instanceof File) {
+                                                            payload.append('logo', this.formData.logo);
+                                                        } else if (k !== 'logo' && k !== 'logoName') {
+                                                            payload.append(k, this.formData[k]);
+                                                        }
+                                                    }
+                                                });
 
-                        const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') ||
-                                     document.querySelector('input[name=_token]')?.value;
-                        payload.append('_token', token);
+                                                const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content') ||
+                                                             document.querySelector('input[name=_token]')?.value;
+                                                payload.append('_token', token);
 
-                        const response = await fetch('{{ route('admin.partylists.store') }}', {
-                            method: 'POST',
-                            body: payload,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                            }
-                        });
+                                                const response = await fetch('{{ route('admin.partylists.store') }}', {
+                                                    method: 'POST',
+                                                    body: payload,
+                                                    headers: {
+                                                        'X-Requested-With': 'XMLHttpRequest',
+                                                    }
+                                                });
 
-                        const data = await response.json();
+                                                const data = await response.json();
 
-                        if (response.ok && data.success) {
-                            this.showResponseModal('success','Party List Created','Your party list has been created successfully.');
-                            localStorage.removeItem('partylist_draft');
-                            setTimeout(() => window.location.href = '{{ route('admin.partylists.index') }}', 2000);
-                        } else {
-                            this.errors = data.errors || {};
-                            this.showResponseModal('error','Creation Failed','Please check the form for errors and try again.');
-                        }
-                    } catch (error) {
-                        console.error('Submit error:', error);
-                        this.showResponseModal('error','System Error','An unexpected error occurred. Please try again.');
-                    } finally {
-                        this.loading = false;
-                    }
-                },
+                                                if (response.ok && data.success) {
+                                                    this.showResponseModal('success','Party List Created','Your party list has been created successfully.');
+                                                    localStorage.removeItem('partylist_draft');
+                                                    setTimeout(() => window.location.href = '{{ route('admin.partylists.index') }}', 2000);
+                                                } else {
+                                                    this.errors = data.errors || {};
+                                                    this.showResponseModal('error','Creation Failed','Please check the form for errors and try again.');
+                                                }
+                                            } catch (error) {
+                                                console.error('Submit error:', error);
+                                                this.showResponseModal('error','System Error','An unexpected error occurred. Please try again.');
+                                            } finally {
+                                                this.loading = false;
+                                            }
+                                        },
 
-                resetForm() {
-                    this.formData = { name: '', acronym: '', description: '', platform: '', logo: null, logoName: '', color:'#3b82f6', organization_id:'', status:'active' };
-                    this.logoPreview = null; this.errors = {}; this.isDirty = false; this.currentStep = 1;
-                    this.showNotification('Form has been reset', 'info');
-                },
+                                        resetForm() {
+                                        const empty = {
+                                        name: '',
+                                        acronym: '',
+                                        description: '',
+                                        platform: '',
+                                        logo: null,
+                                        logoName: '',
+                                        color: '#3b82f6',
+                                        organization_id: '',
+                                        election_id: '',
+                                        status: 'active'
+                                        };
 
-                handleLogoUpload(event) {
-                    const file = event.target.files ? event.target.files[0] : event;
-                    if (!file) return;
-                    if (file.size > 2 * 1024 * 1024) { this.showNotification('File size must not exceed 2MB','error'); return; }
-                    if (!file.type.startsWith('image/')) { this.showNotification('Please upload a valid image file','error'); return; }
-                    this.formData.logo = file;
-                    this.formData.logoName = file.name;
-                    const reader = new FileReader();
-                    reader.onload = (e) => this.logoPreview = e.target.result;
-                    reader.readAsDataURL(file);
-                    this.isDirty = true;
-                },
+                                        Object.keys(empty).forEach(key => {
+                                        this.formData[key] = empty[key];
+                                        });
 
-                handleDragOver(e) { e.preventDefault(); this.logoDragOver = true; },
-                handleDragLeave() { this.logoDragOver = false; },
-                handleDrop(e) {
-                    e.preventDefault(); this.logoDragOver = false;
-                    const file = e.dataTransfer.files[0];
-                    if (file) this.handleLogoUpload(file);
-                },
+                                        this.logoPreview = null;
+                                        this.errors = {};
+                                        this.isDirty = false;
+                                        this.currentStep = 1;
 
-                generateAcronym() {
-                    if (this.formData.name) {
-                        this.formData.acronym = this.formData.name.split(' ').map(w=>w.charAt(0).toUpperCase()).join('').slice(0,5);
-                    }
-                },
+                                        this.$nextTick(() => {
+                                        window.showNotification('Form has been reset', 'info');
+                                        });
+                                        },
 
-                saveDraft() {
-                    const draft = { ...this.formData }; delete draft.logo; delete draft.logoName;
-                    localStorage.setItem('partylist_draft', JSON.stringify(draft));
-                    this.showNotification('Draft saved successfully', 'success');
-                },
 
-                loadDraft() {
-                    const draft = localStorage.getItem('partylist_draft');
-                    if (!draft) { this.showNotification('No draft found','info'); return; }
-                    const data = JSON.parse(draft);
-                    this.formData = { ...this.formData, ...data }; this.isDirty = true; this.showNotification('Draft loaded successfully','info');
-                },
+                                        handleLogoUpload(event) {
+                                            const file = event.target.files ? event.target.files[0] : event;
+                                            if (!file) return;
+                                            if (file.size > 2 * 1024 * 1024) { this.showNotification('File size must not exceed 2MB','error'); return; }
+                                            if (!file.type.startsWith('image/')) { this.showNotification('Please upload a valid image file','error'); return; }
+                                            this.formData.logo = file;
+                                            this.formData.logoName = file.name;
+                                            const reader = new FileReader();
+                                            reader.onload = (e) => this.logoPreview = e.target.result;
+                                            reader.readAsDataURL(file);
+                                            this.isDirty = true;
+                                        },
 
-                showResponseModal(type, title, message) { this.modalType = type; this.modalTitle = title; this.modalMessage = message; this.showModal = true; },
-                closeModal() { this.showModal = false; },
+                                        handleDragOver(e) { e.preventDefault(); this.logoDragOver = true; },
+                                        handleDragLeave() { this.logoDragOver = false; },
+                                        handleDrop(e) {
+                                            e.preventDefault(); this.logoDragOver = false;
+                                            const file = e.dataTransfer.files[0];
+                                            if (file) this.handleLogoUpload(file);
+                                        },
 
-                showNotification(message, type='info') {
-                    const n = document.createElement('div');
-                    const colors = {
-                        success: 'bg-emerald-500 border-emerald-600',
-                        error:'bg-red-500 border-red-600',
-                        info:'bg-blue-500 border-blue-600'
-                    };
-                    n.className = `fixed top-6 right-6 \${colors[type]} text-white px-6 py-4 rounded-lg shadow-lg border-l-4 z-50 max-w-sm transition-all transform`;
-                    n.innerHTML = `<div class='flex items-center space-x-3'><i class='ri-information-line'></i><span>\${message}</span></div>`;
-                    n.style.transform = 'translateX(100%)';
-                    document.body.appendChild(n);
-                    setTimeout(() => n.style.transform = 'translateX(0)', 100);
-                    setTimeout(() => {
-                        n.style.transform = 'translateX(100%)';
-                        setTimeout(() => n.remove(), 300);
-                    }, 4000);
-                }
-             }" x-init="
-                $watch('formData', () => isDirty = true, { deep: true });
-                window.addEventListener('beforeunload', (e) => { if (isDirty) { e.preventDefault(); e.returnValue = ''; } });
-             " class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+                                        generateAcronym() {
+                                            if (this.formData.name) {
+                                                this.formData.acronym = this.formData.name.split(' ').map(w=>w.charAt(0).toUpperCase()).join('').slice(0,5);
+                                            }
+                                        },
+
+                                        saveDraft() {
+                                        const draft = { ...this.formData };
+                                        delete draft.logo;
+                                        delete draft.logoName;
+
+                                        localStorage.setItem('partylist_draft', JSON.stringify(draft));
+                                        window.showNotification('Draft saved successfully', 'success');
+                                        },
+
+                                        loadDraft() {
+                                        const draft = localStorage.getItem('partylist_draft');
+                                        if (!draft) {
+                                        window.showNotification('No draft found', 'info');
+                                        return;
+                                        }
+
+                                        const data = JSON.parse(draft);
+                                        Object.keys(data).forEach(key => {
+                                        this.formData[key] = data[key];
+                                        });
+
+                                        this.isDirty = true;
+
+                                        this.$nextTick(() => {
+                                        window.showNotification('Draft loaded successfully', 'info');
+                                        });
+
+                                        this.isDirty = true;
+
+                                        window.showNotification('Draft loaded successfully', 'info');
+                                        },
+
+                                        showResponseModal(type, title, message) { this.modalType = type; this.modalTitle = title; this.modalMessage = message; this.showModal = true; },
+                                        closeModal() { this.showModal = false; },
+
+
+
+                                     }" x-init="
+                                        $watch('formData', () => isDirty = true, { deep: true });
+                                        window.addEventListener('beforeunload', (e) => { if (isDirty) { e.preventDefault(); e.returnValue = ''; } });
+                                     " class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
 
         {{-- Modal --}}
         <div x-show="showModal" x-cloak
@@ -204,8 +231,7 @@
         <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
             <!-- Mobile Header -->
             <header class="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-                <button @click="collapsed = false"
-                        class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
+                <button @click="collapsed = false" class="p-2 rounded-lg text-slate-600 hover:bg-slate-100">
                     <i class="ri-menu-fold-line text-lg rotate-180"></i>
                 </button>
                 <h1 class="text-lg font-semibold text-slate-800">Create Partylist</h1>
@@ -576,4 +602,38 @@
 
         @csrf
     </div>
+
+    <script>
+        function showNotification(message, type = 'info') {
+            const n = document.createElement('div');
+
+            const colors = {
+                success: 'bg-emerald-500 border-emerald-600',
+                error: 'bg-red-500 border-red-600',
+                info: 'bg-blue-500 border-blue-600'
+            };
+
+            n.className =
+                'fixed top-6 right-6 ' +
+                colors[type] +
+                ' text-white px-6 py-4 rounded-lg shadow-lg border-l-4 z-50 max-w-sm transition-all transform';
+
+            n.innerHTML =
+                '<div class="flex items-center space-x-3">' +
+                '<i class="ri-information-line"></i>' +
+                '<span>' + message + '</span>' +
+                '</div>';
+
+            document.body.appendChild(n);
+
+            n.style.transform = 'translateX(120%)';
+            setTimeout(() => n.style.transform = 'translateX(0)', 50);
+
+            setTimeout(() => {
+                n.style.transform = 'translateX(120%)';
+                setTimeout(() => n.remove(), 300);
+            }, 4000);
+        }
+    </script>
+
 @endsection

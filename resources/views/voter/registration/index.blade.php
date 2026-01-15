@@ -324,7 +324,7 @@
 
                                     <div class="mb-5">
                                         <label class="block text-sm font-semibold text-slate-700 mb-2">
-                                            <i class="fas fa-id-card text-brand-accent mr-2"></i>Student/Employee ID
+                                            <i class="fas fa-id-card text-brand-accent mr-2"></i>ID No.
                                         </label>
                                         <input type="text" name="student_id" value="{{ old('student_id') }}" required
                                             class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700"
