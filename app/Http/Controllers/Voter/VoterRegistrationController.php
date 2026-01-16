@@ -27,7 +27,12 @@ class VoterRegistrationController extends Controller
         }
 
         // Registration deadline check
-        $registrationOver = $election->registration_deadline && now()->gt($election->registration_deadline);
+        try {
+            $this->validateRegistrationWindow($election);
+            $registrationOver = false;
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            $registrationOver = true;
+        }
 
         return view('voter.registration.index', [
             'election' => $election,
@@ -283,6 +288,30 @@ class VoterRegistrationController extends Controller
         return redirect()->route('voter.elections.access')
             ->with('success', 'You have been logged out.');
     }
+
+    /**
+     * Check if voter registration is allowed
+     */
+    private function validateRegistrationWindow(Election $election)
+    {
+        $now = now();
+
+        // Election already finished
+        if ($election->end_at && $now->gt($election->end_at)) {
+            abort(403, 'This election has already ended. Registration is closed.');
+        }
+
+        // Voting already started
+        if ($election->start_at && $now->gte($election->start_at)) {
+            abort(403, 'Registration is closed because voting has already started.');
+        }
+
+        // Explicit closed status
+        if ($election->status === 'closed') {
+            abort(403, 'This election is already closed.');
+        }
+    }
+
 
     /**
      * Calculate distance between two points in meters using Haversine formula

@@ -14,10 +14,21 @@
             background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
         }
 
-        .text-brand-primary { color: var(--brand-primary); }
-        .text-brand-accent { color: var(--brand-accent); }
-        .bg-brand-primary { background-color: var(--brand-primary); }
-        .bg-brand-accent { background-color: var(--brand-accent); }
+        .text-brand-primary {
+            color: var(--brand-primary);
+        }
+
+        .text-brand-accent {
+            color: var(--brand-accent);
+        }
+
+        .bg-brand-primary {
+            background-color: var(--brand-primary);
+        }
+
+        .bg-brand-accent {
+            background-color: var(--brand-accent);
+        }
 
         .position-card {
             background: white;
@@ -42,6 +53,7 @@
             gap: 0.75rem;
             padding: 1.5rem;
         }
+
         @media (min-width: 768px) {
             .candidate-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -180,7 +192,8 @@
         <!-- Top Navigation -->
         <header class="glass-header sticky top-0 z-50 px-6 py-4">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <a href="{{ route('voter.elections.welcome', $election->code) }}" class="flex items-center gap-2 text-brand-primary font-bold hover:opacity-70 transition-opacity">
+                <a href="{{ route('voter.elections.welcome', $election->code) }}"
+                    class="flex items-center gap-2 text-brand-primary font-bold hover:opacity-70 transition-opacity">
                     <i class="fas fa-arrow-left"></i>
                     <span>Back to Home</span>
                 </a>
@@ -196,12 +209,14 @@
         <main class="max-w-4xl mx-auto px-6 py-8">
             <!-- Title Section -->
             <div class="text-center mb-10">
-                <div class="inline-flex items-center gap-2 px-3 py-1 bg-brand-accent/10 text-brand-accent rounded-full text-[10px] font-black uppercase tracking-widest mb-4 border border-brand-accent/20">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1 bg-brand-accent/10 text-brand-accent rounded-full text-[10px] font-black uppercase tracking-widest mb-4 border border-brand-accent/20">
                     <i class="fas fa-check-double"></i>
                     <span>Official Ballot</span>
                 </div>
                 <h1 class="text-4xl font-black text-brand-primary mb-3 tracking-tight uppercase">Cast Your Ballot</h1>
-                <p class="text-slate-500 text-base font-medium">Please review each position and select your preferred candidates.</p>
+                <p class="text-slate-500 text-base font-medium">Please review each position and select your preferred
+                    candidates.</p>
             </div>
 
             <form action="{{ route('voter.elections.submit', $election->code) }}" method="POST" id="voting-form">
@@ -217,7 +232,8 @@
                                     <i class="fas fa-user text-lg opacity-80"></i>
                                     <h2 class="text-xl font-bold uppercase tracking-wide">{{ $position->title }}</h2>
                                 </div>
-                                <div class="selection-badge hidden items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-sm">
+                                <div
+                                    class="selection-badge hidden items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-sm">
                                     <i class="fas fa-check-circle"></i>
                                     <span>Selected</span>
                                 </div>
@@ -230,13 +246,13 @@
                                         <input type="{{ ($position->max_votes ?? 1) > 1 ? 'checkbox' : 'radio' }}"
                                             name="votes[{{ $position->id }}]{{ ($position->max_votes ?? 1) > 1 ? '[]' : '' }}"
                                             value="{{ $candidate->id }}" class="vote-input hidden"
-                                            data-position-id="{{ $position->id }}"
-                                            data-position-name="{{ $position->title }}"
+                                            data-position-id="{{ $position->id }}" data-position-name="{{ $position->title }}"
                                             data-candidate-name="{{ $candidate->name }}"
                                             data-max-votes="{{ $position->max_votes ?? 1 }}">
 
                                         <div class="flex flex-col">
-                                            <span class="text-lg font-bold text-brand-primary group-hover:text-brand-accent transition-colors">
+                                            <span
+                                                class="text-lg font-bold text-brand-primary group-hover:text-brand-accent transition-colors">
                                                 {{ $candidate->name }}
                                             </span>
                                             @if($candidate->partylist)
@@ -258,7 +274,8 @@
                                         class="vote-input hidden abstain-input" data-position-id="{{ $position->id }}"
                                         data-position-name="{{ $position->title }}" data-candidate-name="Abstain">
 
-                                    <span class="text-base font-bold text-slate-400 group-hover:text-slate-600 transition-colors">
+                                    <span
+                                        class="text-base font-bold text-slate-400 group-hover:text-slate-600 transition-colors">
                                         Abstain from this position
                                     </span>
 
@@ -278,17 +295,26 @@
                     </button>
                 </div>
             </form>
+
+            <div id="review-warning" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-[999]
+                                bg-red-50 border border-red-200 text-red-700
+                                px-6 py-4 rounded-xl shadow-lg text-sm font-bold">
+                Please select a candidate (or Abstain) for every position before reviewing your ballot.
+            </div>
+
         </main>
     </div>
 
     <!-- Summary Modal (Keep structure but match styles) -->
-    <div id="summary-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="summary-modal" class="fixed inset-0 z-[100] hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <div class="fixed inset-0 transition-opacity bg-brand-primary/80 backdrop-blur-sm" aria-hidden="true"></div>
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div class="inline-block align-bottom bg-white rounded-[2.5rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <div
+                class="inline-block align-bottom bg-white rounded-[2.5rem] text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
                 <div class="bg-brand-primary p-8 flex items-center justify-between text-white">
                     <div class="flex items-center gap-4">
                         <i class="fas fa-clipboard-check text-2xl text-brand-accent"></i>
@@ -307,7 +333,8 @@
                     <div class="mt-8 p-6 bg-amber-50 rounded-2xl border border-amber-100 flex gap-4">
                         <i class="fas fa-exclamation-triangle text-amber-500 mt-1"></i>
                         <div>
-                            <h4 class="text-amber-800 font-bold text-sm uppercase tracking-wider mb-1">Final Confirmation</h4>
+                            <h4 class="text-amber-800 font-bold text-sm uppercase tracking-wider mb-1">Final Confirmation
+                            </h4>
                             <p class="text-amber-700/80 text-xs font-medium leading-relaxed">
                                 Please review your selections carefully. Once submitted, your vote cannot be changed.
                             </p>
@@ -315,17 +342,21 @@
                     </div>
 
                     <div class="mt-8 space-y-4">
-                        <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer">
-                            <input type="checkbox" id="modal-confirm" class="w-5 h-5 text-brand-accent border-slate-300 rounded focus:ring-brand-accent">
-                            <span class="text-slate-600 font-bold text-xs">I confirm that my selections are final and correct.</span>
+                        <label
+                            class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer">
+                            <input type="checkbox" id="modal-confirm"
+                                class="w-5 h-5 text-brand-accent border-slate-300 rounded focus:ring-brand-accent">
+                            <span class="text-slate-600 font-bold text-xs">I confirm that my selections are final and
+                                correct.</span>
                         </label>
 
                         <div class="grid grid-cols-2 gap-4">
-                            <button type="button" class="close-modal py-4 bg-slate-100 text-slate-500 font-black rounded-2xl hover:bg-slate-200 transition-all uppercase tracking-widest text-[10px]">
+                            <button type="button"
+                                class="close-modal py-4 bg-slate-100 text-slate-500 font-black rounded-2xl hover:bg-slate-200 transition-all uppercase tracking-widest text-[10px]">
                                 Go Back
                             </button>
                             <button type="button" id="final-submit-btn" disabled
-                                    class="py-4 bg-brand-primary text-white font-black rounded-2xl opacity-50 cursor-not-allowed transition-all uppercase tracking-widest text-[10px]">
+                                class="py-4 bg-brand-primary text-white font-black rounded-2xl opacity-50 cursor-not-allowed transition-all uppercase tracking-widest text-[10px]">
                                 Submit Ballot
                             </button>
                         </div>
@@ -448,35 +479,50 @@
             });
 
             reviewBtn.addEventListener('click', function () {
+                const positionCards = document.querySelectorAll('.position-card');
+                const warning = document.getElementById('review-warning');
+
+                // Check if every position has a selection
+                for (let position of positionCards) {
+                    const selected = position.querySelector('.vote-input:checked');
+                    if (!selected) {
+                        // Show notification
+                        warning.classList.remove('hidden');
+
+                        // Auto-hide after 3 seconds
+                        setTimeout(() => {
+                            warning.classList.add('hidden');
+                        }, 3000);
+
+                        return; // STOP review modal
+                    }
+                }
+
+                // Hide warning if all is good
+                warning.classList.add('hidden');
+
                 const selections = {};
-                let hasSelection = false;
 
                 voteInputs.forEach(input => {
                     if (input.checked) {
                         const posName = input.dataset.positionName;
                         if (!selections[posName]) selections[posName] = [];
                         selections[posName].push(input.dataset.candidateName);
-                        hasSelection = true;
                     }
                 });
-
-                if (!hasSelection) {
-                    alert('Please select at least one candidate before reviewing.');
-                    return;
-                }
 
                 let html = '';
                 for (const [pos, candidates] of Object.entries(selections)) {
                     candidates.forEach(candidate => {
                         html += `
-                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                <div>
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">${pos}</div>
-                                    <div class="text-lg font-bold text-brand-primary">${candidate}</div>
-                                </div>
-                                <i class="fas fa-check-circle text-brand-accent text-xl"></i>
-                            </div>
-                        `;
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div>
+                            <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">${pos}</div>
+                            <div class="text-lg font-bold text-brand-primary">${candidate}</div>
+                        </div>
+                        <i class="fas fa-check-circle text-brand-accent text-xl"></i>
+                    </div>
+                `;
                     });
                 }
 
@@ -484,6 +530,7 @@
                 summaryModal.classList.remove('hidden');
                 document.body.style.overflow = 'hidden';
             });
+
 
             closeModalBtns.forEach(btn => {
                 btn.addEventListener('click', function () {
@@ -534,36 +581,36 @@
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     }
                 })
-                .then(async response => {
-                    if (response.ok) {
-                        // Successfully cast vote
-                        summaryModal.classList.add('hidden');
-                        const successScreen = document.getElementById('success-screen');
-                        successScreen.style.display = 'flex';
+                    .then(async response => {
+                        if (response.ok) {
+                            // Successfully cast vote
+                            summaryModal.classList.add('hidden');
+                            const successScreen = document.getElementById('success-screen');
+                            successScreen.style.display = 'flex';
 
-                        // Update success message if there are remaining votes
-                        const responseData = await response.json();
-                        if (responseData.remaining_votes > 0) {
-                            const successTitle = successScreen.querySelector('h2');
-                            const successMessage = successScreen.querySelector('p');
-                            if (successTitle) successTitle.textContent = 'Ballot Submitted!';
-                            if (successMessage) successMessage.textContent = responseData.message + ' Redirecting you back to cast your next vote...';
+                            // Update success message if there are remaining votes
+                            const responseData = await response.json();
+                            if (responseData.remaining_votes > 0) {
+                                const successTitle = successScreen.querySelector('h2');
+                                const successMessage = successScreen.querySelector('p');
+                                if (successTitle) successTitle.textContent = 'Ballot Submitted!';
+                                if (successMessage) successMessage.textContent = responseData.message + ' Redirecting you back to cast your next vote...';
+                            }
+
+                            setTimeout(() => {
+                                window.location.href = "{{ route('voter.elections.welcome', $election->code) }}";
+                            }, 3000);
+                        } else {
+                            const data = await response.json();
+                            throw new Error(data.message || data.error || 'Something went wrong');
                         }
-
-                        setTimeout(() => {
-                            window.location.href = "{{ route('voter.elections.welcome', $election->code) }}";
-                        }, 3000);
-                    } else {
-                        const data = await response.json();
-                        throw new Error(data.message || data.error || 'Something went wrong');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error submitting vote: ' + error.message);
-                    finalSubmitBtn.innerHTML = 'Submit Ballot';
-                    finalSubmitBtn.disabled = false;
-                });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error submitting vote: ' + error.message);
+                        finalSubmitBtn.innerHTML = 'Submit Ballot';
+                        finalSubmitBtn.disabled = false;
+                    });
             }
         });
     </script>
