@@ -97,10 +97,16 @@ class CandidateController extends Controller
                   });
             })->select('id', 'title')->get();
 
-        $organizations = Organization::all();
+        $user = auth()->user();
+        $organizations = Organization::where('created_by', $user->id)
+            ->when($user->organization_id, function($q) use ($user) {
+                $q->orWhere('id', $user->organization_id);
+            })
+            ->get();
 
-        // Partylists that belong to allowed elections or created by user
-        $partylists = Partylist::all();
+        $partylists = Partylist::where('created_by', $user->id)
+            ->orWhereIn('organization_id', $organizations->pluck('id'))
+            ->get();
 
         $commonPositions = [
             'President',
@@ -108,8 +114,8 @@ class CandidateController extends Controller
             'Secretary',
             'Treasurer',
             'Auditor',
-            'Public Relations Officer',
-            'Representative'
+            'P.R.O.',
+            'Custom Position'
         ];
 
         return view($this->getView('candidate.candidate-create'), compact(
@@ -137,7 +143,7 @@ class CandidateController extends Controller
             'user_email' => 'required_without:user_id|email|max:255',
             'organization_id' => 'required|exists:organizations,id',
             'election_id' => 'nullable|exists:elections,id',
-            'position_id' => 'nullable|exists:positions,id',
+            'position_id' => 'nullable|string',
             'new_position_name' => 'nullable|string|max:255',
             'partylist_id' => 'nullable|exists:partylists,id',
             'platform' => 'nullable|string',
@@ -176,6 +182,23 @@ class CandidateController extends Controller
             }
 
             // Handle position
+            if (!empty($validated['position_id']) && str_starts_with($validated['position_id'], 'preset:')) {
+                $title = str_replace('preset:', '', $validated['position_id']);
+
+                if ($title === 'Custom Position') {
+                    // Fall through to handle via new_position_name if it was "Custom Position"
+                    // but usually "Custom Position" maps to value="other" in the frontend.
+                    // If they literally picked "Custom Position" from the preset list:
+                    $validated['position_id'] = null;
+                } else {
+                    $position = Position::firstOrCreate(
+                        ['title' => $title],
+                        ['organization_id' => $validated['organization_id'] ?? null]
+                    );
+                    $validated['position_id'] = $position->id;
+                }
+            }
+
             if (empty($validated['position_id']) && !empty($validated['new_position_name'])) {
 
                 // Determine election_id for the new position (may be null)
@@ -385,10 +408,15 @@ class CandidateController extends Controller
             ? Election::whereIn('status', ['active', 'draft'])->get()
             : Election::all();
 
-        $partylists = Partylist::all();
+        $user = auth()->user();
+        $partylists = Partylist::where('created_by', $user->id)
+            ->orWhere('organization_id', $user->organization_id)
+            ->get();
 
-        // Added organizations because edit.blade.php requires it
-        $organizations = Organization::all();
+        $organizations = Organization::where('created_by', $user->id)
+            ->when($user->organization_id, function($q) use ($user) {
+                $q->orWhere('id', $user->organization_id);
+            })->get();
 
         try {
             $positions = $this->positionsQuery()->get();
@@ -697,12 +725,22 @@ class CandidateController extends Controller
 
         $storedPath = $file->store('imports');
 
+        $user = auth()->user();
+        $scopedOrgs = Organization::where('created_by', $user->id)
+            ->when($user->organization_id, function($q) use ($user) {
+                $q->orWhere('id', $user->organization_id);
+            })->get(['id', 'name']);
+
+        $scopedOrgIds = $scopedOrgs->pluck('id');
+
         return response()->json([
             'success' => true,
             'data' => $data,
             'importPath' => $storedPath,
-            'organizations' => Organization::all(['id', 'name']),
-            'partylists' => Partylist::all(['id', 'name', 'organization_id'])
+            'organizations' => $scopedOrgs,
+            'partylists' => Partylist::where('created_by', $user->id)
+                ->orWhereIn('organization_id', $scopedOrgIds)
+                ->get(['id', 'name', 'organization_id'])
         ]);
     }
 
@@ -815,11 +853,19 @@ class CandidateController extends Controller
                 $posTitle = $row['designated_position'] ?? null;
                 $posId = null;
                 if ($posTitle) {
-                    $pos = Position::where('title', 'LIKE', trim($posTitle))
-                        ->when($electionId, function($q) use ($electionId) {
-                            return $q->where('election_id', $electionId);
-                        })->first();
-                    $posId = $pos ? $pos->id : null;
+                    $posTitleClean = trim($posTitle);
+
+                    if ($electionId) {
+                        // Ensure the position exists for this election
+                        $pos = Position::firstOrCreate([
+                            'election_id' => $electionId,
+                            'title' => $posTitleClean
+                        ]);
+                        $posId = $pos->id;
+                    } else {
+                        $pos = Position::where('title', 'LIKE', $posTitleClean)->first();
+                        $posId = $pos ? $pos->id : null;
+                    }
                 }
 
                 $nameParts = explode(' ', trim($fullName));

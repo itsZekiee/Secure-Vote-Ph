@@ -180,38 +180,10 @@ document.addEventListener('alpine:init', () => {
                                 </div>
                             </div>
 
-<<<<<<< HEAD
-                            <nav class="flex items-center" aria-label="Breadcrumb">
-                                <ol class="flex items-center gap-3">
-                                    <li>
-                                        <a href="{{ route('admin.elections.index') }}" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all">
-                                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                                                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2"/>
-                                            </svg>
-                                            Elections
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <svg class="w-4 h-4 text-gray-300" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                            <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </li>
-                                    <li class="flex items-center">
-                                        <div class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all">
-                                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
-                                                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            Create New
-                                        </div>
-                                    </li>
-                                </ol>
-                            </nav>
-=======
                             <div>
                                 <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Create New Election</h1>
                                 <p class="text-sm text-gray-600 leading-relaxed mt-0.5">Set up a comprehensive election with positions, candidates, and voting configurations</p>
                             </div>
->>>>>>> 2f41f18306464da59f47efe8f18f83f85e760719
                         </div>
 
                         <nav class="flex items-center" aria-label="Breadcrumb">

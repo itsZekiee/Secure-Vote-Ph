@@ -174,6 +174,11 @@
                                             <select x-model="formData.position_id"
                                                     class="w-full pl-12 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm appearance-none shadow-sm">
                                                 <option value="">Select position</option>
+                                                <optgroup label="Standard Titles" class="font-bold text-indigo-600 bg-indigo-50">
+                                                    <template x-for="title in commonPositions" :key="title">
+                                                        <option :value="'preset:' + title" x-text="title" class="font-bold text-slate-700 bg-white"></option>
+                                                    </template>
+                                                </optgroup>
                                                 <optgroup label="Active Definitions" class="font-bold text-slate-900">
                                                     <template x-for="p in existingPositions" :key="p.id">
                                                         <option :value="p.id" x-text="p.name"></option>
@@ -184,7 +189,7 @@
                                             <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                                         </div>
 
-                                        <div x-show="formData.position_id === 'other'"
+                                        <div x-show="formData.position_id === 'other' || formData.position_id === 'preset:Custom Position'"
                                              x-transition
                                              class="mt-3">
                                             <input type="text"
@@ -443,7 +448,7 @@
                 if (!this.formData.organization_id) this.errors.organization_id = ['Organization is required'];
                 if (!this.formData.position_id) {
                     this.errors.position_id = ['Position is required'];
-                } else if (this.formData.position_id === 'other' && !this.formData.new_position_name.trim()) {
+                } else if ((this.formData.position_id === 'other' || this.formData.position_id === 'preset:Custom Position') && !this.formData.new_position_name.trim()) {
                     this.errors.new_position_name = ['Enter position name'];
                 }
                 return Object.keys(this.errors).length === 0;
