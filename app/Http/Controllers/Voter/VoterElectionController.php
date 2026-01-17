@@ -47,23 +47,16 @@ class VoterElectionController extends Controller
         }
 
         // Store election in session and redirect to registration
-        session(['election_id' => $election->id, 'election_code' => $code]);
+        session(['election_id' => $election->id, 'election_code' => $election->code]);
 
-        return redirect()->route('voter.registration.index', $election->code);
+        return redirect()->route('voter.registration.index', $election->id);
     }
 
     /**
      * Step 3: Welcome page with countdown
      */
-    public function welcome($code)
+    public function welcome(Election $election)
     {
-        $election = Election::where('code', $code)->first();
-
-        if (!$election) {
-            return redirect()->route('voter.elections.access')
-                ->withErrors(['code' => 'Election not found.']);
-        }
-
         $voter = session('voter');
 
         $hasVoted = $this->getBallotCount($election->id, $voter['id']) >= ($election->max_votes ?? 1);
@@ -79,30 +72,23 @@ class VoterElectionController extends Controller
     /**
      * Step 4: Display voting page with positions and candidates
      */
-    public function index($code)
+    public function index(Election $election)
     {
-        $election = Election::where('code', $code)->first();
-
-        if (!$election) {
-            return redirect()->route('voter.elections.access')
-                ->withErrors(['code' => 'Election not found.']);
-        }
-
         $voter = session('voter');
 
         // Rest of existing logic...
         if (Carbon::now()->lt($election->start_date)) {
-            return redirect()->route('voter.elections.welcome', $election->code)
+            return redirect()->route('voter.elections.welcome', $election->id)
                 ->withErrors(['election' => 'Election has not started yet.']);
         }
 
         if (Carbon::now()->gt($election->end_date)) {
-            return redirect()->route('voter.elections.welcome', $election->code)
+            return redirect()->route('voter.elections.welcome', $election->id)
                 ->withErrors(['election' => 'Election has already ended.']);
         }
 
         if ($this->getBallotCount($election->id, $voter['id']) >= ($election->max_votes ?? 1)) {
-            return redirect()->route('voter.elections.welcome', $election->code)
+            return redirect()->route('voter.elections.welcome', $election->id)
                 ->with('info', 'You have already reached the maximum number of votes allowed for this election.');
         }
 
@@ -122,15 +108,8 @@ class VoterElectionController extends Controller
     /**
      * Process the vote submission
      */
-    public function submitVote(Request $request, $code)
+    public function submitVote(Request $request, Election $election)
     {
-        $election = Election::where('code', $code)->first();
-
-        if (!$election) {
-            return redirect()->route('voter.elections.access')
-                ->withErrors(['code' => 'Election not found.']);
-        }
-
         $voter = session('voter');
         if (!$voter) {
             return redirect()->route('voter.elections.access')
@@ -146,7 +125,7 @@ class VoterElectionController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
-            return redirect()->route('voter.elections.welcome', $election->code)
+            return redirect()->route('voter.elections.welcome', $election->id)
                 ->withErrors(['error' => $msg]);
         }
 

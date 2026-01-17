@@ -354,6 +354,7 @@ class OrganizationController extends Controller
         ];
 
         $callback = function () use ($organizations) {
+            if (ob_get_level() > 0) ob_end_clean();
             $file = fopen('php://output', 'w');
 
             // CSV headers

@@ -26,12 +26,13 @@ class PartylistController extends Controller
 
     public function index()
     {
-        $partylists = Partylist::where(function($q) {
-                $q->where('created_by', auth()->id())
-                  ->orWhereHas('election', function($qe) {
-                      $qe->where('created_by', auth()->id())
-                         ->orWhereHas('subAdmins', function($qs) {
-                             $qs->where('user_id', auth()->id());
+        $userId = (string) auth()->id();
+        $partylists = Partylist::where(function($q) use ($userId) {
+                $q->where('created_by', $userId)
+                  ->orWhereHas('election', function($qe) use ($userId) {
+                      $qe->where('created_by', $userId)
+                         ->orWhereHas('subAdmins', function($qs) use ($userId) {
+                             $qs->where('user_id', $userId);
                          });
                   });
             })
@@ -48,16 +49,17 @@ class PartylistController extends Controller
 
     public function create()
     {
+        $userId = (string) auth()->id();
         // Get only user's created organizations
-        $organizations = Organization::where('created_by', auth()->id())
+        $organizations = Organization::where('created_by', $userId)
             ->orderBy('name')
             ->get();
 
         // Get elections the user created or is assigned to
-        $elections = Election::where(function($q) {
-                $q->where('created_by', auth()->id())
-                  ->orWhereHas('subAdmins', function($qs) {
-                      $qs->where('user_id', auth()->id());
+        $elections = Election::where(function($q) use ($userId) {
+                $q->where('created_by', $userId)
+                  ->orWhereHas('subAdmins', function($qs) use ($userId) {
+                      $qs->where('user_id', $userId);
                   });
             })
             ->orderBy('created_at', 'desc')
@@ -82,6 +84,7 @@ class PartylistController extends Controller
 
         try {
             DB::beginTransaction();
+            $userId = (string) auth()->id();
 
             if ($request->hasFile('logo')) {
                 $logoName = time() . '_' . $request->file('logo')->getClientOriginalName();
@@ -92,10 +95,10 @@ class PartylistController extends Controller
             // If an election_id was provided, ensure the selected election belongs to the current user
             if (! empty($validated['election_id'])) {
                 $electionBelongsToUser = Election::where('id', $validated['election_id'])
-                    ->where(function($q) {
-                        $q->where('created_by', auth()->id())
-                          ->orWhereHas('subAdmins', function($qs) {
-                              $qs->where('user_id', auth()->id());
+                    ->where(function($q) use ($userId) {
+                        $q->where('created_by', $userId)
+                          ->orWhereHas('subAdmins', function($qs) use ($userId) {
+                              $qs->where('user_id', $userId);
                           });
                     })->exists();
 
@@ -108,7 +111,7 @@ class PartylistController extends Controller
                 }
             }
 
-            $validated['created_by'] = auth()->id();
+            $validated['created_by'] = $userId;
             $partylist = Partylist::create($validated);
 
             DB::commit();
@@ -326,16 +329,17 @@ class PartylistController extends Controller
      */
     private function canUserManagePartylist(Partylist $partylist): bool
     {
-        if ($partylist->created_by === auth()->id()) {
+        $userId = (string) auth()->id();
+        if ($partylist->created_by === $userId) {
             return true;
         }
 
         if ($partylist->election_id) {
             return Election::where('id', $partylist->election_id)
-                ->where(function($q) {
-                    $q->where('created_by', auth()->id())
-                      ->orWhereHas('subAdmins', function($qs) {
-                          $qs->where('user_id', auth()->id());
+                ->where(function($q) use ($userId) {
+                    $q->where('created_by', $userId)
+                      ->orWhereHas('subAdmins', function($qs) use ($userId) {
+                          $qs->where('user_id', $userId);
                       });
                 })->exists();
         }
@@ -367,12 +371,13 @@ class PartylistController extends Controller
 
     public function search(Request $request)
     {
+        $userId = (string) auth()->id();
         $query = $request->get('q', '');
         $status = $request->get('status', '');
         $election_id = $request->get('election_id', '');
         $organization_id = $request->get('organization_id', '');
 
-        $partylists = Partylist::where('created_by', auth()->id())
+        $partylists = Partylist::where('created_by', $userId)
             ->with(['election', 'organization'])
             ->withCount(['candidates'])
             ->when($query, function ($q) use ($query) {
@@ -399,10 +404,11 @@ class PartylistController extends Controller
 
     public function export(Request $request)
     {
+        $userId = (string) auth()->id();
         $organization_id = $request->get('organization_id', '');
         $status = $request->get('status', '');
 
-        $partylists = Partylist::where('created_by', auth()->id())
+        $partylists = Partylist::where('created_by', $userId)
             ->with(['election', 'organization'])
             ->when($organization_id, function ($q) use ($organization_id) {
                 return $q->where('organization_id', $organization_id);
@@ -424,6 +430,7 @@ class PartylistController extends Controller
         ];
 
         $callback = function () use ($partylists) {
+            if (ob_get_level() > 0) ob_end_clean();
             $file = fopen('php://output', 'w');
             fputcsv($file, [
                 'Party Name',

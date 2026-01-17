@@ -102,6 +102,7 @@ class ElectionController extends Controller
                 'require_geo_verification' => $request->boolean('enable_geo_location'),
                 'require_geo_registration' => $request->boolean('enable_geo_registration'),
                 'auto_approve_voters' => $request->boolean('auto_approve_voters'),
+                'require_id_verification' => $request->boolean('require_id_verification'),
             ]);
 
             foreach ($validated['positions'] as $positionData) {
@@ -237,6 +238,7 @@ class ElectionController extends Controller
             'geo_longitude' => 'nullable|numeric',
             'geo_radius' => 'nullable|numeric',
             'auto_approve_voters' => 'nullable|boolean',
+            'require_id_verification' => 'nullable|boolean',
             'sub_admin_ids' => 'nullable|array',
             'sub_admin_ids.*' => 'exists:users,id',
             'positions' => 'nullable|array',
@@ -268,6 +270,7 @@ class ElectionController extends Controller
                 'require_geo_verification' => $request->boolean('enable_geo_location'),
                 'require_geo_registration' => $request->boolean('enable_geo_registration'),
                 'auto_approve_voters' => $request->boolean('auto_approve_voters'),
+                'require_id_verification' => $request->boolean('require_id_verification'),
             ]);
 
             if (!empty($validated['sub_admin_ids'])) {
@@ -546,6 +549,7 @@ class ElectionController extends Controller
         ];
 
         $callback = function () use ($elections) {
+            if (ob_get_level() > 0) ob_end_clean();
             $file = fopen('php://output', 'w');
 
             fputcsv($file, [

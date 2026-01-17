@@ -16,8 +16,10 @@ use App\Http\Controllers\Voter\VoterElectionController;
 use App\Http\Controllers\Voter\ElectionAccessController;
 use App\Http\Controllers\Voter\AuthController as VoterAuthController;
 use App\Http\Controllers\Voter\VoterRegistrationController;
+use App\Http\Controllers\Voter\PasswordResetController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Elections\Store as ElectionStoreController;
+use App\Http\Controllers\MainAdmin\UserManagementController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\MagicLinkController;
@@ -77,7 +79,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 | Election Registration Route (Public)
 |--------------------------------------------------------------------------
 */
-Route::get('/elections/register/{code}', [VoterElectionController::class, 'register'])
+Route::get('/elections/register/{election}', [VoterElectionController::class, 'register'])
     ->name('elections.register');
 
 /*
@@ -204,17 +206,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->grou
     Route::resource('voters', VoterController::class);
 
     // User Management Routes
-    Route::resource('users', UserController::class);
+    Route::resource('users', UserManagementController::class);
     Route::prefix('users')->name('users.')->group(function () {
-        Route::get('search', [UserController::class, 'search'])->name('search');
-        Route::get('export', [UserController::class, 'export'])->name('export');
-        Route::post('{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('toggle-status');
-        Route::post('{user}/assign-role', [UserController::class, 'assignRole'])->name('assign-role');
-        Route::delete('{user}/remove-role', [UserController::class, 'removeRole'])->name('remove-role');
-        Route::post('{user}/reset-password', [UserController::class, 'resetPassword'])->name('reset-password');
-        Route::get('{user}/activity', [UserController::class, 'activity'])->name('activity');
-        Route::post('bulk-import', [UserController::class, 'bulkImport'])->name('bulk-import');
-        Route::get('template-download', [UserController::class, 'downloadTemplate'])->name('template-download');
+        Route::post('{user}/approve', [UserManagementController::class, 'approve'])->name('approve');
+        Route::post('{user}/reject', [UserManagementController::class, 'reject'])->name('reject');
+        Route::get('search', [UserManagementController::class, 'search'])->name('search');
+        Route::get('export', [UserManagementController::class, 'export'])->name('export');
+        Route::post('{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('toggle-status');
     });
 
     // Reports & Analytics Routes
@@ -236,7 +234,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->grou
         Route::get('system', [ReportController::class, 'system'])->name('system');
         Route::get('security', [ReportController::class, 'security'])->name('security');
         Route::get('audit', [ReportController::class, 'audit'])->name('audit');
-        Route::post('export', [ReportController::class, 'export'])->name('export');
+        Route::match(['get', 'post'], 'export', [ReportController::class, 'export'])->name('export');
         Route::get('export/{type}', [ReportController::class, 'exportByType'])->name('export.type');
         Route::get('pdf/{type}', [ReportController::class, 'generatePDF'])->name('pdf');
     });
@@ -315,9 +313,22 @@ Route::prefix('voter')->name('voter.')->group(function () {
     })->name('elections.index');
 
     // Step 2: Voter Registration/Login for specific election
-    Route::get('/registration/{code}', [VoterRegistrationController::class, 'index'])->name('registration.index');
-    Route::post('/registration/{code}', [VoterRegistrationController::class, 'store'])->name('registration.store');
-    Route::post('/registration/{code}/login', [VoterRegistrationController::class, 'login'])->name('registration.login');
+    Route::get('/registration/{election}', [VoterRegistrationController::class, 'index'])->name('registration.index');
+    Route::post('/registration/{election}', [VoterRegistrationController::class, 'store'])->name('registration.store');
+    Route::post('/registration/{election}/login', [VoterRegistrationController::class, 'login'])->name('registration.login');
+
+    // Public Results (Real-time data)
+    Route::get('/elections/{election}/results', [VoterElectionController::class, 'results'])->name('elections.results');
+    Route::get('/elections/{election}/results/votes', [VoterElectionController::class, 'getVotes'])->name('elections.results.votes');
+
+    // Voter Password Reset Routes
+    Route::get('/registration/{election}/forgot-password', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/registration/{election}/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('/registration/{election}/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/registration/{election}/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+    Route::get('/registration/{election}/password/search', [PasswordResetController::class, 'searchEmails'])->name('password.search');
+    Route::post('/registration/{election}/password/otp', [PasswordResetController::class, 'sendOTP'])->name('password.otp.send');
+    Route::post('/registration/{election}/password/otp/verify', [PasswordResetController::class, 'verifyOTP'])->name('password.otp.verify');
 
     // ==========================================
     // PROTECTED ROUTES (Voter Session Required)
@@ -325,15 +336,11 @@ Route::prefix('voter')->name('voter.')->group(function () {
     Route::middleware(['voter.auth'])->group(function () {
 
         // Step 3: Welcome page with countdown
-        Route::get('/elections/{code}/welcome', [VoterElectionController::class, 'welcome'])->name('elections.welcome');
+        Route::get('/elections/{election}/welcome', [VoterElectionController::class, 'welcome'])->name('elections.welcome');
 
         // Step 4: Voting page
-        Route::get('/elections/{code}/vote', [VoterElectionController::class, 'index'])->name('elections.vote');
-        Route::post('/elections/{code}/submit', [VoterElectionController::class, 'submitVote'])->name('elections.submit');
-
-        // Step 5: Results page
-        Route::get('/elections/{code}/results', [VoterElectionController::class, 'results'])->name('elections.results');
-        Route::get('/elections/{code}/results/votes', [VoterElectionController::class, 'getVotes'])->name('elections.results.votes');
+        Route::get('/elections/{election}/vote', [VoterElectionController::class, 'index'])->name('elections.vote');
+        Route::post('/elections/{election}/submit', [VoterElectionController::class, 'submitVote'])->name('elections.submit');
 
         // Voter Profile & History
         Route::get('/profile', [VoterElectionController::class, 'profile'])->name('profile.index');

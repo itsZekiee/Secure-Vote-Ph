@@ -33,6 +33,8 @@ class Candidate extends Model
         'status',
     ];
 
+    protected $appends = ['photo_url'];
+
     protected $casts = [
         'order' => 'integer',
         'created_at' => 'datetime',
@@ -88,5 +90,17 @@ class Candidate extends Model
     public function scopeWithVoteCount($query)
     {
         return $query->withCount('votes');
+    }
+
+    /**
+     * Get the candidate's photo URL or a default placeholder
+     */
+    public function getPhotoUrlAttribute()
+    {
+        if ($this->photo) {
+            return asset('storage/' . $this->photo);
+        }
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->first_name . ' ' . $this->last_name) . '&color=ffffff&background=6366f1';
     }
 }

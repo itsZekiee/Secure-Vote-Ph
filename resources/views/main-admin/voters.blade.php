@@ -349,7 +349,33 @@
                                             </div>
                                             <div>
                                                 <p class="font-bold text-slate-900 leading-tight text-sm">{{ $name }}</p>
-                                                <p class="text-[10px] font-bold text-indigo-500 mt-0.5 uppercase tracking-wider">{{ $student_id }}</p>
+                                                <div class="flex items-center gap-2 mt-0.5">
+                                                    <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">{{ $student_id }}</p>
+                                                    @if(data_get($voter, 'id_photo'))
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[8px] font-black uppercase tracking-widest border border-blue-100" title="ID Photo Uploaded">
+                                                            <i class="ri-image-line"></i>
+                                                            ID
+                                                        </span>
+                                                        @php
+                                                            $isDuplicate = false;
+                                                            if (data_get($voter, 'id_photo_hash')) {
+                                                                $isDuplicate = \App\Models\Voter::where('election_id', data_get($voter, 'election_id'))
+                                                                    ->where('id', '!=', data_get($voter, 'id'))
+                                                                    ->whereNotNull('id_photo_hash')
+                                                                    ->get()
+                                                                    ->contains(function($v) use ($voter) {
+                                                                        return \App\Helpers\ImageHash::distance(data_get($voter, 'id_photo_hash'), $v->id_photo_hash) <= 5;
+                                                                    });
+                                                            }
+                                                        @endphp
+                                                        @if($isDuplicate)
+                                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 bg-red-50 text-red-600 rounded text-[8px] font-black uppercase tracking-widest border border-red-100" title="Potential Duplicate ID Photo Detected">
+                                                                <i class="ri-error-warning-line"></i>
+                                                                FLAGGED
+                                                            </span>
+                                                        @endif
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     </td>

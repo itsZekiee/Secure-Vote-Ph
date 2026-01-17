@@ -44,7 +44,7 @@ class AuthController extends Controller
         if (session()->has('election_id')) {
             $election = Election::find(session('election_id'));
             if ($election) {
-                return redirect()->route('voter.elections.welcome', $election->code);
+                return redirect()->route('voter.elections.welcome', $election->id);
             }
         }
 
@@ -85,8 +85,29 @@ class AuthController extends Controller
                 'created_at' => now(),
             ]);
 
+            if ($user) {
+                $user->increment('failed_login_attempts');
+                $attempts = $user->failed_login_attempts;
+
+                if ($attempts >= 6) {
+                    $user->update(['is_permanently_blocked' => true]);
+                } elseif ($attempts == 5) {
+                    $user->update(['locked_until' => now()->addHours(24)]);
+                } elseif ($attempts == 3) {
+                    $user->update(['locked_until' => now()->addMinutes(60)]);
+                }
+            }
+
             return back()->withErrors([
                 'email' => 'Invalid email or password.',
+            ]);
+        }
+
+        // Reset failed attempts on successful credentials validation
+        if ($user) {
+            $user->update([
+                'failed_login_attempts' => 0,
+                'locked_until' => null
             ]);
         }
 

@@ -90,6 +90,12 @@ class GoogleAuthController extends Controller
 
             Auth::login($user);
 
+            // Reset failed login attempts on successful Google authentication
+            $user->update([
+                'failed_login_attempts' => 0,
+                'locked_until' => null
+            ]);
+
             AuditLogger::log(
                 'LOGIN',
                 'Auth',

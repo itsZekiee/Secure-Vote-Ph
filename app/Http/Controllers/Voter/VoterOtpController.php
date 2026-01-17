@@ -93,6 +93,11 @@ class VoterOtpController extends Controller
 
         $request->session()->regenerate();
 
+        if (session()->has('otp_election_id')) {
+            return redirect()->route('voter.elections.welcome', session('otp_election_id'))
+                ->with('success', 'Login verified successfully.');
+        }
+
         return redirect()->route('voter.welcome')
             ->with('success', 'Login verified successfully.');
     }

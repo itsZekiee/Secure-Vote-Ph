@@ -160,8 +160,12 @@
         <div class="p-2 border-t border-slate-700 bg-slate-800/50 flex-shrink-0" x-show="!collapsed || isMobile">
             <div :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3'"
                  class="flex items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors cursor-pointer group">
-                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-lg flex-shrink-0">
-                    {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-lg flex-shrink-0 overflow-hidden">
+                    @if(auth()->user()->profile_photo)
+                        <img src="{{ auth()->user()->avatar_url }}" alt="Profile" class="w-full h-full object-cover">
+                    @else
+                        {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                    @endif
                 </div>
                 <div x-show="!collapsed || isMobile"
                      x-transition:enter="transition ease-out duration-200 delay-75"

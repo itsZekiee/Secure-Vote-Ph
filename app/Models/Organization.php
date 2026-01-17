@@ -23,8 +23,11 @@ class Organization extends Model
         'email',
         'logo',
         'is_active',
+        'status',
         'created_by',
     ];
+
+    protected $appends = ['logo_url'];
 
     protected $casts = [
         'is_active' => 'boolean',

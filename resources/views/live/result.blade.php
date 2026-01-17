@@ -325,7 +325,7 @@
     <script>
         async function updateVotes() {
             try {
-                const response = await fetch('{{ route('voter.elections.results.votes', $election->code) }}');
+                const response = await fetch('{{ route('voter.elections.results.votes', $election->id) }}');
                 const data = await response.json();
 
                 if (data.success) {

@@ -291,7 +291,8 @@
 
                                 <!-- Registration Form -->
                                 <form id="register-form"
-                                    action="{{ route('voter.registration.store', $election->code ?? '') }}" method="POST"
+                                    action="{{ route('voter.registration.store', $election->id ?? '') }}" method="POST"
+                                    enctype="multipart/form-data"
                                     class="form-transition {{ $registrationOver ? 'hidden' : '' }}">
                                     @csrf
 
@@ -330,6 +331,31 @@
                                             class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700"
                                             placeholder="Enter your ID">
                                     </div>
+
+                                    @if($election->require_id_verification)
+                                    <div class="mb-5">
+                                        <label class="block text-sm font-semibold text-slate-700 mb-2">
+                                            <i class="fas fa-camera text-brand-accent mr-2"></i>Upload ID Photo
+                                        </label>
+                                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-200 border-dashed rounded-xl hover:border-brand-accent transition-colors">
+                                            <div class="space-y-1 text-center">
+                                                <i class="fas fa-image text-slate-400 text-3xl mb-3"></i>
+                                                <div class="flex text-sm text-slate-600">
+                                                    <label for="id_photo" class="relative cursor-pointer bg-white rounded-md font-medium text-brand-accent hover:text-brand-primary focus-within:outline-none">
+                                                        <span>Upload a file</span>
+                                                        <input id="id_photo" name="id_photo" type="file" class="sr-only" required accept="image/*">
+                                                    </label>
+                                                    <p class="pl-1">or drag and drop</p>
+                                                </div>
+                                                <p class="text-xs text-slate-500">PNG, JPG, GIF up to 5MB</p>
+                                                <div id="photo-preview-container" class="mt-4 hidden">
+                                                    <img id="photo-preview" src="#" alt="ID Preview" class="mx-auto h-32 w-auto rounded-lg shadow-sm">
+                                                    <p class="text-xs text-brand-accent mt-2 font-semibold">Image selected!</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
 
                                     <div class="mb-5">
                                         <label class="block text-sm font-semibold text-slate-700 mb-2">
@@ -399,7 +425,7 @@
 
                                 <!-- Sign In Form (Hidden by default) -->
                                 <form id="signin-form"
-                                    action="{{ route('voter.registration.login', $election->code ?? '') }}" method="POST"
+                                    action="{{ route('voter.registration.login', $election->id ?? '') }}" method="POST"
                                     class="form-transition {{ $registrationOver ? '' : 'hidden' }}">
                                     @csrf
                                     <input type="hidden" name="latitude" id="login-lat">
@@ -437,7 +463,7 @@
                                             </span>
                                             <span class="text-sm text-slate-600">Remember me</span>
                                         </label>
-                                        <a href="#" class="text-sm text-brand-accent hover:underline font-semibold">Forgot
+                                        <a href="{{ route('voter.password.request', $election->id) }}" class="text-sm text-brand-accent hover:underline font-semibold">Forgot
                                             password?</a>
                                     </div>
 
@@ -692,6 +718,25 @@
             if (studentIdInput) {
                 studentIdInput.addEventListener('input', function (e) {
                     this.value = this.value.toUpperCase();
+                });
+            }
+
+            // ID Photo preview
+            const idPhotoInput = document.getElementById('id_photo');
+            const photoPreview = document.getElementById('photo-preview');
+            const previewContainer = document.getElementById('photo-preview-container');
+
+            if (idPhotoInput) {
+                idPhotoInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            photoPreview.src = e.target.result;
+                            previewContainer.classList.remove('hidden');
+                        }
+                        reader.readAsDataURL(file);
+                    }
                 });
             }
 

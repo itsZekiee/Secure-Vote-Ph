@@ -73,6 +73,13 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
+        // Approval check
+        if ($user->role === 'admin' && !$user->is_approved) {
+            throw ValidationException::withMessages([
+                'email' => 'Your account is pending approval by a Super Admin. You will be able to sign in once approved.',
+            ]);
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Validate Credentials (NO LOGIN YET)
@@ -110,6 +117,12 @@ class AuthenticatedSessionController extends Controller
                 'email' => $message,
             ]);
         }
+
+        // Reset failed attempts on successful credentials validation
+        $user->update([
+            'failed_login_attempts' => 0,
+            'locked_until' => null
+        ]);
 
         /*
         |--------------------------------------------------------------------------

@@ -273,19 +273,23 @@
 
                                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
                                     <div class="p-6 sm:p-8">
-                                        <div class="flex items-center justify-between gap-4 mb-8">
+                                        <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                                            @csrf
+                                            @method('PUT')
+
+                                            <div class="flex items-center justify-between gap-4 mb-8">
                                                 <div class="flex items-center gap-4">
                                                     <div class="relative group/avatar">
                                                         <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md overflow-hidden">
                                                             @if(auth()->user()->profile_photo)
-                                                                <img src="{{ Storage::url(auth()->user()->profile_photo) }}" alt="Profile" class="w-full h-full object-cover">
+                                                                <img src="{{ auth()->user()->avatar_url }}" alt="Profile" class="w-full h-full object-cover">
                                                             @else
                                                                 {{ substr(auth()->user()->name, 0, 1) }}
                                                             @endif
                                                         </div>
                                                         <label class="absolute -bottom-1 -right-1 w-7 h-7 bg-white rounded-lg shadow-sm border border-slate-100 flex items-center justify-center text-slate-600 hover:text-indigo-600 cursor-pointer transition-all hover:scale-110">
                                                             <i class="ri-camera-line text-sm"></i>
-                                                            <input type="file" name="profile_photo" class="hidden">
+                                                            <input type="file" name="profile_photo" class="hidden" onchange="this.form.submit()">
                                                         </label>
                                                     </div>
                                                     <div>
@@ -293,17 +297,13 @@
                                                         <p class="text-xs text-slate-500 font-medium">Update account identity</p>
                                                     </div>
                                                 </div>
-                                            <div x-show="!isEditing">
-                                                <button @click="isEditing = true" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 transition-all flex items-center gap-2">
-                                                    <i class="ri-edit-line"></i>
-                                                    EDIT PROFILE
-                                                </button>
+                                                <div x-show="!isEditing">
+                                                    <button type="button" @click="isEditing = true" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-50 transition-all flex items-center gap-2">
+                                                        <i class="ri-edit-line"></i>
+                                                        EDIT PROFILE
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-
-                                        <form action="{{ route('admin.profile.update') }}" method="POST" class="space-y-8">
-                                            @csrf
-                                            @method('PUT')
 
                                             <!-- Identity Information -->
                                             <div class="space-y-6">
@@ -762,6 +762,7 @@
                                 </div>
                                 @endif
 
+                                @if(auth()->user()->role === \App\Models\User::ROLE_SUPER_ADMIN)
                                 <!-- 2FA Recovery Codes -->
                                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
                                     <div class="p-6 sm:p-8">
@@ -815,6 +816,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
 
                                 @if(auth()->user()->role === \App\Models\User::ROLE_SUPER_ADMIN)
                                 <!-- Security Notification Preferences -->

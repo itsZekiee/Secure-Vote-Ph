@@ -183,6 +183,7 @@ class ReportController extends Controller
         ];
 
         $callback = function () use ($data) {
+            if (ob_get_level() > 0) ob_end_clean();
             $file = fopen('php://output', 'w');
 
             // Elections section
@@ -235,6 +236,7 @@ class ReportController extends Controller
         ];
 
         $callback = function () use ($elections) {
+            if (ob_get_level() > 0) ob_end_clean();
             $file = fopen('php://output', 'w');
 
             fputcsv($file, [
@@ -280,6 +282,7 @@ class ReportController extends Controller
         ];
 
         $callback = function () use ($voters) {
+            if (ob_get_level() > 0) ob_end_clean();
             $file = fopen('php://output', 'w');
 
             fputcsv($file, [

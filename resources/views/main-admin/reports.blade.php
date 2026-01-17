@@ -66,7 +66,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-3 w-full sm:w-auto">
-                                    <a href="{{ route('admin.reports.export', array_merge(request()->only(['q','organization_id','year']), ['format' => 'xlsx'])) }}"
+                                    <a href="{{ route('admin.reports.export', array_merge(request()->only(['q','organization_id','year']), ['format' => 'csv'])) }}"
                                        class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-white text-slate-700 text-xs font-bold rounded-lg border border-slate-200 hover:bg-slate-50 transition-all shadow-sm">
                                         <i class="ri-file-excel-2-line mr-1.5 text-emerald-600"></i>
                                         Export

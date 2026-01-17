@@ -129,6 +129,72 @@
                             </div>
                         </div>
 
+                        @if($voter->id_photo)
+                        <!-- ID Verification Image -->
+                        <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
+                            <div class="px-6 py-4 border-b border-slate-50 flex items-center gap-3">
+                                <div class="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
+                                    <i class="ri-file-user-line text-lg"></i>
+                                </div>
+                                <h3 class="text-base font-black text-slate-800 uppercase tracking-tight">ID Verification Photo</h3>
+                            </div>
+                            <div class="p-6">
+                                <div class="relative group">
+                                    <img src="{{ Storage::url($voter->id_photo) }}" alt="Voter ID" class="w-full max-h-[500px] object-contain rounded-2xl border border-slate-100 shadow-sm">
+                                    <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-2xl">
+                                        <a href="{{ Storage::url($voter->id_photo) }}" target="_blank" class="px-6 py-3 bg-white text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl">
+                                            <i class="ri-external-link-line"></i>
+                                            View Full Size
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="mt-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                    <div>
+                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Image Perceptual Hash (dHash)</p>
+                                        <p class="text-xs font-mono font-bold text-indigo-600 mt-1">{{ $voter->id_photo_hash ?? 'Not computed' }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Fraud Detection Status</p>
+                                        @php
+                                            $duplicates = \App\Models\Voter::where('election_id', $voter->election_id)
+                                                ->where('id', '!=', $voter->id)
+                                                ->whereNotNull('id_photo_hash')
+                                                ->get()
+                                                ->filter(function($v) use ($voter) {
+                                                    if (!$v->id_photo_hash || !$voter->id_photo_hash) return false;
+                                                    return \App\Helpers\ImageHash::distance($voter->id_photo_hash, $v->id_photo_hash) <= 5;
+                                                });
+                                        @endphp
+                                        @if($duplicates->count() > 0)
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-50 text-red-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-red-100 mt-1">
+                                                <i class="ri-error-warning-fill"></i>
+                                                {{ $duplicates->count() }} Similar Photo(s) Detected
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-emerald-100 mt-1">
+                                                <i class="ri-shield-check-fill"></i>
+                                                Unique Photo
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                                @if($duplicates->count() > 0)
+                                    <div class="mt-4 p-4 bg-red-50 border border-red-100 rounded-2xl">
+                                        <p class="text-xs font-bold text-red-700 mb-2 uppercase tracking-tight">Warning: Potential Duplicate accounts</p>
+                                        <div class="space-y-2">
+                                            @foreach($duplicates as $dup)
+                                                <div class="flex items-center justify-between text-[10px] text-red-600 font-bold bg-white/50 p-2 rounded-lg">
+                                                    <span>{{ $dup->name }} ({{ $dup->email }})</span>
+                                                    <a href="{{ route('admin.voters.show', $dup->id) }}" class="underline">View Voter</a>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+
                         <!-- Voting History -->
                         <div class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
                             <div class="px-6 py-4 border-b border-slate-50 flex items-center justify-between">

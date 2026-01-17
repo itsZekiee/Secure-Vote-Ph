@@ -24,7 +24,10 @@ class Voter extends Model
         'student_id',
         'password',
         'election_id',
+        'user_id',
         'registration_status',
+        'id_photo',
+        'id_photo_hash',
         'failed_login_attempts',
         'locked_until',
         'is_permanently_blocked',
@@ -42,5 +45,10 @@ class Voter extends Model
     public function election()
     {
         return $this->belongsTo(Election::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

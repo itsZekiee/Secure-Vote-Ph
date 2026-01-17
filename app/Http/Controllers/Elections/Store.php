@@ -38,6 +38,7 @@ class Store extends Controller
                 'enable_geo_location' => 'nullable',
                 'enable_geo_registration' => 'nullable',
                 'auto_approve_voters' => 'nullable',
+                'require_id_verification' => 'nullable',
             ]);
 
             DB::beginTransaction();
@@ -61,6 +62,7 @@ class Store extends Controller
                 'require_geo_verification' => $request->boolean('enable_geo_location'),
                 'require_geo_registration' => $request->boolean('enable_geo_registration'),
                 'auto_approve_voters' => $request->boolean('auto_approve_voters'),
+                'require_id_verification' => $request->boolean('require_id_verification'),
                 'accepted_domains' => $validated['accepted_domains'] ?? null,
                 'max_votes' => $validated['max_votes'] ?? 1,
             ]);
