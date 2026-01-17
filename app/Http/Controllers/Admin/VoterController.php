@@ -131,10 +131,24 @@ class VoterController extends Controller
             'full_name' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => 'nullable|string|max:20',
-            'student_id' => 'nullable|string|max:50',
+            'student_id' => 'required|string|max:50|regex:/^[A-Z0-9-]+$/i',
             'form_id' => 'required|exists:elections,id',
             'registration_status' => 'required|in:approved,pending,declined'
+        ], [
+            'student_id.regex' => 'The ID format is invalid.',
         ]);
+
+        // Check for duplicates in this election
+        $duplicate = \App\Models\Voter::where('election_id', $validated['form_id'])
+            ->where(function($q) use ($validated) {
+                $q->where('email', $validated['email'])
+                  ->orWhere('student_id', $validated['student_id']);
+            })
+            ->first();
+
+        if ($duplicate) {
+            return back()->withErrors(['student_id' => 'A voter with this email or ID already exists in this election.'])->withInput();
+        }
 
         try {
             DB::beginTransaction();
@@ -301,6 +315,7 @@ class VoterController extends Controller
         ];
 
         $callback = function () use ($voters) {
+            if (ob_get_level() > 0) ob_end_clean();
             $file = fopen('php://output', 'w');
 
             fputcsv($file, [

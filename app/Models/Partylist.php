@@ -59,10 +59,6 @@ class Partylist extends Model
         return $this->hasMany(Candidate::class);
     }
 
-    public function members()
-    {
-        return $this->hasMany(PartylistMember::class);
-    }
 
     // Scopes
     public function scopeActive($query)

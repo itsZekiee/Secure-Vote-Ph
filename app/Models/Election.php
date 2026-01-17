@@ -37,6 +37,7 @@ class Election extends Model
         'accepted_domains',
         'max_votes',
         'auto_approve_voters',
+        'require_id_verification',
     ];
 
     protected $casts = [
@@ -50,6 +51,7 @@ class Election extends Model
         'geo_radius_meters' => 'integer',
         'max_votes' => 'integer',
         'auto_approve_voters' => 'boolean',
+        'require_id_verification' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',

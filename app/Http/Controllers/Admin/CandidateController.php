@@ -612,6 +612,7 @@ class CandidateController extends Controller
         ];
 
         $callback = function () use ($candidates) {
+            if (ob_get_level() > 0) ob_end_clean();
             $file = fopen('php://output', 'w');
 
             fputcsv($file, [

@@ -533,7 +533,7 @@
 
         <!-- Back Button -->
         <div class="text-center animate-fade-in-up">
-            <a href="{{ route('voter.welcome', $election->code) }}"
+            <a href="{{ route('voter.elections.welcome', $election->id) }}"
                class="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-gray-900 to-gray-800 text-white font-semibold rounded-2xl hover:from-gray-800 hover:to-gray-700 transition-all duration-300 shadow-xl shadow-gray-900/20 hover:shadow-2xl hover:shadow-gray-900/30 hover:-translate-y-1">
                 <svg class="w-5 h-5 mr-3 transform group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>

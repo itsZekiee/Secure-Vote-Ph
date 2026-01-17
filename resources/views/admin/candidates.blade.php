@@ -341,8 +341,13 @@
                                     <tr class="hover:bg-purple-50/30 transition-all group">
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 font-bold text-xs group-hover:scale-110 transition-transform shadow-sm">
-                                                    <i class="ri-user-3-fill text-lg"></i>
+                                                <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 font-bold text-xs group-hover:scale-110 transition-transform shadow-sm overflow-hidden">
+                                                    <template x-if="candidate.photo_url">
+                                                        <img :src="candidate.photo_url" :alt="candidate.name" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="!candidate.photo_url">
+                                                        <i class="ri-user-3-fill text-lg"></i>
+                                                    </template>
                                                 </div>
                                                 <div>
                                                     <p class="font-bold text-slate-900 leading-tight text-sm" x-text="candidate.user?.name || candidate.name || '—'"></p>
@@ -385,8 +390,13 @@
                             <template x-for="candidate in filteredCandidates" :key="candidate.id">
                                 <div class="p-4 space-y-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 shadow-sm border border-purple-100">
-                                            <i class="ri-user-3-fill text-xl"></i>
+                                        <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 shadow-sm border border-purple-100 overflow-hidden">
+                                            <template x-if="candidate.photo_url">
+                                                <img :src="candidate.photo_url" :alt="candidate.name" class="w-full h-full object-cover">
+                                            </template>
+                                            <template x-if="!candidate.photo_url">
+                                                <i class="ri-user-3-fill text-xl"></i>
+                                            </template>
                                         </div>
                                         <div class="min-w-0 flex-1">
                                             <p class="font-bold text-slate-900 text-base truncate" x-text="candidate.user?.name || candidate.name || '—'"></p>

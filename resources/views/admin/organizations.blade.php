@@ -271,8 +271,13 @@
                                     <tr class="hover:bg-indigo-50/30 transition-all group">
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 font-bold text-xs group-hover:scale-110 transition-transform">
-                                                    <i class="ri-building-4-line text-lg"></i>
+                                                <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 font-bold text-xs group-hover:scale-110 transition-transform overflow-hidden">
+                                                    <template x-if="org.logo_url">
+                                                        <img :src="org.logo_url" :alt="org.name" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="!org.logo_url">
+                                                        <i class="ri-building-4-line text-lg"></i>
+                                                    </template>
                                                 </div>
                                                 <div>
                                                     <p class="font-bold text-slate-900 leading-tight text-sm" x-text="org.name"></p>
@@ -317,8 +322,13 @@
                                 <div class="p-4 space-y-4">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100">
-                                                <i class="ri-building-4-line text-xl"></i>
+                                            <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100 overflow-hidden">
+                                                <template x-if="org.logo_url">
+                                                    <img :src="org.logo_url" :alt="org.name" class="w-full h-full object-cover">
+                                                </template>
+                                                <template x-if="!org.logo_url">
+                                                    <i class="ri-building-4-line text-xl"></i>
+                                                </template>
                                             </div>
                                             <div class="min-w-0">
                                                 <p class="font-bold text-slate-900 text-base truncate" x-text="org.name"></p>

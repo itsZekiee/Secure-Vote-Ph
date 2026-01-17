@@ -236,7 +236,8 @@ document.addEventListener('alpine:init', () => {
                               registration_deadline: '',
                               max_votes: 1,
                               auto_approve_voters: false,
-                              enable_geo_registration: false
+                              enable_geo_registration: false,
+                              require_id_verification: false
                           },
                           validateBasicInfo() {
                               if (!this.formData.title.trim()) {
@@ -902,6 +903,35 @@ document.addEventListener('alpine:init', () => {
                                                     <div :class="formData.auto_approve_voters ? 'translate-x-7' : 'translate-x-1'"
                                                          class="absolute top-1 left-0 w-6 h-6 bg-white rounded-full shadow-lg transition-transform duration-300 flex items-center justify-center">
                                                         <svg x-show="formData.auto_approve_voters" class="w-3 h-3 text-green-600" viewBox="0 0 24 24" fill="none">
+                                                            <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <!-- Require ID Verification Toggle Switch -->
+                                    <div class="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-2xl p-6">
+                                        <label class="flex items-start justify-between cursor-pointer gap-4">
+                                            <div class="flex items-start gap-4">
+                                                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                                                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-lg font-bold text-gray-900">Require ID Verification</h3>
+                                                    <p class="text-sm text-gray-600 mt-1">If enabled, voters must upload a photo of their ID during registration. Admins must review and approve these accounts manually.</p>
+                                                </div>
+                                            </div>
+                                            <div class="relative flex-shrink-0">
+                                                <input type="checkbox" x-model="formData.require_id_verification" name="require_id_verification" class="sr-only peer" id="idVerifyToggle" value="1">
+                                                <div :class="formData.require_id_verification ? 'bg-gradient-to-r from-indigo-500 to-blue-500' : 'bg-gray-300'"
+                                                     class="block w-14 h-8 rounded-full transition-all duration-300 cursor-pointer relative shadow-inner">
+                                                    <div :class="formData.require_id_verification ? 'translate-x-7' : 'translate-x-1'"
+                                                         class="absolute top-1 left-0 w-6 h-6 bg-white rounded-full shadow-lg transition-transform duration-300 flex items-center justify-center">
+                                                        <svg x-show="formData.require_id_verification" class="w-3 h-3 text-indigo-600" viewBox="0 0 24 24" fill="none">
                                                             <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                                         </svg>
                                                     </div>

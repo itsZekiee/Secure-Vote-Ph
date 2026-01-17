@@ -4,6 +4,19 @@
 
 @stack('styles')
 <link rel="stylesheet" href="{{ asset('css/admin/responsive.css') }}">
+<style>
+    /* Mobile-friendly Toggle Switches */
+    @media (max-width: 640px) {
+        .peer-checked\:after\:translate-x-full:after {
+            transform: translateX(1.25rem) !important;
+        }
+        label.relative.inline-flex.items-center.cursor-pointer {
+            min-width: 3rem;
+            min-height: 1.5rem;
+            padding: 0.5rem 0; /* Increase touch target */
+        }
+    }
+</style>
 
 <body class="font-sans antialiased bg-slate-50 min-h-screen"
       x-data="{

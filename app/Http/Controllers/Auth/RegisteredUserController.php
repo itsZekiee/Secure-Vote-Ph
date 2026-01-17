@@ -42,13 +42,12 @@ class RegisteredUserController extends Controller
             'organization_id' => $request->organization_id,
             'role' => 'admin',
             'is_active' => true,
+            'is_approved' => false, // New Admins must be approved
         ]);
 
         event(new Registered($user));
 
-        Auth::login($user);
-        $user->update(['role' => 'admin']);
-
-        return redirect('/admin/dashboard')->with('success', 'Account created successfully!');
+        // Do not login automatically if not approved
+        return redirect()->route('login')->with('info', 'Your account has been created and is pending approval by a Super Admin. You will be able to sign in once approved.');
     }
 }

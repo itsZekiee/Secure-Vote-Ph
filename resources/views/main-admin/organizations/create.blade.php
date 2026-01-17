@@ -26,18 +26,12 @@
                             this.currentStep = 1;
                         },
 
-<<<<<<< HEAD
                         submitForm() {
+                            if (!confirm('Are you sure you want to submit and create this organization?')) {
+                                return;
+                            }
                             this.loading = true;
                             this.errors = {};
-=======
-            submitForm() {
-                if (!confirm('Are you sure you want to submit and create this organization?')) {
-                    return;
-                }
-                this.loading = true;
-                this.errors = {};
->>>>>>> 2f41f18306464da59f47efe8f18f83f85e760719
 
                             const formData = new FormData();
                             formData.append('name', this.formData.name);
@@ -451,8 +445,10 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
 
-                                            <!-- Next Step Action -->
+                                    <!-- Next Step Action -->
                                             <div
                                                 class="bg-white rounded-3xl border border-slate-200/60 shadow-xl shadow-slate-200/40 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                                                 <div class="flex items-center space-x-4">
@@ -672,4 +668,6 @@
 
         </main>
     </div>
+</div>
+</div>
 @endsection

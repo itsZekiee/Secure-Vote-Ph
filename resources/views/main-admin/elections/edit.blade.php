@@ -22,6 +22,7 @@
             registration_deadline: @js($election->registration_deadline ? $election->registration_deadline->format('Y-m-d\TH:i') : ''),
             max_votes: @js($election->max_votes),
             auto_approve_voters: @js((bool)$election->auto_approve_voters),
+            require_id_verification: @js((bool)$election->require_id_verification),
             enable_geo_location: @js((bool)$election->require_geo_verification),
             enable_geo_registration: @js((bool)$election->require_geo_registration),
             geo_latitude: @js($election->geo_latitude),
@@ -344,6 +345,23 @@
                                         </div>
                                         <div class="relative inline-block w-12 sm:w-14 h-7 sm:h-8 transition duration-200 ease-in-out flex-shrink-0">
                                             <input type="checkbox" name="auto_approve_voters" x-model="formData.auto_approve_voters"
+                                                   class="peer opacity-0 w-0 h-0" value="1">
+                                            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-200 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-5 sm:before:h-6 before:w-5 sm:before:w-6 before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-emerald-500 peer-checked:before:translate-x-5 sm:peer-checked:before:translate-x-6"></span>
+                                        </div>
+                                    </label>
+
+                                    <label class="flex items-center justify-between p-5 sm:p-8 bg-slate-50 rounded-[2rem] cursor-pointer hover:bg-white hover:shadow-2xl hover:shadow-blue-100 transition-all border-2 border-transparent hover:border-blue-100 group">
+                                        <div class="flex items-center gap-3 sm:gap-5">
+                                            <div class="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm group-hover:scale-110 transition-transform flex-shrink-0">
+                                                <i class="ri-file-user-line text-xl sm:text-2xl"></i>
+                                            </div>
+                                            <div>
+                                                <span class="block text-xs sm:text-sm font-black text-slate-900 uppercase tracking-tight">ID Verification</span>
+                                                <span class="block text-[9px] sm:text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Require ID Photo</span>
+                                            </div>
+                                        </div>
+                                        <div class="relative inline-block w-12 sm:w-14 h-7 sm:h-8 transition duration-200 ease-in-out flex-shrink-0">
+                                            <input type="checkbox" name="require_id_verification" x-model="formData.require_id_verification"
                                                    class="peer opacity-0 w-0 h-0" value="1">
                                             <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-slate-200 transition-all duration-300 rounded-full before:absolute before:content-[''] before:h-5 sm:before:h-6 before:w-5 sm:before:w-6 before:left-1 before:bottom-1 before:bg-white before:transition-all before:duration-300 before:rounded-full peer-checked:bg-emerald-500 peer-checked:before:translate-x-5 sm:peer-checked:before:translate-x-6"></span>
                                         </div>
