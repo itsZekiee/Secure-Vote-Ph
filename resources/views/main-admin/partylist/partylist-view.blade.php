@@ -42,25 +42,42 @@
     }" class="min-h-screen bg-[#f8fafc] pb-12">
 
         <!-- Delete Confirmation Modal -->
-        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div x-show="showDeleteModal"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-slate-100">
-                <div class="flex items-center space-x-4 mb-6">
-                    <div class="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center">
-                        <i class="ri-error-warning-fill text-2xl text-rose-500"></i>
+        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-[110] overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div x-show="showDeleteModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+                     @click="showDeleteModal = false"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div x-show="showDeleteModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     class="inline-block align-middle bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-slate-100 text-left overflow-hidden transform transition-all sm:my-8 sm:align-middle">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <div class="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center">
+                            <i class="ri-error-warning-fill text-2xl text-rose-500"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">Delete Party List</h3>
+                            <p class="text-slate-500 text-sm font-bold uppercase tracking-widest mt-1">Permanent Action</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">Delete Party List</h3>
-                        <p class="text-slate-500 text-sm font-bold uppercase tracking-widest mt-1">Permanent Action</p>
+                    <p class="text-slate-600 mb-8 font-medium leading-relaxed">Are you sure you want to delete <strong class="text-slate-900 underline decoration-rose-200 decoration-4">{{ $party->name }}</strong>? All associated data will be lost.</p>
+                    <div class="flex gap-3">
+                        <button @click="showDeleteModal = false" class="flex-1 px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
+                        <button @click="confirmDelete()" class="flex-1 px-6 py-4 bg-rose-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-600 shadow-lg shadow-rose-200 transition-all">Delete Party</button>
                     </div>
-                </div>
-                <p class="text-slate-600 mb-8 font-medium leading-relaxed">Are you sure you want to delete <strong class="text-slate-900 underline decoration-rose-200 decoration-4">{{ $party->name }}</strong>? All associated data will be lost.</p>
-                <div class="flex gap-3">
-                    <button @click="showDeleteModal = false" class="flex-1 px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Cancel</button>
-                    <button @click="confirmDelete()" class="flex-1 px-6 py-4 bg-rose-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-600 shadow-lg shadow-rose-200 transition-all">Delete Party</button>
                 </div>
             </div>
         </div>
@@ -344,12 +361,12 @@
                     <div class="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-3xl border border-slate-100 p-6">
                         <h3 class="text-xs font-black text-slate-900 uppercase tracking-[0.2em] mb-6">Quick Actions</h3>
                         <div class="space-y-3">
-                            <button class="w-full py-4 bg-white text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+                            <a href="{{ route('admin.reports.view', $party->election_id ?? 0) }}" class="w-full inline-block text-center py-4 bg-white text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
                                 View Election Results
-                            </button>
-                            <button class="w-full py-4 bg-white text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
-                                Download Report (PDF)
-                            </button>
+                            </a>
+                            <a href="{{ route('admin.reports.export') }}?election_id={{ $party->election_id ?? 0 }}&format=csv" class="w-full inline-block text-center py-4 bg-white text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+                                Download Report (CSV)
+                            </a>
                             <button @click="showDeleteModal = true" class="w-full py-4 bg-white text-rose-500 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:bg-rose-500 hover:text-white transition-all">
                                 Deactivate Party
                             </button>

@@ -420,17 +420,24 @@ class PartylistController extends Controller
         $userId = (string) auth()->id();
         $organization_id = $request->get('organization_id', '');
         $status = $request->get('status', '');
+        $ids = $request->get('ids', '');
 
-        $partylists = Partylist::where('created_by', $userId)
-            ->with(['election', 'organization'])
-            ->when($organization_id, function ($q) use ($organization_id) {
+        $query = Partylist::where('created_by', $userId)
+            ->with(['election', 'organization']);
+
+        if ($ids) {
+            $idArray = explode(',', $ids);
+            $query->whereIn('id', $idArray);
+        } else {
+            $query->when($organization_id, function ($q) use ($organization_id) {
                 return $q->where('organization_id', $organization_id);
             })
             ->when($status, function ($q) use ($status) {
                 return $q->where('status', $status);
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+            });
+        }
+
+        $partylists = $query->get();
 
         $filename = 'partylists_' . now()->format('Y-m-d_H-i-s') . '.csv';
 
@@ -508,16 +515,20 @@ class PartylistController extends Controller
             if (!$name) return null;
 
             // Check for duplication in existing data
-            $isDuplicate = Partylist::where('name', $name)->exists();
+            $isDuplicate = Partylist::where('name', $name)
+                ->whereNull('deleted_at')
+                ->exists();
 
             $orgId = null;
             $alerts = [];
             if ($organizationName) {
-                $org = Organization::where('name', 'LIKE', trim($organizationName))->first();
+                $org = Organization::where('created_by', auth()->id())
+                    ->where('name', 'LIKE', trim($organizationName))
+                    ->first();
                 if ($org) {
                     $orgId = $org->id;
                 } else {
-                    $alerts[] = "Organization '$organizationName' not found";
+                    $alerts[] = "Organization '$organizationName' not found among your organizations";
                 }
             }
 
@@ -542,7 +553,7 @@ class PartylistController extends Controller
             'success' => true,
             'data' => $data,
             'importPath' => $storedPath,
-            'organizations' => Organization::all(['id', 'name'])
+            'organizations' => Organization::where('created_by', auth()->id())->orderBy('name')->get(['id', 'name'])
         ]);
     }
 
@@ -594,7 +605,7 @@ class PartylistController extends Controller
                 }
 
                 // Check duplication
-                if (Partylist::where('name', $name)->exists()) {
+                if (Partylist::where('name', $name)->whereNull('deleted_at')->exists()) {
                     $skipped++;
                     continue;
                 }
@@ -604,7 +615,9 @@ class PartylistController extends Controller
                 if (!$orgId) {
                     $orgName = $row['organization'] ?? null;
                     if ($orgName) {
-                        $org = Organization::where('name', 'LIKE', trim($orgName))->first();
+                        $org = Organization::where('created_by', auth()->id())
+                            ->where('name', 'LIKE', trim($orgName))
+                            ->first();
                         if ($org) {
                             $orgId = $org->id;
                         }

@@ -46,6 +46,39 @@
             });
         },
 
+        // Export Modal
+        showExportModal: false,
+        exportFilterType: 'all', // 'all', 'election', 'partylist'
+        selectedExportElection: '',
+        selectedExportPartylist: '',
+        selectedExportCandidates: [],
+        exportSearchQuery: '',
+        allPartylists: @js(\App\Models\Partylist::where('created_by', auth()->id())->get()->toArray() ?? []),
+
+        exportData() {
+            let url = '{{ route('admin.candidates.export') }}?';
+            if (this.selectedExportCandidates.length > 0) {
+                url += 'ids=' + this.selectedExportCandidates.join(',');
+            } else {
+                if (this.selectedExportElection) {
+                    url += 'election_id=' + this.selectedExportElection + '&';
+                }
+                if (this.selectedExportPartylist) {
+                    url += 'partylist_id=' + this.selectedExportPartylist;
+                }
+            }
+            window.location.href = url;
+            this.showExportModal = false;
+        },
+
+        toggleCandidateSelection(id) {
+            if (this.selectedExportCandidates.includes(id)) {
+                this.selectedExportCandidates = this.selectedExportCandidates.filter(cId => cId !== id);
+            } else {
+                this.selectedExportCandidates.push(id);
+            }
+        },
+
         handleFileSelect(e) {
             this.importFile = e.target.files[0];
             if (this.importFile) {
@@ -252,11 +285,11 @@
                                         <i class="ri-upload-2-line mr-1.5"></i>
                                         Import CSV
                                     </button>
-                                    <a href="{{ route('admin.candidates.export') }}"
+                                    <button @click="showExportModal = true"
                                        class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-all shadow-sm active:scale-95">
                                         <i class="ri-download-2-line mr-1.5"></i>
                                         Export CSV
-                                    </a>
+                                    </button>
                                     <a href="{{ route('admin.candidates.create') }}"
                                        class="inline-flex items-center justify-center px-4 py-2 bg-purple-600 text-white text-xs font-bold rounded-lg hover:bg-purple-700 transition-all shadow-sm active:scale-95">
                                         <i class="ri-user-add-line mr-1.5"></i>
@@ -629,6 +662,115 @@
                         <button type="button"
                                 @click="showImportModal = false"
                                 class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto active:scale-95 transition-all">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Export Candidates Modal -->
+        <div x-show="showExportModal"
+             class="fixed inset-0 z-[110] overflow-y-auto"
+             x-cloak>
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div x-show="showExportModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                     @click="showExportModal = false"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div x-show="showExportModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     class="inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <i class="ri-download-2-line text-blue-600 text-xl"></i>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-bold text-gray-900">Export Candidates</h3>
+                                <div class="mt-4 space-y-4">
+                                    <p class="text-sm text-gray-500">
+                                        Select candidates or filters for export.
+                                    </p>
+
+                                    <!-- Candidate Search & Selection -->
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-700 mb-1">Search & Select Candidates</label>
+                                        <div class="relative mb-2">
+                                            <i class="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                            <input type="text" x-model="exportSearchQuery" placeholder="Search specific candidates..."
+                                                   class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 bg-white">
+                                        </div>
+                                        <div class="max-h-40 overflow-y-auto border border-gray-100 rounded-lg p-2 bg-slate-50">
+                                            <template x-for="candidate in allCandidates.filter(c => !exportSearchQuery || (c.user?.name || c.name || '').toLowerCase().includes(exportSearchQuery.toLowerCase()))" :key="candidate.id">
+                                                <label class="flex items-center gap-2 p-1.5 hover:bg-white rounded cursor-pointer transition-colors">
+                                                    <input type="checkbox" :value="candidate.id"
+                                                           :checked="selectedExportCandidates.includes(candidate.id)"
+                                                           @change="toggleCandidateSelection(candidate.id)"
+                                                           class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                                    <span class="text-xs text-gray-700" x-text="candidate.user?.name || candidate.name"></span>
+                                                </label>
+                                            </template>
+                                        </div>
+                                        <div class="mt-1 flex justify-between items-center">
+                                            <span class="text-[10px] text-gray-500" x-text="selectedExportCandidates.length + ' selected'"></span>
+                                            <button @click="selectedExportCandidates = []" x-show="selectedExportCandidates.length > 0" class="text-[10px] text-indigo-600 font-bold hover:underline">Clear Selection</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <!-- Election Filter -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-700 mb-1">Filter by Election</label>
+                                            <select x-model="selectedExportElection" :disabled="selectedExportCandidates.length > 0"
+                                                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 bg-white disabled:bg-gray-50 disabled:text-gray-400">
+                                                <option value="">All Elections</option>
+                                                <template x-for="election in elections" :key="election.id">
+                                                    <option :value="election.id" x-text="election.name || election.title"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+
+                                        <!-- Partylist Filter -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-gray-700 mb-1">Filter by Party List</label>
+                                            <select x-model="selectedExportPartylist" :disabled="selectedExportCandidates.length > 0"
+                                                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 bg-white disabled:bg-gray-50 disabled:text-gray-400">
+                                                <option value="">All Party Lists</option>
+                                                <template x-for="party in allPartylists" :key="party.id">
+                                                    <option :value="party.id" x-text="party.name"></option>
+                                                </template>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <p x-show="selectedExportCandidates.length > 0" class="text-[10px] text-amber-600 italic">
+                                        Note: Individual selections override other filters.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="button"
+                                @click="exportData()"
+                                class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Download CSV
+                        </button>
+                        <button type="button"
+                                @click="showExportModal = false"
+                                class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                             Cancel
                         </button>
                     </div>

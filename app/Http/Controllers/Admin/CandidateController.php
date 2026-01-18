@@ -604,10 +604,26 @@ class CandidateController extends Controller
 
     public function export(Request $request)
     {
-        $candidates = Candidate::where('created_by', auth()->id())
-            ->with(['user', 'election', 'position', 'partylist', 'organization'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $election_id = $request->get('election_id');
+        $partylist_id = $request->get('partylist_id');
+        $ids = $request->get('ids');
+
+        $query = Candidate::where('created_by', auth()->id())
+            ->with(['user', 'election', 'position', 'partylist', 'organization']);
+
+        if ($ids) {
+            $idArray = explode(',', $ids);
+            $query->whereIn('id', $idArray);
+        } else {
+            $query->when($election_id, function($q) use ($election_id) {
+                return $q->where('election_id', $election_id);
+            })
+            ->when($partylist_id, function($q) use ($partylist_id) {
+                return $q->where('partylist_id', $partylist_id);
+            });
+        }
+
+        $candidates = $query->orderBy('created_at', 'desc')->get();
 
         $filename = 'candidates_' . now()->format('Y-m-d_H-i-s') . '.csv';
 
@@ -688,17 +704,24 @@ class CandidateController extends Controller
             // Check for duplication in existing data
             $isDuplicate = false;
             if ($email) {
-                $isDuplicate = User::where('email', $email)->whereHas('candidacies')->exists();
+                $isDuplicate = User::where('email', $email)
+                    ->whereHas('candidacies', function($q) {
+                        $q->whereNull('deleted_at');
+                    })
+                    ->whereNull('deleted_at')
+                    ->exists();
             }
 
             $orgId = null;
             $alerts = [];
             if ($orgName) {
-                $org = Organization::where('name', 'LIKE', trim($orgName))->first();
+                $org = Organization::where('created_by', auth()->id())
+                    ->where('name', 'LIKE', trim($orgName))
+                    ->first();
                 if ($org) {
                     $orgId = $org->id;
                 } else {
-                    $alerts[] = "Organization '$orgName' not found";
+                    $alerts[] = "Organization '$orgName' not found among your organizations";
                 }
             }
 
@@ -800,8 +823,8 @@ class CandidateController extends Controller
                 }
 
                 // Check duplication
-                $existingUser = User::where('email', $email)->first();
-                if ($existingUser && Candidate::where('user_id', $existingUser->id)->exists()) {
+                $existingUser = User::where('email', $email)->whereNull('deleted_at')->first();
+                if ($existingUser && Candidate::where('user_id', $existingUser->id)->whereNull('deleted_at')->exists()) {
                     $skipped++;
                     continue;
                 }

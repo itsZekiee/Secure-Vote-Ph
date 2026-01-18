@@ -125,7 +125,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->grou
     Route::put('/profile/password', [\App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('profile.password');
 
     // Organization Management Routes
-    Route::resource('organizations', OrganizationController::class);
     Route::prefix('organizations')->name('organizations.')->group(function () {
         Route::get('search', [OrganizationController::class, 'search'])->name('search');
         Route::get('export', [OrganizationController::class, 'export'])->name('export');
@@ -138,11 +137,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->grou
         // Automation Mode: Get partylists for organization
         Route::get('{organization}/partylists', [ElectionController::class, 'getOrganizationPartylists'])->name('partylists');
     });
+    Route::resource('organizations', OrganizationController::class);
 
     // Election Management Routes
-    Route::resource('elections', ElectionController::class)->except(['store']);
-    Route::post('elections', ElectionStoreController::class)->name('elections.store');
-
     Route::prefix('elections')->name('elections.')->group(function () {
         Route::get('search', [ElectionController::class, 'search'])->name('search');
         Route::get('export', [ElectionController::class, 'export'])->name('export');
@@ -159,9 +156,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->grou
         Route::post('{election}/suspend', [ElectionController::class, 'suspend'])->name('suspend');
         Route::post('{election}/resume', [ElectionController::class, 'resume'])->name('resume');
     });
+    Route::resource('elections', ElectionController::class)->except(['store']);
+    Route::post('elections', ElectionStoreController::class)->name('elections.store');
 
     // Partylist Management Routes
-    Route::resource('partylists', PartylistController::class);
     Route::prefix('partylists')->name('partylists.')->group(function () {
         Route::get('search', [PartylistController::class, 'search'])->name('search');
         Route::get('export', [PartylistController::class, 'export'])->name('export');
@@ -175,9 +173,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->grou
         Route::get('{partylist}/candidates', [ElectionController::class, 'getPartylistCandidates'])->name('candidates');
         Route::get('{partylist}/statistics', [PartylistController::class, 'statistics'])->name('statistics');
     });
+    Route::resource('partylists', PartylistController::class);
 
     // Candidate Management Routes
-    Route::resource('candidates', CandidateController::class);
     Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('search', [CandidateController::class, 'search'])->name('search');
         Route::get('export', [CandidateController::class, 'export'])->name('export');
@@ -190,6 +188,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->grou
         Route::post('{candidate}/upload-photo', [CandidateController::class, 'uploadPhoto'])->name('upload-photo');
         Route::delete('{candidate}/remove-photo', [CandidateController::class, 'removePhoto'])->name('remove-photo');
     });
+    Route::resource('candidates', CandidateController::class);
 
     // Voter Management Routes
     Route::prefix('voters')->name('voters.')->group(function () {
