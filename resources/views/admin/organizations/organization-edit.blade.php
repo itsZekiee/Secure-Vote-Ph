@@ -21,7 +21,7 @@
 
     // Accurate data handling with safe property access
     $organizationName = old('name', $organization->name ?? 'Organization');
-    $organizationSlug = old('slug', $organization->slug ?? '');
+    $organizationIdValue = old('organization_id', $organization->organization_id ?? '');
     $organizationEmail = old('email', $organization->email ?? $organization->contact_email ?? '');
     $organizationPhone = old('phone', $organization->phone ?? $organization->contact_phone ?? '');
     $organizationAddress = old('address', $organization->address ?? $organization->location ?? '');
@@ -51,7 +51,7 @@
     <div x-data="{
             formData: {
                 name: @js($organizationName),
-                slug: @js($organizationSlug),
+                organization_id: @js($organizationIdValue),
                 email: @js($organizationEmail),
                 phone: @js($organizationPhone),
                 address: @js($organizationAddress),
@@ -60,7 +60,7 @@
             },
             originalData: {
                 name: @js($organization->name ?? ''),
-                slug: @js($organization->slug ?? ''),
+                organization_id: @js($organization->organization_id ?? ''),
                 email: @js($organization->email ?? $organization->contact_email ?? ''),
                 phone: @js($organization->phone ?? $organization->contact_phone ?? ''),
                 address: @js($organization->address ?? $organization->location ?? ''),
@@ -101,14 +101,6 @@
 
             confirmDelete() {
                 this.showDeleteModal = true;
-            },
-
-            generateSlug() {
-                this.formData.slug = this.formData.name
-                    .toLowerCase()
-                    .replace(/[^a-z0-9]+/g, '-')
-                    .replace(/^-|-$/g, '');
-                this.checkForChanges();
             },
 
             showToast(message, type = 'info') {
@@ -313,7 +305,6 @@
                                                    id="name"
                                                    name="name"
                                                    x-model="formData.name"
-                                                   @input="generateSlug()"
                                                    class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm @error('name') ring-2 ring-rose-500 @enderror"
                                                    placeholder="e.g. Supreme Student Council"
                                                    required>
@@ -323,19 +314,19 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Organization Slug -->
+                                    <!-- Organization ID -->
                                     <div class="space-y-2">
-                                        <label for="slug" class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Unique Slug</label>
+                                        <label for="organization_id" class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Organization ID</label>
                                         <div class="relative group">
-                                            <i class="ri-link absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors z-10"></i>
+                                            <i class="ri-fingerprint-line absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors z-10"></i>
                                             <input type="text"
-                                                   id="slug"
-                                                   name="slug"
-                                                   x-model="formData.slug"
-                                                   class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm @error('slug') ring-2 ring-rose-500 @enderror"
-                                                   placeholder="auto-generated-slug">
+                                                   id="organization_id"
+                                                   name="organization_id"
+                                                   x-model="formData.organization_id"
+                                                   class="block w-full pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all duration-300 text-sm font-bold text-slate-700 shadow-sm @error('organization_id') ring-2 ring-rose-500 @enderror"
+                                                   placeholder="e.g. ORG-2026-001">
                                         </div>
-                                        @error('slug')
+                                        @error('organization_id')
                                         <p class="mt-1 text-[9px] font-bold text-rose-500 uppercase tracking-wider flex items-center ml-1"><i class="ri-error-warning-line mr-1"></i> {{ $message }}</p>
                                         @enderror
                                     </div>

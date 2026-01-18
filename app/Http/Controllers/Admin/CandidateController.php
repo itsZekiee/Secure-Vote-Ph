@@ -98,11 +98,7 @@ class CandidateController extends Controller
             })->select('id', 'title')->get();
 
         $user = auth()->user();
-        $organizations = Organization::where('created_by', $user->id)
-            ->when($user->organization_id, function($q) use ($user) {
-                $q->orWhere('id', $user->organization_id);
-            })
-            ->get();
+        $organizations = Organization::where('created_by', $user->id)->get();
 
         $partylists = Partylist::where('created_by', $user->id)
             ->orWhereIn('organization_id', $organizations->pluck('id'))
@@ -273,6 +269,19 @@ class CandidateController extends Controller
                 $photoPath = $request->file('photo')->store('candidates', 'public');
             }
 
+            // Ensure the user can manage the organization
+            $allowedOrg = Organization::where('id', $validated['organization_id'])
+                ->where('created_by', auth()->id())
+                ->exists();
+
+            if (!$allowedOrg) {
+                DB::rollBack();
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Unauthorized organization selection'], 403);
+                }
+                return back()->withErrors(['organization_id' => 'Unauthorized organization selection'])->withInput();
+            }
+
             // If an election is provided, ensure the user can manage that election (creator or sub-admin)
             if (!empty($validated['election_id'])) {
                 $allowed = Election::where('id', $validated['election_id'])
@@ -410,13 +419,9 @@ class CandidateController extends Controller
 
         $user = auth()->user();
         $partylists = Partylist::where('created_by', $user->id)
-            ->orWhere('organization_id', $user->organization_id)
             ->get();
 
-        $organizations = Organization::where('created_by', $user->id)
-            ->when($user->organization_id, function($q) use ($user) {
-                $q->orWhere('id', $user->organization_id);
-            })->get();
+        $organizations = Organization::where('created_by', $user->id)->get();
 
         try {
             $positions = $this->positionsQuery()->get();

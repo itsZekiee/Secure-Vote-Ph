@@ -42,7 +42,7 @@ class PartylistController extends Controller
             ->get();
 
         $elections = Election::all();
-        $organizations = Organization::where('is_active', 1)->orderBy('name')->get();
+        $organizations = Organization::where('created_by', auth()->id())->orderBy('name')->get();
 
         return view($this->getView('partylists'), compact('partylists', 'elections', 'organizations'));
     }
@@ -85,6 +85,19 @@ class PartylistController extends Controller
         try {
             DB::beginTransaction();
             $userId = (string) auth()->id();
+
+            // Ensure the user can manage the organization
+            $allowedOrg = Organization::where('id', $validated['organization_id'])
+                ->where('created_by', $userId)
+                ->exists();
+
+            if (!$allowedOrg) {
+                DB::rollBack();
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Unauthorized organization selection'], 403);
+                }
+                return back()->withErrors(['organization_id' => 'Unauthorized organization selection'])->withInput();
+            }
 
             if ($request->hasFile('logo')) {
                 $logoName = time() . '_' . $request->file('logo')->getClientOriginalName();
