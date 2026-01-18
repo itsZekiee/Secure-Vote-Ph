@@ -19,7 +19,7 @@
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                         <div>
                             <h1 class="text-2xl font-bold text-slate-900">Admin Management</h1>
-                            <p class="text-slate-500 text-sm mt-1">Review and approve new admin accounts.</p>
+                            <p class="text-slate-500 text-sm mt-1">Manage admin and manager accounts.</p>
                         </div>
                     </div>
 
