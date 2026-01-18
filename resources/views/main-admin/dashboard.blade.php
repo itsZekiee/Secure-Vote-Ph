@@ -13,13 +13,19 @@
                 adminSuggestions: [],
                 sharing: false,
                 auditSearchQuery: '',
+                auditRoleFilter: 'all',
+                auditDateFilter: 'all',
                 auditLogs: (() => {
                     const raw = @json($auditLogs ?? []);
                     return (raw || []).map(log => {
                         let roleDisplay = 'System';
                         if (log.user) {
                             const r = log.user.role?.toLowerCase();
-                            roleDisplay = (r === 'super-admin' || r === 'admin') ? 'Admin' : 'Voter';
+                            if (r === 'super-admin') roleDisplay = 'Super Admin';
+                            else if (r === 'admin') roleDisplay = 'Admin';
+                            else if (r === 'election-officer') roleDisplay = 'Officer';
+                            else if (r === 'voter') roleDisplay = 'Voter';
+                            else roleDisplay = r.charAt(0).toUpperCase() + r.slice(1);
                         }
                         return {
                             ...log,
@@ -118,15 +124,54 @@
                     return null;
                 },
                 get filteredAuditLogs() {
+                    let logs = this.auditLogs;
                     const q = this.auditSearchQuery.trim().toLowerCase();
-                    if (!q) return this.auditLogs;
-                    return this.auditLogs.filter(log => {
-                        return (log.user_name && log.user_name.toLowerCase().includes(q)) ||
-                               (log.user_email && log.user_email.toLowerCase().includes(q)) ||
-                               (log.user_role && log.user_role.toLowerCase().includes(q)) ||
-                               (log.action && log.action.toLowerCase().includes(q)) ||
-                               (log.module && log.module.toLowerCase().includes(q)) ||
-                               (log.description && log.description.toLowerCase().includes(q));
+
+                    if (q) {
+                        logs = logs.filter(log => {
+                            return (log.user_name && log.user_name.toLowerCase().includes(q)) ||
+                                   (log.user_email && log.user_email.toLowerCase().includes(q)) ||
+                                   (log.user_role && log.user_role.toLowerCase().includes(q)) ||
+                                   (log.action && log.action.toLowerCase().includes(q)) ||
+                                   (log.module && log.module.toLowerCase().includes(q)) ||
+                                   (log.description && log.description.toLowerCase().includes(q));
+                        });
+                    }
+
+                    if (this.auditRoleFilter !== 'all') {
+                        logs = logs.filter(log => log.user_role === this.auditRoleFilter);
+                    }
+
+                    if (this.auditDateFilter !== 'all') {
+                        const [month, year] = this.auditDateFilter.split('-');
+                        logs = logs.filter(log => {
+                            const date = new Date(log.created_at);
+                            return (date.getMonth() + 1) == month && date.getFullYear() == year;
+                        });
+                    }
+
+                    return logs;
+                },
+                get auditDateOptions() {
+                    const options = [];
+                    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+                    this.auditLogs.forEach(log => {
+                        const date = new Date(log.created_at);
+                        const m = date.getMonth() + 1;
+                        const y = date.getFullYear();
+                        const val = `${m}-${y}`;
+                        const label = `${months[date.getMonth()]} ${y}`;
+
+                        if (!options.find(o => o.val === val)) {
+                            options.push({ val, label });
+                        }
+                    });
+
+                    return options.sort((a, b) => {
+                         const [m1, y1] = a.val.split('-').map(Number);
+                         const [m2, y2] = b.val.split('-').map(Number);
+                         return y2 - y1 || m2 - m1;
                     });
                 },
                 getActionColor(action) {
@@ -143,11 +188,13 @@
                     if (this.currentElection) {
                         return this.currentElection;
                     }
+                    const totalVotes = this.elections.reduce((sum, e) => sum + (e.totalVotes || 0), 0);
+                    const registeredVoters = this.elections.reduce((sum, e) => sum + (e.registeredVoters || 0), 0);
                     return {
-                        totalVotes: this.elections.reduce((sum, e) => sum + (e.totalVotes || 0), 0),
-                        registeredVoters: this.elections.reduce((sum, e) => sum + (e.registeredVoters || 0), 0),
-                        turnoutRate: this.elections.length > 0
-                            ? (this.elections.reduce((sum, e) => sum + (e.turnoutRate || 0), 0) / this.elections.length).toFixed(1)
+                        totalVotes: totalVotes,
+                        registeredVoters: registeredVoters,
+                        turnoutRate: registeredVoters > 0
+                            ? ((totalVotes / registeredVoters) * 100).toFixed(1)
                             : 0
                     };
                 },
@@ -195,6 +242,48 @@
 
             <main class="flex-1 p-4 sm:p-6 pb-10">
                 <div class="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+                    <!-- Global Metrics (Visible when no election is selected) -->
+                    <div x-show="!selectedElection" x-transition class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm border-l-4 border-l-emerald-500">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm font-medium text-slate-600">Voter Turnout Rate</div>
+                                <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="text-3xl font-bold text-slate-900" x-text="`${currentStats.turnoutRate}%`"></div>
+                            <div class="text-xs text-slate-500 mt-1" x-text="`${currentStats.totalVotes} total votes cast`"></div>
+                        </div>
+
+                        <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm font-medium text-slate-600">Total Registered Voters</div>
+                                <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="text-3xl font-bold text-slate-900" x-text="currentStats.registeredVoters"></div>
+                            <div class="text-xs text-slate-500 mt-1">Eligible voters across all organizations</div>
+                        </div>
+
+                        <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="text-sm font-medium text-slate-600">Active Elections</div>
+                                <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="text-3xl font-bold text-slate-900" x-text="elections.filter(e => e.status === 'active').length"></div>
+                            <div class="text-xs text-slate-500 mt-1" x-text="`Out of ${elections.length} total elections`"></div>
+                        </div>
+                    </div>
+
                     <section>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 items-start lg:items-center justify-between gap-4 mb-4">
                             <div class="md:col-span-2 lg:col-span-1">
@@ -304,19 +393,32 @@
                                     <h2 class="text-2xl font-extrabold text-slate-900">Audit Logs</h2>
                                     <p class="text-sm text-slate-500 mt-1">Track system activities and data modifications</p>
                                 </div>
-                                <div class="flex items-center gap-3">
+                                <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                                     <div class="flex items-center gap-2 bg-white border border-gray-200 px-3 py-2 rounded-lg shadow-sm w-full sm:max-w-xs">
                                         <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                         </svg>
                                         <input x-model="auditSearchQuery" type="text" placeholder="Search logs..." class="flex-1 text-sm outline-none border-none focus:ring-0 p-0" />
                                     </div>
+                                    <select x-model="auditRoleFilter" class="bg-white border border-gray-200 px-3 py-2 rounded-lg text-sm shadow-sm flex-1 sm:flex-none">
+                                        <option value="all">All Roles</option>
+                                        <option value="Super Admin">Super Admin</option>
+                                        <option value="Admin">Admin</option>
+                                        <option value="Officer">Officer</option>
+                                        <option value="Voter">Voter</option>
+                                    </select>
+                                    <select x-model="auditDateFilter" class="bg-white border border-gray-200 px-3 py-2 rounded-lg text-sm shadow-sm flex-1 sm:flex-none">
+                                        <option value="all">All Dates</option>
+                                        <template x-for="opt in auditDateOptions" :key="opt.val">
+                                            <option :value="opt.val" x-text="opt.label"></option>
+                                        </template>
+                                    </select>
                                 </div>
                             </div>
 
                             <div class="bg-white border border-gray-200 rounded-2xl shadow overflow-hidden">
                                 <div class="responsive-table-container">
-                                    <div class="max-h-[420px] overflow-y-auto">
+                                    <div class="max-h-[450px] overflow-y-auto custom-scrollbar">
                                         <table class="w-full text-sm">
                                             <thead class="bg-slate-50 sticky top-0 z-10">
                                             <tr class="text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
@@ -436,7 +538,20 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-6">
+                                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="text-sm font-medium text-slate-600">Voter Turnout Rate</div>
+                                        <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="text-3xl font-bold text-slate-900" x-text="`${currentStats.turnoutRate}%`"></div>
+                                    <div class="text-xs text-slate-500 mt-1">Real-time participation</div>
+                                </div>
+
                                 <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                                     <div class="flex items-center justify-between mb-3">
                                         <div class="text-sm font-medium text-slate-600">Active Sessions</div>
