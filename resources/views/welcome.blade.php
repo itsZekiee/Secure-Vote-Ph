@@ -410,7 +410,26 @@
 
                 <!-- Sign In/Up Section -->
                 <section id="auth" class="px-6 lg:px-8 py-20 bg-gradient-to-br from-gray-50 to-white min-h-screen"
-                    x-data="{ showSignUp: false }">
+                    x-data="{
+                        showSignUp: false,
+                        showForgotPassword: false,
+                        forgotStep: 1,
+                        forgotEmail: '',
+                        forgotOtp: '',
+                        forgotPassword: '',
+                        forgotPasswordConfirmation: '',
+                        forgotToken: '',
+                        forgotLoading: false,
+                        resetForgot() {
+                            this.forgotStep = 1;
+                            this.forgotEmail = '';
+                            this.forgotOtp = '';
+                            this.forgotPassword = '';
+                            this.forgotPasswordConfirmation = '';
+                            this.forgotToken = '';
+                            this.forgotLoading = false;
+                        }
+                    }">
                     <div class="w-full max-w-md mx-auto">
                         <div class="text-center mb-16">
                             <div
@@ -427,7 +446,7 @@
 
                         <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
                             <!-- Sign In Form -->
-                            <div x-show="!showSignUp" x-transition>
+                            <div x-show="!showSignUp && !showForgotPassword" x-transition>
                                 <h3 class="text-2xl font-bold text-secondary mb-6 text-center">Sign In</h3>
 
                                 <form method="POST" action="{{ url('/login') }}" class="space-y-6">
@@ -450,6 +469,10 @@
                                                 class="rounded border-gray-300 text-primary focus:ring-primary">
                                             <span class="ml-2 text-sm text-gray-600">Remember me</span>
                                         </label>
+                                        <button type="button" @click="showForgotPassword = true; showSignUp = false; resetForgot()"
+                                            class="text-sm text-primary hover:underline font-medium">
+                                            Forgot password?
+                                        </button>
                                     </div>
                                     <button type="submit"
                                         class="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white px-6 py-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
@@ -494,7 +517,7 @@
                             </div>
 
                             <!-- Sign Up Form -->
-                            <div x-show="showSignUp" x-transition>
+                            <div x-show="showSignUp && !showForgotPassword" x-transition>
                                 <h3 class="text-2xl font-bold text-secondary mb-6 text-center">Sign Up</h3>
 
                                 <form method="POST" action="{{ route('register') }}" class="space-y-4">
@@ -536,6 +559,72 @@
                                         class="text-primary hover:underline font-medium">Sign in</button>
                                 </p>
                             </div>
+
+                            <!-- Password Recovery Form -->
+                            <div x-show="showForgotPassword" x-transition>
+                                <h3 class="text-2xl font-bold text-secondary mb-6 text-center">Password Recovery</h3>
+
+                                <!-- Step 1: Email -->
+                                <div x-show="forgotStep === 1" class="space-y-6">
+                                    <p class="text-sm text-gray-500 text-center">Enter your registered email address to receive an OTP.</p>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                        <input type="email" x-model="forgotEmail" required
+                                            placeholder="Enter your email"
+                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                                    </div>
+                                    <button @click="sendForgotOtp()" :disabled="forgotLoading || !forgotEmail"
+                                        class="w-full bg-gradient-to-r from-primary to-primary/90 text-white px-6 py-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50">
+                                        <span x-show="!forgotLoading">Send OTP</span>
+                                        <i x-show="forgotLoading" class="ri-loader-4-line animate-spin"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Step 2: OTP -->
+                                <div x-show="forgotStep === 2" class="space-y-6">
+                                    <p class="text-sm text-gray-500 text-center">Enter the 6-digit OTP sent to <span class="font-bold text-slate-800" x-text="forgotEmail"></span></p>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">OTP Code</label>
+                                        <input type="text" x-model="forgotOtp" required maxlength="6"
+                                            placeholder="000000"
+                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 text-center text-2xl tracking-[0.5em]">
+                                    </div>
+                                    <button @click="verifyForgotOtp()" :disabled="forgotLoading || forgotOtp.length < 6"
+                                        class="w-full bg-gradient-to-r from-primary to-primary/90 text-white px-6 py-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50">
+                                        <span x-show="!forgotLoading">Verify OTP</span>
+                                        <i x-show="forgotLoading" class="ri-loader-4-line animate-spin"></i>
+                                    </button>
+                                    <button @click="forgotStep = 1" class="w-full text-sm text-gray-500 hover:text-primary transition-colors">Back to Email</button>
+                                </div>
+
+                                <!-- Step 3: New Password -->
+                                <div x-show="forgotStep === 3" class="space-y-4">
+                                    <p class="text-sm text-gray-500 text-center">Verification successful. Please enter your new password.</p>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                                        <input type="password" x-model="forgotPassword" required
+                                            placeholder="Min. 8 characters"
+                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                                        <input type="password" x-model="forgotPasswordConfirmation" required
+                                            placeholder="Confirm your new password"
+                                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300">
+                                    </div>
+                                    <button @click="resetForgotPassword()" :disabled="forgotLoading || !forgotPassword || forgotPassword !== forgotPasswordConfirmation"
+                                        class="w-full bg-gradient-to-r from-accent to-accent/90 text-white px-6 py-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-50">
+                                        <span x-show="!forgotLoading">Update Password</span>
+                                        <i x-show="forgotLoading" class="ri-loader-4-line animate-spin"></i>
+                                    </button>
+                                </div>
+
+                                <p class="text-center text-sm text-gray-500 mt-6">
+                                    Remember your password?
+                                    <button @click="showForgotPassword = false; showSignUp = false"
+                                        class="text-primary hover:underline font-medium">Sign in</button>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -568,6 +657,106 @@
             } else {
                 showNotification('Google Sign-In is not available. Please try again later.', 'error');
             }
+        }
+
+        /* ✅ PASSWORD RECOVERY FUNCTIONS */
+        function sendForgotOtp() {
+            const authData = document.querySelector('#auth').__x.$data;
+            if (!authData.forgotEmail) return;
+
+            authData.forgotLoading = true;
+            fetch('{{ route('password.otp.send.general') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ email: authData.forgotEmail })
+            })
+            .then(res => res.json())
+            .then(data => {
+                authData.forgotLoading = false;
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    authData.forgotStep = 2;
+                } else {
+                    showNotification(data.message || 'Error sending OTP', 'error');
+                }
+            })
+            .catch(err => {
+                authData.forgotLoading = false;
+                showNotification('Connection error', 'error');
+            });
+        }
+
+        function verifyForgotOtp() {
+            const authData = document.querySelector('#auth').__x.$data;
+            if (!authData.forgotOtp) return;
+
+            authData.forgotLoading = true;
+            fetch('{{ route('password.otp.verify.general') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ email: authData.forgotEmail, otp: authData.forgotOtp })
+            })
+            .then(res => res.json())
+            .then(data => {
+                authData.forgotLoading = false;
+                if (data.success) {
+                    authData.forgotToken = data.token;
+                    authData.forgotStep = 3;
+                    showNotification('OTP Verified successfully!', 'success');
+                } else {
+                    showNotification(data.message || 'Invalid OTP', 'error');
+                }
+            })
+            .catch(err => {
+                authData.forgotLoading = false;
+                showNotification('Connection error', 'error');
+            });
+        }
+
+        function resetForgotPassword() {
+            const authData = document.querySelector('#auth').__x.$data;
+            if (authData.forgotPassword !== authData.forgotPasswordConfirmation) {
+                showNotification('Passwords do not match', 'error');
+                return;
+            }
+
+            authData.forgotLoading = true;
+            fetch('{{ route('password.update.otp.general') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    email: authData.forgotEmail,
+                    password: authData.forgotPassword,
+                    password_confirmation: authData.forgotPasswordConfirmation,
+                    token: authData.forgotToken
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                authData.forgotLoading = false;
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    setTimeout(() => {
+                        authData.showForgotPassword = false;
+                        authData.resetForgot();
+                    }, 2000);
+                } else {
+                    showNotification(data.message || 'Error resetting password', 'error');
+                }
+            })
+            .catch(err => {
+                authData.forgotLoading = false;
+                showNotification('Connection error', 'error');
+            });
         }
 
         function handleGoogleCredentialResponse(response) {

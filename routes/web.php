@@ -25,6 +25,7 @@ use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\MagicLinkController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Voter\VoterOtpController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 
 
@@ -49,6 +50,11 @@ Route::get('/', function () {
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.submit');
 Route::post('/register', [RegisteredUserController::class, 'store'])->name('register');
 Route::post('auth/google/callback', [GoogleAuthController::class, 'handleCallback'])->name('auth.google.callback');
+
+// Password Recovery Routes
+Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp'])->name('password.otp.send.general');
+Route::post('/forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyOtp'])->name('password.otp.verify.general');
+Route::post('/forgot-password/reset', [ForgotPasswordController::class, 'resetPassword'])->name('password.update.otp.general');
 
 
 Route::middleware('guest')->group(function () {

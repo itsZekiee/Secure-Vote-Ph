@@ -68,7 +68,13 @@ class ElectionAccessController extends Controller
                 ->withErrors(['election_code' => 'Invalid election code.']);
         }
 
-        return view('voter.registration.index', compact('election'));
+        $registrationOver = false;
+        $now = now();
+        if ($election->registration_deadline && $now->gt($election->registration_deadline)) {
+            $registrationOver = true;
+        }
+
+        return view('voter.registration.index', compact('election', 'registrationOver'));
     }
 
     public function welcome($code)
