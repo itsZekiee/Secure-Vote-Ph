@@ -232,6 +232,7 @@ document.addEventListener('alpine:init', () => {
                               title: '',
                               voting_start: '',
                               voting_end: '',
+                              duration: 1,
                               accepted_domains: '',
                               registration_deadline: '',
                               max_votes: 1,
@@ -251,11 +252,23 @@ document.addEventListener('alpine:init', () => {
                                   alert('Voting End date is required');
                                   return false;
                               }
-                              if (new Date(this.formData.voting_start) >= new Date(this.formData.voting_end)) {
-                                  alert('Voting End must be after Voting Start');
+                              if (this.formData.registration_deadline && new Date(this.formData.registration_deadline) < now) {
+                                  alert('Registration Deadline must be in the future');
                                   return false;
                               }
                               return true;
+                          },
+                          calculateEndTime() {
+                              if (this.formData.voting_start && this.formData.duration) {
+                                  const start = new Date(this.formData.voting_start);
+                                  const end = new Date(start.getTime() + parseInt(this.formData.duration) * 60 * 60 * 1000);
+                                  const year = end.getFullYear();
+                                  const month = String(end.getMonth() + 1).padStart(2, '0');
+                                  const day = String(end.getDate()).padStart(2, '0');
+                                  const hours = String(end.getHours()).padStart(2, '0');
+                                  const minutes = String(end.getMinutes()).padStart(2, '0');
+                                  this.formData.voting_end = `${year}-${month}-${day}T${hours}:${minutes}`;
+                              }
                           },
                           validatePositions() {
                               if (this.positions.length === 0) {
@@ -435,14 +448,24 @@ document.addEventListener('alpine:init', () => {
 
                                         <div>
                                             <label for="voting_start" class="block text-sm font-semibold text-gray-900 mb-3">Voting Start <span class="text-red-500">*</span></label>
-                                            <input type="datetime-local" id="voting_start" name="voting_start" x-model="formData.voting_start" required
+                                            <input type="datetime-local" id="voting_start" name="voting_start" x-model="formData.voting_start" @input="calculateEndTime()" required
                                                    class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
                                         </div>
 
                                         <div>
-                                            <label for="voting_end" class="block text-sm font-semibold text-gray-900 mb-3">Voting End <span class="text-red-500">*</span></label>
-                                            <input type="datetime-local" id="voting_end" name="voting_end" x-model="formData.voting_end" required
-                                                   class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
+                                            <label for="duration" class="block text-sm font-semibold text-gray-900 mb-3">Voting Duration (Hours) <span class="text-red-500">*</span></label>
+                                            <select id="duration" x-model="formData.duration" @change="calculateEndTime()" required
+                                                    class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-5 py-4 text-base transition-all">
+                                                <option value="1">1 Hour</option>
+                                                <option value="2">2 Hours</option>
+                                                <option value="3">3 Hours</option>
+                                                <option value="4">4 Hours</option>
+                                                <option value="5">5 Hours</option>
+                                                <option value="6">6 Hours</option>
+                                                <option value="7">7 Hours</option>
+                                                <option value="8">8 Hours</option>
+                                            </select>
+                                            <input type="hidden" name="voting_end" x-model="formData.voting_end">
                                         </div>
                                     </div>
 
