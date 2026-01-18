@@ -33,9 +33,10 @@ class AuthController extends Controller
 
         $user = User::create([
             'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'email' => trim(strtolower($request->email)),
+            'password' => $request->password, // Hashed by User model cast
             'role' => 'voter',
+            'is_approved' => true,
         ]);
 
         Auth::login($user);
@@ -69,11 +70,23 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $email = trim(strtolower($request->email));
+        $user = User::where('email', $email)->first();
+
+        if ($user && (!$user->is_approved || !$user->is_active)) {
+            $msg = 'Your account is not approved or is inactive. Please contact an administrator.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return back()->withErrors([
+                'email' => $msg,
+            ]);
+        }
+
         $electionId = session('election_id');
 
         // Check credentials WITHOUT logging in
-        if (!Auth::validate($request->only('email', 'password'))) {
+        if (!Auth::validate(['email' => $email, 'password' => $request->password])) {
             // Record failed login attempt
             \Illuminate\Support\Facades\DB::table('failed_logins')->insert([
                 'user_id' => $user->id ?? null,
@@ -85,21 +98,42 @@ class AuthController extends Controller
                 'created_at' => now(),
             ]);
 
+            $msg = 'Invalid email or password.';
+
             if ($user) {
                 $user->increment('failed_login_attempts');
                 $attempts = $user->failed_login_attempts;
+                $maxAttempts = 6;
+                $msg = "Invalid email or password. Attempt $attempts of $maxAttempts.";
 
-                if ($attempts >= 6) {
+                if ($user->role !== 'voter' && $user->role !== 'candidate') {
+                    $msg .= " Since you have an " . ucfirst($user->role) . " account, please use your primary credentials.";
+                }
+
+                if ($attempts < 3) {
+                    $msg .= " You will be locked out for 60 minutes after 3 failed attempts.";
+                } elseif ($attempts == 4) {
+                    $msg .= " You will be locked out for 24 hours after 5 failed attempts.";
+                }
+
+                if ($attempts >= $maxAttempts) {
                     $user->update(['is_permanently_blocked' => true]);
+                    $msg = 'Your account has been permanently blocked due to too many failed attempts.';
                 } elseif ($attempts == 5) {
                     $user->update(['locked_until' => now()->addHours(24)]);
+                    $msg = 'Too many failed attempts. Your account has been locked for 24 hours.';
                 } elseif ($attempts == 3) {
                     $user->update(['locked_until' => now()->addMinutes(60)]);
+                    $msg = 'Too many failed attempts. Your account has been locked for 60 minutes.';
                 }
             }
 
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 401);
+            }
+
             return back()->withErrors([
-                'email' => 'Invalid email or password.',
+                'email' => $msg,
             ]);
         }
 
@@ -119,8 +153,12 @@ class AuthController extends Controller
             ->exists();
 
         if ($hasExistingSession) {
+            $msg = 'You are already logged in on another device. Please log out there first (Strict One-Device Policy).';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
             return back()->withErrors([
-                'email' => 'You are already logged in on another device. Please log out there first (Strict One-Device Policy).',
+                'email' => $msg,
             ]);
         }
 
@@ -141,6 +179,7 @@ class AuthController extends Controller
         session([
             'otp_email' => $user->email,
             'otp_user_id' => $user->id,
+            'otp_election_id' => $electionId,
             'remember_me' => $request->boolean('remember'),
         ]);
 
@@ -154,6 +193,14 @@ class AuthController extends Controller
                     'type' => 'email',
                 ]
             );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'A verification code has been sent to your email.',
+                'redirect' => route('voter.otp.form')
+            ]);
+        }
 
         return redirect()
             ->route('voter.otp.form')
@@ -192,7 +239,7 @@ class AuthController extends Controller
                 ->withErrors(['error' => 'Election not found.']);
         }
 
-        // Redirect to the proper route with election code
-        return redirect()->route('voter.elections.welcome', $election->code);
+        // Redirect to the proper route with election id
+        return redirect()->route('voter.elections.welcome', $election->id);
     }
 }

@@ -383,7 +383,7 @@
         <div x-show="showDeleteModal"
              class="fixed inset-0 z-[100] overflow-y-auto"
              x-cloak>
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="flex items-center justify-center min-h-screen px-4 py-6 text-center">
                 <div x-show="showDeleteModal"
                      x-transition:enter="ease-out duration-300"
                      x-transition:enter-start="opacity-0"
@@ -394,8 +394,6 @@
                      class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm"
                      @click="showDeleteModal = false"></div>
 
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-
                 <div x-show="showDeleteModal"
                      x-transition:enter="ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -403,7 +401,7 @@
                      x-transition:leave="ease-in duration-200"
                      x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                      x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                     class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-2xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 border border-slate-100">
+                     class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left transition-all transform bg-white rounded-2xl shadow-2xl sm:my-8 sm:max-w-lg sm:w-full sm:p-6 border border-slate-100">
 
                     <div class="sm:flex sm:items-start">
                         <div class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-red-50 rounded-xl sm:mx-0 sm:h-10 sm:w-10 border border-red-100">

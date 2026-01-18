@@ -217,14 +217,15 @@
 
                             <!-- Card Body -->
                             <div class="p-8">
-                                @if($errors->any())
+                                @php $nonLoginErrors = collect($errors->getMessages())->except('login')->flatten(); @endphp
+                                @if($nonLoginErrors->isNotEmpty())
                                     <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
                                         <div class="flex items-center gap-2 text-red-600 mb-2">
                                             <i class="fas fa-exclamation-circle"></i>
                                             <span class="font-semibold">Please fix the following errors:</span>
                                         </div>
                                         <ul class="list-disc list-inside text-red-600 text-sm space-y-1">
-                                            @foreach($errors->all() as $error)
+                                            @foreach($nonLoginErrors as $error)
                                                 <li>{{ $error }}</li>
                                             @endforeach
                                         </ul>
@@ -721,6 +722,56 @@
                 document.getElementById('login-error').classList.add('hidden');
             });
 
+            // AJAX Sign In handling
+            if (signinForm) {
+                signinForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const submitBtn = signinForm.querySelector('button[type="submit"]');
+                    const originalBtnContent = submitBtn.innerHTML;
+                    const errorDiv = document.getElementById('login-error');
+                    const errorMsg = document.getElementById('login-error-message');
+
+                    // Hide existing errors
+                    errorDiv.classList.add('hidden');
+                    const phpErrorDiv = document.querySelector('.mb-6.p-4.bg-red-50.border.border-red-200.rounded-xl:not(#login-error)');
+                    if (phpErrorDiv && phpErrorDiv.querySelector('.font-bold')?.textContent === 'Login Error') {
+                        phpErrorDiv.classList.add('hidden');
+                    }
+
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Signing In...';
+
+                    const formData = new FormData(signinForm);
+
+                    fetch(signinForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(async response => {
+                        const data = await response.json();
+                        if (response.ok && data.success) {
+                            window.location.href = data.redirect;
+                        } else {
+                            throw data;
+                        }
+                    })
+                    .catch(error => {
+                        errorDiv.classList.remove('hidden');
+                        errorMsg.textContent = error.message || 'Invalid credentials or you are not registered as a voter.';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnContent;
+
+                        // Scroll to error
+                        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+                });
+            }
+
             // Phone number formatting
             const phoneInput = document.querySelector('input[name="phone"]');
             if (phoneInput) {
@@ -833,7 +884,15 @@
                         f.addEventListener('submit', function (e) {
                             if (!latInput.value || !lngInput.value) {
                                 e.preventDefault();
-                                getGeoLocation(() => f.submit());
+                                getGeoLocation(() => {
+                                    if (f.requestSubmit) {
+                                        f.requestSubmit();
+                                    } else {
+                                        // Fallback to standard submit if requestSubmit is not supported
+                                        // This will bypass the AJAX handler but at least it will submit.
+                                        f.submit();
+                                    }
+                                });
                             }
                         });
                     }

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -47,7 +48,6 @@ class OrganizationController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'organization_id' => 'required|string|max:100|unique:organizations,organization_id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'contact_email' => 'required|email|max:255',
@@ -64,6 +64,7 @@ class OrganizationController extends Controller
         }
 
         $data = $validator->validated();
+        $data['organization_id'] = 'ORG-' . strtoupper(Str::random(8));
         $data['created_by'] = auth()->id();
 
         // Map status string to boolean/integer for DB
@@ -145,13 +146,7 @@ class OrganizationController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $validated = $request->validate([
-            'organization_id' => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique('organizations', 'organization_id')->ignore($organization->id)
-            ],
+        $rules = [
             'name' => [
                 'required',
                 'string',
@@ -163,7 +158,19 @@ class OrganizationController extends Controller
             'contact_phone' => 'nullable|string|max:20',
             'status' => 'required|in:active,inactive',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        ];
+
+        // Only validate organization_id if it's present (it should be read-only in UI)
+        if ($request->has('organization_id')) {
+            $rules['organization_id'] = [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('organizations', 'organization_id')->ignore($organization->id)
+            ];
+        }
+
+        $validated = $request->validate($rules);
 
         try {
             DB::beginTransaction();

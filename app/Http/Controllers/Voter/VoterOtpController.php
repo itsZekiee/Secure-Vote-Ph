@@ -79,6 +79,24 @@ class VoterOtpController extends Controller
         );
 
         $user = User::find($userId);
+
+        // Set voter session for VoterAuth middleware
+        $electionId = session('otp_election_id');
+        if ($electionId) {
+            $voter = \App\Models\Voter::where('user_id', $user->id)
+                ->where('election_id', $electionId)
+                ->first();
+            if ($voter) {
+                session(['voter' => [
+                    'id' => $voter->id,
+                    'name' => $voter->name,
+                    'email' => $voter->email,
+                    'election_id' => $voter->election_id,
+                    'role' => 'voter'
+                ]]);
+            }
+        }
+
         AuditLogger::log(
             'LOGIN',
             'Auth',

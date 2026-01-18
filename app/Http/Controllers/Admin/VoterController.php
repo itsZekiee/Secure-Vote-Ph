@@ -138,10 +138,12 @@ class VoterController extends Controller
             'student_id.regex' => 'The ID format is invalid.',
         ]);
 
+        $email = trim(strtolower($validated['email']));
+
         // Check for duplicates in this election
         $duplicate = \App\Models\Voter::where('election_id', $validated['form_id'])
-            ->where(function($q) use ($validated) {
-                $q->where('email', $validated['email'])
+            ->where(function($q) use ($email, $validated) {
+                $q->where('email', $email)
                   ->orWhere('student_id', $validated['student_id']);
             })
             ->first();
@@ -153,14 +155,39 @@ class VoterController extends Controller
         try {
             DB::beginTransaction();
 
+            $user = User::where('email', $email)->first();
+
+            if (!$user) {
+                $nameParts = explode(' ', trim($validated['full_name']));
+                $lastName = count($nameParts) > 1 ? array_pop($nameParts) : '';
+                $firstName = implode(' ', $nameParts);
+                if (empty($firstName)) { $firstName = $lastName; $lastName = ''; }
+
+                $user = User::create([
+                    'name' => $validated['full_name'],
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'email' => $email,
+                    'password' => 'password', // Default password
+                    'role' => 'voter',
+                    'is_active' => true,
+                    'is_approved' => ($validated['registration_status'] === 'approved'),
+                ]);
+            } else {
+                if ($validated['registration_status'] === 'approved') {
+                    $user->update(['is_approved' => true]);
+                }
+            }
+
             \App\Models\Voter::create([
                 'name' => $validated['full_name'],
-                'email' => $validated['email'],
+                'email' => $email,
                 'phone' => $validated['phone'] ?? null,
                 'student_id' => $validated['student_id'] ?? null,
                 'election_id' => $validated['form_id'],
                 'registration_status' => $validated['registration_status'],
-                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'password' => $user->password,
+                'user_id' => $user->id,
             ]);
 
             DB::commit();
@@ -208,10 +235,31 @@ class VoterController extends Controller
             'registration_status' => 'required|in:approved,pending,declined'
         ]);
 
+        $email = trim(strtolower($validated['email']));
+
         try {
             DB::beginTransaction();
 
-            $voter->update($validated);
+            $voter->update([
+                'name' => $validated['name'],
+                'email' => $email,
+                'student_id' => $validated['student_id'],
+                'phone' => $validated['phone'],
+                'election_id' => $validated['election_id'],
+                'registration_status' => $validated['registration_status'],
+            ]);
+
+            // Sync with User record if exists
+            if ($voter->user_id) {
+                $user = User::find($voter->user_id);
+                if ($user) {
+                    $user->update([
+                        'name' => $validated['name'],
+                        'email' => $email,
+                        'is_approved' => ($validated['registration_status'] === 'approved')
+                    ]);
+                }
+            }
 
             DB::commit();
 
@@ -256,6 +304,11 @@ class VoterController extends Controller
         $voter = Voter::findOrFail($id);
         $voter->registration_status = 'approved';
         $voter->save();
+
+        // Also approve the user account if linked
+        if ($voter->user_id) {
+            User::where('id', $voter->user_id)->update(['is_approved' => true]);
+        }
 
         return back()->with('success', 'Voter approved.');
     }
@@ -448,7 +501,7 @@ class VoterController extends Controller
         DB::beginTransaction();
         try {
             foreach ($rows as $row) {
-                $email = $row['email'] ?? ($row['email_address'] ?? ($row['email address'] ?? null));
+                $email = trim(strtolower($row['email'] ?? ($row['email_address'] ?? ($row['email address'] ?? null))));
                 $name = $row['full_name'] ?? ($row['name'] ?? ($row['full name'] ?? null));
 
                 if (!$email || !$name) {
@@ -458,12 +511,16 @@ class VoterController extends Controller
 
                 $studentId = $row['id'] ?? ($row['student_id'] ?? ($row['id_number'] ?? ($row['employee_id'] ?? ($row['student id'] ?? null))));
 
-                // Check if voter already exists
-                $existingVoter = \App\Models\Voter::where('email', $email)->first();
+                // Check if voter already exists for THIS election
+                $existingVoter = \App\Models\Voter::where('email', $email)
+                    ->where('election_id', $electionId)
+                    ->first();
                 if ($existingVoter) {
                     $skipped++;
                     continue;
                 }
+
+                $user = User::where('email', $email)->first();
 
                 $data = [
                     'name' => $name,
@@ -473,29 +530,36 @@ class VoterController extends Controller
                     'password' => $hashedPassword,
                     'election_id' => $electionId,
                     'registration_status' => $registrationStatus,
+                    'user_id' => $user->id ?? null,
                 ];
 
                 $voter = \App\Models\Voter::create($data);
 
-                // If approved, create user account
+                // If approved, create user account if doesn't exist
                 if ($registrationStatus === 'approved') {
-                    $nameParts = explode(' ', trim($name));
-                    $lastName = count($nameParts) > 1 ? array_pop($nameParts) : '';
-                    $firstName = implode(' ', $nameParts);
-                    if (empty($firstName)) {
-                        $firstName = $lastName;
-                        $lastName = '';
-                    }
+                    if (!$user) {
+                        $nameParts = explode(' ', trim($name));
+                        $lastName = count($nameParts) > 1 ? array_pop($nameParts) : '';
+                        $firstName = implode(' ', $nameParts);
+                        if (empty($firstName)) {
+                            $firstName = $lastName;
+                            $lastName = '';
+                        }
 
-                    $user = User::create([
-                        'name' => $name,
-                        'first_name' => $firstName,
-                        'last_name' => $lastName,
-                        'email' => $email,
-                        'password' => $hashedPassword,
-                        'role' => 'voter',
-                        'is_active' => true,
-                    ]);
+                        $user = User::create([
+                            'name' => $name,
+                            'first_name' => $firstName,
+                            'last_name' => $lastName,
+                            'email' => $email,
+                            'password' => $tempPassword, // Model cast handles hashing
+                            'role' => 'voter',
+                            'is_active' => true,
+                            'is_approved' => true,
+                        ]);
+                    } else {
+                        // User exists, ensure they are approved
+                        $user->update(['is_approved' => true]);
+                    }
 
                     $voter->update(['user_id' => $user->id]);
                     $this->assignVoterRole($user);
