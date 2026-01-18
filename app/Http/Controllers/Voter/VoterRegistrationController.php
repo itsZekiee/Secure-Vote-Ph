@@ -70,7 +70,19 @@ class VoterRegistrationController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => 'required|string|max:20',
-            'student_id' => 'required|string|max:12|regex:/^[0-9-]+$/',
+            'student_id' => [
+                'required',
+                'string',
+                'regex:/^[A-Z0-9-]+$/i', // allow letters, numbers, dashes
+                function ($attribute, $value, $fail) {
+                    // Count letters/numbers only, ignore dashes
+                    $count = preg_replace('/[^A-Z0-9]/i', '', $value);
+                    if (strlen($count) > 12) {
+                        $fail('The student ID must not be greater than 12 characters (excluding dashes).');
+                    }
+                },
+            ],
+
             'password' => 'required|string|min:6|confirmed',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
