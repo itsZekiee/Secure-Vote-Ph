@@ -25,7 +25,7 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($election) {
                 $registeredVoters = $election->voters->count();
-                $totalVotes = $election->voters->whereNotNull('voted_at')->count();
+                $totalVotes = $election->votes()->distinct('voter_id')->count('voter_id');
 
                 // Prefer the loaded relation, otherwise try to lookup by organization_id,
                 // otherwise use any organization_name column stored on the election.

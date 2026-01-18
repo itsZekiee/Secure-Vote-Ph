@@ -47,6 +47,7 @@ class OrganizationController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'organization_id' => 'required|string|max:100|unique:organizations,organization_id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'contact_email' => 'required|email|max:255',
@@ -64,6 +65,11 @@ class OrganizationController extends Controller
 
         $data = $validator->validated();
         $data['created_by'] = auth()->id();
+
+        // Map status string to boolean/integer for DB
+        if (isset($data['status'])) {
+            $data['status'] = ($data['status'] === 'active') ? 1 : 0;
+        }
 
         if ($request->hasFile('logo')) {
             $logoName = time() . '_' . $request->file('logo')->getClientOriginalName();
@@ -140,6 +146,12 @@ class OrganizationController extends Controller
         }
 
         $validated = $request->validate([
+            'organization_id' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('organizations', 'organization_id')->ignore($organization->id)
+            ],
             'name' => [
                 'required',
                 'string',
@@ -165,6 +177,11 @@ class OrganizationController extends Controller
                 $logoName = time() . '_' . $request->file('logo')->getClientOriginalName();
                 $request->file('logo')->storeAs('public/organizations', $logoName);
                 $validated['logo'] = $logoName;
+            }
+
+            // Map status string to boolean/integer for DB
+            if (isset($validated['status'])) {
+                $validated['status'] = ($validated['status'] === 'active') ? 1 : 0;
             }
 
             $organization->update($validated);

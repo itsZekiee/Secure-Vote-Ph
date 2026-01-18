@@ -267,11 +267,14 @@ class VoterElectionController extends Controller
             }])
             ->get();
 
+        $resultsAnonymized = \App\Models\Setting::where('key', 'results_public')->first()?->value === 'on';
+
         return view('live.result', [
             'election' => $election,
             'positions' => $positions,
             'partylists' => $partylists,
-            'voter' => $voter
+            'voter' => $voter,
+            'resultsAnonymized' => $resultsAnonymized
         ]);
     }
 

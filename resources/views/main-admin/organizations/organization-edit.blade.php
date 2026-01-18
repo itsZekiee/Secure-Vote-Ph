@@ -21,7 +21,7 @@
 
     // Accurate data handling with safe property access
     $organizationName = old('name', $organization->name ?? 'Organization');
-    $organizationSlug = old('slug', $organization->slug ?? '');
+    $organizationIdValue = old('organization_id', $organization->organization_id ?? '');
     $organizationEmail = old('email', $organization->email ?? $organization->contact_email ?? '');
     $organizationPhone = old('phone', $organization->phone ?? $organization->contact_phone ?? '');
     $organizationAddress = old('address', $organization->address ?? $organization->location ?? '');

@@ -24,10 +24,10 @@
                     </div>
 
                     @if(session('success'))
-                        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-600 text-sm flex items-center gap-3">
+                        <divon  class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-600 text-sm flex items-center gap-3">
                             <i class="ri-checkbox-circle-fill"></i>
                             {{ session('success') }}
-                        </div>
+                        </divon>
                     @endif
 
                     @if(session('info'))
