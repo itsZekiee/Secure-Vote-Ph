@@ -39,7 +39,7 @@ class ElectionController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $organizations = Organization::all();
+        $organizations = Organization::where('created_by', auth()->id())->get();
         $positions = collect();
 
         return view($this->getView('elections'), compact('elections', 'organizations', 'positions'));
@@ -47,7 +47,7 @@ class ElectionController extends Controller
 
     public function create()
     {
-        $organizations = Organization::all();
+        $organizations = Organization::where('created_by', auth()->id())->get();
         $positions = collect();
 
         return view($this->getView('elections'), compact('organizations', 'positions'));
@@ -59,7 +59,7 @@ class ElectionController extends Controller
         if (!$this->canUserManageElection($election)) {
             abort(403);
         }
-        $organizations = Organization::all();
+        $organizations = Organization::where('created_by', auth()->id())->get();
         return view($this->getView('elections.edit'), compact('election', 'organizations'));
     }
 
@@ -82,6 +82,19 @@ class ElectionController extends Controller
                 'geo_radius' => 'nullable|numeric',
                 'auto_approve_voters' => 'nullable|boolean',
             ]);
+
+            if (!empty($validated['organization_id'])) {
+                $allowedOrg = Organization::where('id', $validated['organization_id'])
+                    ->where('created_by', auth()->id())
+                    ->exists();
+
+                if (!$allowedOrg) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthorized organization selection'
+                    ], 403);
+                }
+            }
 
             DB::beginTransaction();
 

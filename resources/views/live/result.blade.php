@@ -179,6 +179,7 @@
                             $leader = $position->candidates->sortByDesc('votes_count')->first();
                             $totalPosVotes = $position->candidates->sum('votes_count');
                             $percentage = $totalPosVotes > 0 ? ($leader->votes_count / $totalPosVotes) * 100 : 0;
+                            $leaderName = $resultsAnonymized ? 'Candidate #1' : ($leader->name ?? 'No Candidates');
                         @endphp
                         <div class="leader-card">
                             <div class="flex items-center gap-2 mb-3">
@@ -187,7 +188,7 @@
                                 </div>
                                 <span class="text-[9px] font-black text-brand-accent uppercase tracking-widest">{{ $position->title }}</span>
                             </div>
-                            <h4 class="text-base font-black text-brand-primary leading-tight mb-1 truncate">{{ $leader->name ?? 'No Candidates' }}</h4>
+                            <h4 class="text-base font-black text-brand-primary leading-tight mb-1 truncate">{{ $leaderName }}</h4>
                             <div class="flex items-end gap-2">
                                 <span class="text-xl font-black text-brand-primary">{{ number_format($percentage, 2) }}%</span>
                                 <span class="text-[9px] font-bold text-slate-400 mb-1">{{ number_format($leader->votes_count ?? 0) }} votes</span>
@@ -222,6 +223,7 @@
                                 $sortedCandidates = $position->candidates->sortByDesc('votes_count');
                                 $leader = $sortedCandidates->first();
                                 $totalPosVotes = $position->candidates->sum('votes_count');
+                                $leaderName = $resultsAnonymized ? 'Candidate #1' : $leader->name;
                             @endphp
 
                             <!-- Leading Candidate Highlight -->
@@ -236,7 +238,7 @@
                                     </div>
                                     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                                         <div>
-                                            <h3 class="text-2xl font-black text-brand-primary mb-1">{{ $leader->name }}</h3>
+                                            <h3 class="text-2xl font-black text-brand-primary mb-1">{{ $leaderName }}</h3>
                                             <p class="text-slate-500 text-xs font-bold">
                                                 {{ number_format($leader->votes_count) }} votes • {{ $totalPosVotes > 0 ? number_format(($leader->votes_count / $totalPosVotes) * 100, 2) : 0 }}% of total
                                             </p>
@@ -269,6 +271,10 @@
                                                     $displayName = (in_array($lastName, ['IV', 'III', 'II', 'Jr.', 'Sr.']) && count($nameParts) > 1)
                                                         ? $nameParts[count($nameParts) - 2]
                                                         : $lastName;
+
+                                                    if ($resultsAnonymized) {
+                                                        $displayName = 'Candidate #' . $loop->iteration;
+                                                    }
                                                 @endphp
                                                 {{ $displayName }}
                                             </div>
@@ -290,7 +296,9 @@
                                             <div class="flex-grow">
                                                 <div class="flex justify-between items-center mb-2">
                                                     <div class="flex items-center gap-2">
-                                                        <span class="text-base font-black text-brand-primary">{{ $candidate->name }}</span>
+                                                        <span class="text-base font-black text-brand-primary">
+                                                            {{ $resultsAnonymized ? 'Candidate #' . $loop->iteration : $candidate->name }}
+                                                        </span>
                                                         @if($loop->first)
                                                             <span class="px-1.5 py-0.5 bg-brand-accent text-white rounded text-[7px] font-black uppercase tracking-widest">Leading</span>
                                                         @endif

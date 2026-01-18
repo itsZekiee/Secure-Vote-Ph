@@ -4,6 +4,8 @@
     <div x-data="{
         selectedOrg: null,
         showMembers: false,
+        showDeleteModal: false,
+        orgToDelete: null,
         members: [],
         loading: false,
         searchQuery: '',
@@ -38,7 +40,7 @@
                     (org.name && org.name.toLowerCase().includes(query)) ||
                     (org.description && org.description.toLowerCase().includes(query)) ||
                     (org.email && org.email.toLowerCase().includes(query)) ||
-                    (org.slug && org.slug.toLowerCase().includes(query))
+                    (org.organization_id && org.organization_id.toLowerCase().includes(query))
                 );
             }
 
@@ -189,7 +191,7 @@
                                         </div>
                                         <input type="text"
                                                x-model="searchQuery"
-                                               placeholder="Name, email, slug..."
+                                               placeholder="Name, email, ID..."
                                                class="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-white">
                                     </div>
                                 </div>
@@ -281,7 +283,7 @@
                                                 </div>
                                                 <div>
                                                     <p class="font-bold text-slate-900 leading-tight text-sm" x-text="org.name"></p>
-                                                    <p class="text-[10px] font-bold text-indigo-500 mt-0.5 uppercase tracking-wider" x-text="org.slug || 'no-slug'"></p>
+                                                    <p class="text-[10px] font-bold text-indigo-500 mt-0.5 uppercase tracking-wider" x-text="org.organization_id || 'no-id'"></p>
                                                 </div>
                                             </div>
                                         </td>
@@ -308,6 +310,10 @@
                                                    class="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 hover:shadow transition-all">
                                                     <i class="ri-edit-line text-sm"></i>
                                                 </a>
+                                                <button @click="orgToDelete = org; showDeleteModal = true"
+                                                        class="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-red-500 hover:text-red-600 hover:border-red-200 hover:shadow transition-all">
+                                                    <i class="ri-delete-bin-line text-sm"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -332,7 +338,7 @@
                                             </div>
                                             <div class="min-w-0">
                                                 <p class="font-bold text-slate-900 text-base truncate" x-text="org.name"></p>
-                                                <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest" x-text="org.slug || 'no-slug'"></p>
+                                                <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest" x-text="org.organization_id || 'no-id'"></p>
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-2">
@@ -344,6 +350,10 @@
                                                class="w-9 h-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-500 shadow-sm">
                                                 <i class="ri-edit-line text-sm"></i>
                                             </a>
+                                            <button @click="orgToDelete = org; showDeleteModal = true"
+                                                    class="w-9 h-9 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-red-500 shadow-sm">
+                                                <i class="ri-delete-bin-line text-sm"></i>
+                                            </button>
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4">
@@ -368,6 +378,66 @@
                 </div>
             </div>
         </main>
+
+        <!-- Delete Confirmation Modal -->
+        <div x-show="showDeleteModal"
+             class="fixed inset-0 z-[100] overflow-y-auto"
+             x-cloak>
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div x-show="showDeleteModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm"
+                     @click="showDeleteModal = false"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+
+                <div x-show="showDeleteModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     class="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-2xl shadow-2xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 border border-slate-100">
+
+                    <div class="sm:flex sm:items-start">
+                        <div class="flex items-center justify-center flex-shrink-0 w-12 h-12 mx-auto bg-red-50 rounded-xl sm:mx-0 sm:h-10 sm:w-10 border border-red-100">
+                            <i class="ri-error-warning-line text-xl text-red-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg font-bold text-slate-900">Delete Organization</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-slate-500">
+                                    Are you sure you want to delete <span class="font-bold text-slate-700" x-text="orgToDelete?.name"></span>? This action will archive the organization and it will no longer be visible in the active list.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 sm:mt-8 sm:flex sm:flex-row-reverse gap-3">
+                        <form :action="`/admin/organizations/${orgToDelete?.id}`" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                    class="inline-flex justify-center w-full px-4 py-2.5 text-sm font-bold text-white bg-red-600 border border-transparent rounded-xl shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all">
+                                Yes, Delete Organization
+                            </button>
+                        </form>
+                        <button @click="showDeleteModal = false"
+                                type="button"
+                                class="mt-3 inline-flex justify-center w-full px-4 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 transition-all">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Minimal members fetch helper — fills console and can be extended to update UI/modal
