@@ -53,6 +53,14 @@
         selectedExportPartylist: '',
         selectedExportCandidates: [],
         exportSearchQuery: '',
+        get filteredExportCandidates() {
+            if (!this.exportSearchQuery) return this.allCandidates;
+            const q = this.exportSearchQuery.toLowerCase();
+            return this.allCandidates.filter(c =>
+                (c.user?.name || c.name || '').toLowerCase().includes(q) ||
+                (c.user?.email || c.email || '').toLowerCase().includes(q)
+            );
+        },
         allPartylists: @js(\App\Models\Partylist::where('created_by', auth()->id())->get()->toArray() ?? []),
 
         exportData() {
@@ -715,7 +723,7 @@
                                                    class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 bg-white">
                                         </div>
                                         <div class="max-h-40 overflow-y-auto border border-gray-100 rounded-lg p-2 bg-slate-50">
-                                            <template x-for="candidate in allCandidates.filter(c => !exportSearchQuery || (c.user?.name || c.name || '').toLowerCase().includes(exportSearchQuery.toLowerCase()))" :key="candidate.id">
+                                            <template x-for="candidate in filteredExportCandidates" :key="candidate.id">
                                                 <label class="flex items-center gap-2 p-1.5 hover:bg-white rounded cursor-pointer transition-colors">
                                                     <input type="checkbox" :value="candidate.id"
                                                            :checked="selectedExportCandidates.includes(candidate.id)"

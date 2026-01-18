@@ -57,6 +57,11 @@ class Candidate extends Model
         return $this->belongsTo(Election::class, 'election_id');
     }
 
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'organization_id');
+    }
+
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class, 'position_id');
