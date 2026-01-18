@@ -126,10 +126,12 @@ class VoterRegistrationController extends Controller
             $middleName = implode(' ', $nameParts);
         }
 
+        $email = trim(strtolower($request->email));
+
         DB::beginTransaction();
         try {
             // Find or create global User account
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('email', $email)->first();
 
             if (!$user) {
                 $user = User::create([
@@ -137,16 +139,30 @@ class VoterRegistrationController extends Controller
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'middle_name' => $middleName,
-                    'email' => $request->email,
-                    'password' => Hash::make($request->password),
+                    'email' => $email,
+                    'password' => $request->password, // Hashed by User model cast
                     'role' => 'voter',
                     'is_active' => true,
+                    'is_approved' => true,
                     'phone' => $request->phone,
                     'student_id' => $request->student_id,
                 ]);
             } else {
-                // User already exists. Reset failed attempts on successful registration for new election.
+                // User already exists.
+                // If it's a voter, update password to what they just entered to avoid confusion
+                if ($user->role === 'voter') {
+                    $user->update(['password' => $request->password]);
+                } else {
+                    // For non-voters (e.g. Admins), we should verify their existing password
+                    // or inform them that their current account password must be used.
+                    if (!Hash::check($request->password, $user->password)) {
+                        throw new \Exception('This email is already associated with an ' . ucfirst($user->role) . ' account. Please use your existing account password to register for this election.');
+                    }
+                }
+
                 $user->update([
+                    'phone' => $user->phone ?: $request->phone,
+                    'student_id' => $user->student_id ?: $request->student_id,
                     'failed_login_attempts' => 0,
                     'locked_until' => null
                 ]);
@@ -188,7 +204,7 @@ class VoterRegistrationController extends Controller
                 'first_name' => $firstName,
                 'middle_name' => $middleName,
                 'last_name' => $lastName,
-                'email' => $request->email,
+                'email' => $email,
                 'student_id' => $request->student_id ?? null,
                 'phone' => $request->phone ?? null,
                 'password' => $user->password, // Sync password
@@ -238,33 +254,80 @@ class VoterRegistrationController extends Controller
             );
 
             if ($distance > ($election->geo_radius_meters + 1000)) { // Increased buffer to 1000m for better reliability
-                return back()->withErrors(['login' => 'You must be within the designated voting area to sign in. (Distance: ' . round($distance) . 'm, Allowed: ' . ($election->geo_radius_meters + 1000) . 'm)'])->withInput();
+                $msg = 'You must be within the designated voting area to sign in. (Distance: ' . round($distance) . 'm, Allowed: ' . ($election->geo_radius_meters + 1000) . 'm)';
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 403);
+                }
+                return back()->withErrors(['login' => $msg])->withInput();
             }
         }
 
-        $user = User::where('email', $request->email)->first();
+        $email = trim(strtolower($request->email));
+        $user = User::where('email', $email)->first();
 
         if (!$user) {
-            return back()->withErrors(['login' => 'Invalid email or password.']);
+            $msg = 'Invalid email or password.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 401);
+            }
+            return back()->withErrors(['login' => $msg])->withInput();
+        }
+
+        // Check if user is approved (global account status)
+        if (!$user->is_approved) {
+            $msg = 'Your account is pending approval by the main administrator.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return back()->withErrors(['login' => $msg])->withInput();
+        }
+
+        // Check if user is active
+        if (!$user->is_active) {
+            $msg = 'Your account is inactive. Please contact the administrator.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return back()->withErrors(['login' => $msg])->withInput();
         }
 
         // Check if permanently blocked
         if ($user->is_permanently_blocked) {
-            return back()->withErrors(['login' => 'Your account has been permanently blocked. Please contact the Administrator.']);
+            $msg = 'Your account has been permanently blocked. Please contact the Administrator.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return back()->withErrors(['login' => $msg])->withInput();
         }
 
         // Check if currently locked
         if ($user->locked_until && $user->locked_until->isFuture()) {
             $diff = $user->locked_until->diffForHumans();
-            return back()->withErrors(['login' => "Your account is temporarily locked. Please try again in $diff."]);
+            $msg = "Your account is temporarily locked. Please try again in $diff.";
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return back()->withErrors(['login' => $msg]);
         }
 
         if (!Hash::check($request->password, $user->password)) {
             $user->increment('failed_login_attempts');
             $attempts = $user->failed_login_attempts;
-            $msg = 'Invalid email or password.';
+            $maxAttempts = 6;
 
-            if ($attempts >= 6) {
+            $msg = "Invalid email or password. Attempt $attempts of $maxAttempts.";
+
+            if ($user->role !== 'voter' && $user->role !== 'candidate') {
+                $msg .= " Since you have an " . ucfirst($user->role) . " account, please use your primary credentials.";
+            }
+
+            if ($attempts < 3) {
+                $msg .= " You will be locked out for 60 minutes after 3 failed attempts.";
+            } elseif ($attempts == 4) {
+                $msg .= " You will be locked out for 24 hours after 5 failed attempts.";
+            }
+
+            if ($attempts >= $maxAttempts) {
                 $user->update(['is_permanently_blocked' => true]);
                 $msg = 'Your account has been permanently blocked due to too many failed attempts.';
             } elseif ($attempts == 5) {
@@ -275,6 +338,15 @@ class VoterRegistrationController extends Controller
                 $msg = 'Too many failed attempts. Your account has been locked for 60 minutes.';
             }
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $msg,
+                    'attempts' => $attempts,
+                    'max_attempts' => $maxAttempts
+                ], 401);
+            }
+
             return back()->withErrors(['login' => $msg]);
         }
 
@@ -283,7 +355,11 @@ class VoterRegistrationController extends Controller
             ->first();
 
         if (!$voter) {
-            return back()->withErrors(['login' => 'You are not registered for this election. Please register first.']);
+            $msg = 'You are not registered for this election. Please register first.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return back()->withErrors(['login' => $msg]);
         }
 
         // Reset failed attempts on successful login
@@ -293,21 +369,20 @@ class VoterRegistrationController extends Controller
         ]);
 
         if ($voter->registration_status === 'pending' && !$election->auto_approve_voters) {
-            return back()->withErrors(['login' => 'Your registration is still pending approval. Please wait 1 to 24 hours.']);
+            $msg = 'Your registration is still pending approval. Please wait 1 to 24 hours.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return back()->withErrors(['login' => $msg]);
         }
 
         if ($voter->registration_status === 'declined') {
-            return back()->withErrors(['login' => 'Your registration has been declined. You cannot sign in.']);
+            $msg = 'Your registration has been declined. You cannot sign in.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 403);
+            }
+            return back()->withErrors(['login' => $msg]);
         }
-
-        // Store voter in session
-        session(['voter' => [
-            'id' => $voter->id,
-            'name' => $voter->name,
-            'email' => $voter->email,
-            'election_id' => $election->id,
-            'role' => 'voter'
-        ]]);
 
         // 🔐 Send OTP (Email)
         try {
@@ -324,7 +399,11 @@ class VoterRegistrationController extends Controller
                 );
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Supabase Voter OTP connection error: ' . $e->getMessage());
-            return back()->withErrors(['login' => 'Failed to connect to the authentication service. Please check your internet connection and try again.'])->withInput();
+            $msg = 'Failed to connect to the authentication service. Please check your internet connection and try again.';
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 503);
+            }
+            return back()->withErrors(['login' => $msg])->withInput();
         }
 
         // 🔑 Keep current session data for voter
@@ -338,12 +417,20 @@ class VoterRegistrationController extends Controller
         // Store OTP info in session for 2FA
         session([
             'otp_email' => $voter->email,
-            'otp_user_id' => $voter->id,
+            'otp_user_id' => $user->id,
             'remember_me' => $request->has('remember'),
         ]);
 
 
         // Redirect to OTP form instead of welcome
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'A verification code has been sent to your email.',
+                'redirect' => route('voter.otp.form')
+            ]);
+        }
+
         return redirect()->route('voter.otp.form')
             ->with('success', 'A verification code has been sent to your email.');
 

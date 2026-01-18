@@ -7,6 +7,7 @@
                             description: '',
                             contact_email: '',
                             contact_phone: '',
+                            status: 'active'
                         },
                         errors: {},
                         loading: false,
@@ -349,6 +350,7 @@
                                         </div>
 
                                         <div class="p-8 space-y-6">
+
                                             <!-- Organization Name -->
                                             <div class="space-y-2">
                                                 <label
