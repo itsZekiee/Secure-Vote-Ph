@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Imports\VoterImport;
 use App\Models\User;
-use App\Models\Voter;
+use App\Models\Election;
+use App\Mail\VoterImportedMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -163,23 +166,32 @@ class VoterController extends Controller
                 $firstName = implode(' ', $nameParts);
                 if (empty($firstName)) { $firstName = $lastName; $lastName = ''; }
 
+                // Generate Unique Key / Temporary Password
+                $tempPassword = strtoupper(\Illuminate\Support\Str::random(10));
+
                 $user = User::create([
                     'name' => $validated['full_name'],
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'email' => $email,
-                    'password' => 'password', // Default password
+                    'password' => $tempPassword,
                     'role' => 'voter',
                     'is_active' => true,
                     'is_approved' => ($validated['registration_status'] === 'approved'),
                 ]);
             } else {
+                // Generate Unique Key / Temporary Password for existing user
+                $tempPassword = strtoupper(\Illuminate\Support\Str::random(10));
+
                 if ($validated['registration_status'] === 'approved') {
-                    $user->update(['is_approved' => true]);
+                    $user->update([
+                        'is_approved' => true,
+                        'password' => $tempPassword
+                    ]);
                 }
             }
 
-            \App\Models\Voter::create([
+            $voter = \App\Models\Voter::create([
                 'name' => $validated['full_name'],
                 'email' => $email,
                 'phone' => $validated['phone'] ?? null,
@@ -189,6 +201,16 @@ class VoterController extends Controller
                 'password' => $user->password,
                 'user_id' => $user->id,
             ]);
+
+            // Send Email Notification if approved
+            if ($validated['registration_status'] === 'approved') {
+                try {
+                    $election = \App\Models\Election::find($validated['form_id']);
+                    Mail::to($email)->send(new VoterImportedMail($voter, $election, $tempPassword));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to send voter email to {$email}: " . $e->getMessage());
+                }
+            }
 
             DB::commit();
 
@@ -463,15 +485,13 @@ class VoterController extends Controller
         $request->validate([
             'import_path' => 'required|string',
             'election_id' => 'required|exists:elections,id',
-            'registration_status' => 'required|in:approved,pending,declined',
-            'temp_password' => 'required|string|min:4'
+            'registration_status' => 'required|in:approved,pending,declined'
         ]);
 
         $path = $request->input('import_path');
         $electionId = $request->input('election_id');
         $registrationStatus = $request->input('registration_status', 'approved');
-        $tempPassword = $request->input('temp_password');
-        $hashedPassword = \Illuminate\Support\Facades\Hash::make($tempPassword);
+        $election = Election::findOrFail($electionId);
 
         if (!Storage::disk('local')->exists($path)) {
             return response()->json(['success' => false, 'message' => 'Import file not found.'], 422);
@@ -522,6 +542,10 @@ class VoterController extends Controller
 
                 $user = User::where('email', $email)->first();
 
+                // Generate Unique Key / Temporary Password
+                $tempPassword = strtoupper(Str::random(10));
+                $hashedPassword = Hash::make($tempPassword);
+
                 $data = [
                     'name' => $name,
                     'email' => $email,
@@ -557,12 +581,29 @@ class VoterController extends Controller
                             'is_approved' => true,
                         ]);
                     } else {
-                        // User exists, ensure they are approved
-                        $user->update(['is_approved' => true]);
+                        // User exists, ensure they are approved and update password for the election
+                        $user->update([
+                            'is_approved' => true,
+                            'password' => $tempPassword
+                        ]);
                     }
 
                     $voter->update(['user_id' => $user->id]);
                     $this->assignVoterRole($user);
+                }
+
+                // Always send email if it's newly created (regardless of approved/pending status,
+                // but the prompt says "immediately after an Admin or Super Admin successfully imports/uploads a voter data file"
+                // and "send an individual email to every voter's registered email address found in the dataset")
+                // Wait, if it's pending, they can't login yet?
+                // Usually, imported voters are "approved" by default in this flow.
+                // The current code only sends if approved. I'll keep it consistent or follow the prompt's "every voter" strictly.
+                // Re-reading prompt: "send an individual email to every voter's registered email address found in the dataset."
+
+                try {
+                    Mail::to($email)->send(new VoterImportedMail($voter, $election, $tempPassword));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to send voter email to {$email}: " . $e->getMessage());
                 }
 
                 $created++;

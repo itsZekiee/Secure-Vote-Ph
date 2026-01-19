@@ -46,10 +46,10 @@ class VoterElectionController extends Controller
             return back()->withErrors(['election_code' => 'Invalid election code or link. Please check and try again.']);
         }
 
-        // Store election in session and redirect to registration
+        // Store election in session and redirect to login form
         session(['election_id' => $election->id, 'election_code' => $election->code]);
 
-        return redirect()->route('voter.registration.index', $election->id);
+        return redirect()->route('voter.registration.index', ['election' => $election->id, 'form' => 'login']);
     }
 
     /**

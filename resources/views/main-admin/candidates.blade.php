@@ -21,6 +21,7 @@
         allCandidates: @js($candidates->toArray() ?? []),
         filteredCandidates: @js($candidates->toArray() ?? []),
         elections: @js(isset($elections) ? $elections->toArray() : []),
+        commonPositions: @js($commonPositions ?? []),
 
         // Import CSV
         showImportModal: false,
@@ -127,7 +128,9 @@
             this.importPreviewData.forEach(row => {
                 overrides[row.index] = {
                     organization_id: row.organization_id,
-                    partylist_id: row.partylist_id
+                    partylist_id: row.partylist_id,
+                    position_id: row.position_id,
+                    new_position_name: row.new_position_name
                 };
             });
 
@@ -197,6 +200,12 @@
             switch (this.sortBy) {
                 case 'name':
                     list.sort((a,b) => (a.user?.name || a.name || '').localeCompare(b.user?.name || b.name || ''));
+                    break;
+                case 'election':
+                    list.sort((a,b) => (a.election?.title || a.election?.name || '').localeCompare(b.election?.title || b.election?.name || ''));
+                    break;
+                case 'partylist':
+                    list.sort((a,b) => (a.partylist?.name || '').localeCompare(b.partylist?.name || ''));
                     break;
                 case 'votes_desc':
                     list.sort((a,b) => (b.votes_count || 0) - (a.votes_count || 0));
@@ -611,6 +620,7 @@
                                                         <th class="px-4 py-2 text-left font-bold text-gray-500">Name</th>
                                                         <th class="px-4 py-2 text-left font-bold text-gray-500">Organization</th>
                                                         <th class="px-4 py-2 text-left font-bold text-gray-500">Party List</th>
+                                                        <th class="px-4 py-2 text-left font-bold text-gray-500">Position</th>
                                                         <th class="px-4 py-2 text-left font-bold text-gray-500">Status</th>
                                                     </tr>
                                                 </thead>
@@ -643,6 +653,23 @@
                                                                         <option :value="pl.id" x-text="pl.name" :selected="row.partylist_id == pl.id"></option>
                                                                     </template>
                                                                 </select>
+                                                            </td>
+                                                            <td class="px-4 py-2">
+                                                                <div class="space-y-1">
+                                                                    <select x-model="row.position_id"
+                                                                            class="w-full text-[10px] border border-gray-300 rounded-md py-1 px-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                                            :class="!row.position_id ? 'border-amber-500 bg-amber-50' : ''">
+                                                                        <option value="">Select Position</option>
+                                                                        <template x-for="title in commonPositions" :key="title">
+                                                                            <option :value="'preset:' + title" x-text="title" :selected="row.position_id == 'preset:' + title"></option>
+                                                                        </template>
+                                                                        <option value="other">Custom Position</option>
+                                                                    </select>
+                                                                    <div x-show="row.position_id === 'other' || row.position_id === 'preset:Custom Position'">
+                                                                        <input type="text" x-model="row.new_position_name" placeholder="Enter position..."
+                                                                               class="w-full text-[10px] border border-gray-300 rounded-md py-1 px-2 focus:ring-indigo-500 focus:border-indigo-500 mt-1">
+                                                                    </div>
+                                                                </div>
                                                             </td>
                                                             <td class="px-4 py-2">
                                                                 <span :class="row.is_duplicate ? 'text-red-600 font-bold' : 'text-green-600 font-bold'"

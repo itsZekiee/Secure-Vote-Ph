@@ -84,6 +84,7 @@
                                             <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
                                             <input type="search" name="q" value="{{ request('q') }}"
                                                    placeholder="Election title, organization..."
+                                                   onkeypress="if(event.key === 'Enter') this.form.submit()"
                                                    class="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 bg-white">
                                         </div>
                                     </div>

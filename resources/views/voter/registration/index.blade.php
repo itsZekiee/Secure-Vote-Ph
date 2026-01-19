@@ -493,23 +493,6 @@
                                     </button>
                                 </form>
 
-                                <!-- Divider -->
-                                <div class="relative my-8 {{ $registrationOver ? 'hidden' : '' }}">
-                                    <div class="absolute inset-0 flex items-center">
-                                        <div class="w-full border-t border-slate-200"></div>
-                                    </div>
-                                    <div class="relative flex justify-center text-sm">
-                                        <span id="toggle-text" class="px-4 bg-white text-slate-500">Already
-                                            registered?</span>
-                                    </div>
-                                </div>
-
-                                <!-- Toggle Button -->
-                                <button id="toggle-form-btn" type="button"
-                                    class="w-full flex items-center justify-center gap-3 py-4 px-6 bg-slate-100 rounded-2xl text-slate-700 hover:bg-slate-200 transition-all font-semibold hover:shadow-lg {{ $registrationOver ? 'hidden' : '' }}">
-                                    <i id="toggle-icon" class="fas fa-sign-in-alt"></i>
-                                    <span id="toggle-btn-text">Sign In Instead</span>
-                                </button>
                             </div>
                         </div>
 
