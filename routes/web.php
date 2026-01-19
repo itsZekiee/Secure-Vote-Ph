@@ -370,6 +370,11 @@ Route::prefix('voter')->name('voter.')->group(function () {
         return redirect()->route('voter.elections.access');
     })->name('elections.join');
 
+    // Voter direct election link redirection
+    Route::get('/register/{election}', function (\App\Models\Election $election) {
+        return redirect()->route('voter.registration.index', ['election' => $election->id, 'mode' => 'signin']);
+    })->name('register.direct');
+
     Route::post('/elections/join', function () {
         return redirect()->route('voter.elections.access');
     })->name('elections.join.submit');

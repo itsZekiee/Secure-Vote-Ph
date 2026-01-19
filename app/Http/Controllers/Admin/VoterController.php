@@ -543,7 +543,8 @@ class VoterController extends Controller
                 $user = User::where('email', $email)->first();
 
                 // Generate Unique Key / Temporary Password
-                $tempPassword = strtoupper(Str::random(10));
+                // Must include: Alphabets, Numbers, and Special Characters
+                $tempPassword = Str::password(10, true, true, true, false);
                 $hashedPassword = Hash::make($tempPassword);
 
                 $data = [
