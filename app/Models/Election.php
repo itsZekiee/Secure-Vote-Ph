@@ -65,12 +65,12 @@ class Election extends Model
             if (empty($election->code)) {
                 $election->code = self::generateUniqueCode();
             }
-            $election->access_link = url("/voter/register/{$election->code}");
+            $election->access_link = route('voter.register.direct', $election->id);
         });
 
         static::updating(function (Election $election) {
             if ($election->isDirty('code')) {
-                $election->access_link = url("/voter/register/{$election->code}");
+                $election->access_link = route('voter.register.direct', $election->id);
             }
         });
     }

@@ -297,7 +297,7 @@
                                 <form id="register-form"
                                     action="{{ route('voter.registration.store', $election->id ?? '') }}" method="POST"
                                     enctype="multipart/form-data"
-                                    class="form-transition {{ $registrationOver ? 'hidden' : '' }}">
+                                    class="form-transition {{ ($registrationOver || request('mode') === 'signin') ? 'hidden' : '' }}">
                                     @csrf
 
                                     <div class="mb-5">
@@ -444,7 +444,7 @@
 
                                 <!-- Sign In Form (Hidden by default) -->
                                 <form id="signin-form" action="{{ route('voter.registration.login', $election->id ?? '') }}"
-                                    method="POST" class="form-transition {{ $registrationOver ? '' : 'hidden' }}">
+                                    method="POST" class="form-transition {{ ($registrationOver || request('mode') === 'signin') ? '' : 'hidden' }}">
                                     @csrf
                                     <input type="hidden" name="latitude" id="login-lat">
                                     <input type="hidden" name="longitude" id="login-lng">
