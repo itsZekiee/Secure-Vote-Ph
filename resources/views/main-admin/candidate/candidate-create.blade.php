@@ -174,17 +174,9 @@
                                             <select x-model="formData.position_id"
                                                     class="w-full pl-12 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm appearance-none shadow-sm">
                                                 <option value="">Select position</option>
-                                                <optgroup label="Standard Titles" class="font-bold text-indigo-600 bg-indigo-50">
-                                                    <template x-for="title in commonPositions" :key="title">
-                                                        <option :value="'preset:' + title" x-text="title" class="font-bold text-slate-700 bg-white"></option>
-                                                    </template>
-                                                </optgroup>
-                                                <optgroup label="Active Definitions" class="font-bold text-slate-900">
-                                                    <template x-for="p in existingPositions" :key="p.id">
-                                                        <option :value="p.id" x-text="p.name"></option>
-                                                    </template>
-                                                </optgroup>
-                                                <option value="other" class="font-black text-indigo-600">+ CUSTOM POSITION</option>
+                                                <template x-for="title in commonPositions" :key="title">
+                                                    <option :value="'preset:' + title" x-text="title" class="font-bold text-slate-700 bg-white"></option>
+                                                </template>
                                             </select>
                                             <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                                         </div>

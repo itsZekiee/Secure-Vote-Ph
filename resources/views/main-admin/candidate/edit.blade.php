@@ -140,13 +140,25 @@
                                         <div class="relative">
                                             <select x-model="formData.position_id"
                                                     class="w-full pl-5 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm shadow-sm appearance-none">
-                                                <optgroup label="Existing Positions">
-                                                    <template x-for="p in existingPositions" :key="p.id">
-                                                        <option :value="p.id" x-text="p.name"></option>
-                                                    </template>
-                                                </optgroup>
+                                                <option value="">Select position</option>
+                                                <template x-for="title in commonPositions" :key="title">
+                                                    <option :value="'preset:' + title" x-text="title" class="font-bold text-slate-700 bg-white"></option>
+                                                </template>
                                             </select>
                                             <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                        </div>
+
+                                        <div x-show="formData.position_id === 'other' || formData.position_id === 'preset:Custom Position'"
+                                             x-transition
+                                             class="mt-3">
+                                            <input type="text"
+                                                   x-model="formData.new_position_name"
+                                                   placeholder="Define new position title..."
+                                                   class="w-full px-6 py-3.5 bg-indigo-50 border border-indigo-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold text-indigo-900 placeholder-indigo-300 text-sm">
+                                            <div x-show="errors.new_position_name" class="mt-1 text-[9px] text-red-500 font-black uppercase tracking-wider flex items-center gap-1 ml-1">
+                                                <i class="ri-error-warning-fill"></i>
+                                                <span x-text="errors.new_position_name?.[0]"></span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -258,6 +270,7 @@
     function candidateEditData() {
         return {
             existingPositions: @json($positions->map(fn($p) => ['id' => $p->id, 'name' => $p->title])->values()),
+            commonPositions: @json($commonPositions ?? []),
             organizations: @json($organizations->map(fn($o) => ['id' => $o->id, 'name' => $o->name])->values()),
             partylists: @json($partylists->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'organization_id' => $p->organization_id])->values()),
             elections: @json($elections->map(fn($e) => ['id' => $e->id, 'title' => $e->title])->values()),
@@ -268,6 +281,7 @@
                 organization_id: @json($candidate->organization_id),
                 election_id: @json($candidate->election_id),
                 position_id: @json($candidate->position_id),
+                new_position_name: '',
                 partylist_id: @json($candidate->partylist_id),
                 platform: @json($candidate->platform),
                 status: @json($candidate->status),
@@ -300,11 +314,27 @@
                 formData.append('_method', 'PUT');
                 formData.append('_token', '{{ csrf_token() }}');
 
-                Object.keys(this.formData).forEach(key => {
-                    if (this.formData[key] !== null) {
-                        formData.append(key, this.formData[key]);
-                    }
-                });
+                // Basic Info
+                formData.append('user_name', this.formData.user_name);
+                formData.append('user_email', this.formData.user_email);
+                formData.append('organization_id', this.formData.organization_id || '');
+                formData.append('election_id', this.formData.election_id || '');
+                formData.append('partylist_id', this.formData.partylist_id || '');
+                formData.append('platform', this.formData.platform || '');
+                formData.append('status', this.formData.status);
+                if (this.formData.photo) formData.append('photo', this.formData.photo);
+
+                // Position Logic
+                if (String(this.formData.position_id).startsWith('preset:')) {
+                    formData.append('position_id', '');
+                    formData.append('new_position_name', this.formData.position_id.replace('preset:', ''));
+                } else if (this.formData.position_id === 'other') {
+                    formData.append('position_id', '');
+                    formData.append('new_position_name', this.formData.new_position_name.trim());
+                } else {
+                    formData.append('position_id', this.formData.position_id || '');
+                    formData.append('new_position_name', '');
+                }
 
                 try {
                     const response = await fetch('{{ route('admin.candidates.update', $candidate->id) }}', {

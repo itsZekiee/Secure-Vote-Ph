@@ -90,8 +90,7 @@
                 body: JSON.stringify({
                     import_path: this.importPath,
                     election_id: this.selectedImportElection,
-                    registration_status: this.registrationStatus,
-                    temp_password: this.tempPassword
+                    registration_status: this.registrationStatus
                 })
             })
             .then(res => res.json())
@@ -135,21 +134,12 @@
                                     </h3>
                                     <div class="mt-2">
                                         <p class="text-sm text-gray-500 font-medium">
-                                            The voters have been imported. Here is the temporary password assigned to all of them:
+                                            The voters have been imported successfully. They will receive an email containing their login credentials and the election details.
                                         </p>
-                                        <div class="mt-4 p-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex items-center justify-center gap-3 group">
-                                            <span class="text-2xl font-mono font-bold tracking-wider text-indigo-600 select-all">
-                                                {{ session('temp_password_display') }}
-                                            </span>
-                                            <button @click="navigator.clipboard.writeText('{{ session('temp_password_display') }}'); alert('Password copied!')"
-                                                    class="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-indigo-600">
-                                                <i class="ri-file-copy-line"></i>
-                                            </button>
-                                        </div>
-                                        <div class="mt-4 flex items-start gap-2 p-3 bg-red-50 rounded-lg border border-red-100">
-                                            <i class="ri-error-warning-line text-red-500 mt-0.5"></i>
-                                            <p class="text-[11px] text-red-700 font-bold leading-tight uppercase tracking-wider">
-                                                SECURITY WARNING: THIS PASSWORD WILL NOT BE SHOWN AGAIN AFTER YOU CLOSE THIS MODAL. PLEASE RECORD IT NOW.
+                                        <div class="mt-4 flex items-start gap-2 p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                                            <i class="ri-information-line text-indigo-500 mt-0.5"></i>
+                                            <p class="text-[11px] text-indigo-700 font-bold leading-tight uppercase tracking-wider">
+                                                Unique keys have been automatically generated and sent to their registered emails.
                                             </p>
                                         </div>
                                     </div>
@@ -253,6 +243,7 @@
                                 <label class="sr-only" for="global-search">Search voters</label>
                                 <div class="relative">
                                     <input id="global-search" x-model="search" type="search" placeholder="Search by name, email, or student ID"
+                                           @keyup.enter="$dispatch('search', { q: search, filter: filterBy, form: selectedForm })"
                                            class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                                            aria-label="Search voters" />
                                     <button @click="$dispatch('search', { q: search, filter: filterBy, form: selectedForm })"
@@ -516,9 +507,13 @@
                                         </select>
                                     </div>
                                     <div class="space-y-1">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Default Password</label>
-                                        <input type="text" x-model="tempPassword"
-                                               class="w-full bg-slate-50 border-0 rounded-xl px-4 py-3 text-sm font-mono font-bold text-indigo-600 focus:ring-2 focus:ring-indigo-500/20 transition-all">
+                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Notification</label>
+                                        <div class="w-full bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-2.5 flex items-center gap-2">
+                                            <i class="ri-mail-send-line text-indigo-600"></i>
+                                            <span class="text-[11px] text-indigo-700 font-bold leading-tight uppercase tracking-wider">
+                                                Credentials will be automatically generated and emailed
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
 

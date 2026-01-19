@@ -21,6 +21,7 @@
         allCandidates: @js($candidates->toArray() ?? []),
         filteredCandidates: @js($candidates->toArray() ?? []),
         elections: @js(isset($elections) ? $elections->toArray() : []),
+        commonPositions: @js($commonPositions ?? []),
 
         // Import CSV
         showImportModal: false,
@@ -127,7 +128,9 @@
             this.importPreviewData.forEach(row => {
                 overrides[row.index] = {
                     organization_id: row.organization_id,
-                    partylist_id: row.partylist_id
+                    partylist_id: row.partylist_id,
+                    position_id: row.position_id,
+                    new_position_name: row.new_position_name
                 };
             });
 
@@ -197,6 +200,12 @@
             switch (this.sortBy) {
                 case 'name':
                     list.sort((a,b) => (a.user?.name || a.name || '').localeCompare(b.user?.name || b.name || ''));
+                    break;
+                case 'election':
+                    list.sort((a,b) => (a.election?.title || a.election?.name || '').localeCompare(b.election?.title || b.election?.name || ''));
+                    break;
+                case 'partylist':
+                    list.sort((a,b) => (a.partylist?.name || '').localeCompare(b.partylist?.name || ''));
                     break;
                 case 'votes_desc':
                     list.sort((a,b) => (b.votes_count || 0) - (a.votes_count || 0));
@@ -316,6 +325,7 @@
                                         <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
                                         <input type="text" x-model="searchQuery"
                                                placeholder="Name, position, party or election..."
+                                               @keyup.enter="filter()"
                                                class="w-full pl-10 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all bg-white">
                                     </div>
                                 </div>
@@ -326,6 +336,8 @@
                                         <select x-model="sortBy" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 bg-white appearance-none">
                                             <option value="created_at_desc">Newest First</option>
                                             <option value="name">Name (A-Z)</option>
+                                            <option value="election">Election (A-Z)</option>
+                                            <option value="partylist">Partylist (A-Z)</option>
                                             <option value="votes_desc">Popularity</option>
                                         </select>
                                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -611,6 +623,7 @@
                                                         <th class="px-4 py-2 text-left font-bold text-gray-500">Name</th>
                                                         <th class="px-4 py-2 text-left font-bold text-gray-500">Organization</th>
                                                         <th class="px-4 py-2 text-left font-bold text-gray-500">Party List</th>
+                                                        <th class="px-4 py-2 text-left font-bold text-gray-500">Position</th>
                                                         <th class="px-4 py-2 text-left font-bold text-gray-500">Status</th>
                                                     </tr>
                                                 </thead>
@@ -643,6 +656,23 @@
                                                                         <option :value="pl.id" x-text="pl.name" :selected="row.partylist_id == pl.id"></option>
                                                                     </template>
                                                                 </select>
+                                                            </td>
+                                                            <td class="px-4 py-2">
+                                                                <div class="space-y-1">
+                                                                    <select x-model="row.position_id"
+                                                                            class="w-full text-[10px] border border-gray-300 rounded-md py-1 px-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                                            :class="!row.position_id ? 'border-amber-500 bg-amber-50' : ''">
+                                                                        <option value="">Select Position</option>
+                                                                        <template x-for="title in commonPositions" :key="title">
+                                                                            <option :value="'preset:' + title" x-text="title" :selected="row.position_id == 'preset:' + title"></option>
+                                                                        </template>
+                                                                        <option value="other">Custom Position</option>
+                                                                    </select>
+                                                                    <div x-show="row.position_id === 'other' || row.position_id === 'preset:Custom Position'">
+                                                                        <input type="text" x-model="row.new_position_name" placeholder="Enter position..."
+                                                                               class="w-full text-[10px] border border-gray-300 rounded-md py-1 px-2 focus:ring-indigo-500 focus:border-indigo-500 mt-1">
+                                                                    </div>
+                                                                </div>
                                                             </td>
                                                             <td class="px-4 py-2">
                                                                 <span :class="row.is_duplicate ? 'text-red-600 font-bold' : 'text-green-600 font-bold'"

@@ -50,7 +50,18 @@ class CandidateController extends Controller
 
         $elections = Election::where('created_by', auth()->id())->get();
 
-        return view($this->getView('candidates'), compact('candidates', 'elections'));
+        $commonPositions = [
+            'President',
+            'Vice President',
+            'Secretary',
+            'Treasurer',
+            'Auditor',
+            'P.R.O.',
+            'Business Manager',
+            'Custom Position'
+        ];
+
+        return view($this->getView('candidates'), compact('candidates', 'elections', 'commonPositions'));
     }
 
     /**
@@ -111,6 +122,7 @@ class CandidateController extends Controller
             'Treasurer',
             'Auditor',
             'P.R.O.',
+            'Business Manager',
             'Custom Position'
         ];
 
@@ -122,6 +134,35 @@ class CandidateController extends Controller
             'partylists',
             'commonPositions'
         ));
+    }
+
+    private function resolvePositionId($positionId, $newPositionName, $organizationId, $electionId = null)
+    {
+        if (!empty($positionId) && str_starts_with($positionId, 'preset:')) {
+            $title = str_replace('preset:', '', $positionId);
+            if ($title === 'Custom Position') {
+                $positionId = null;
+            } else {
+                $position = Position::firstOrCreate(
+                    ['title' => $title],
+                    ['organization_id' => $organizationId]
+                );
+                return $position->id;
+            }
+        }
+
+        if (empty($positionId) && !empty($newPositionName)) {
+            $position = Position::firstOrCreate(
+                [
+                    'title' => trim($newPositionName),
+                    'election_id' => $electionId,
+                ],
+                ['organization_id' => $organizationId]
+            );
+            return $position->id;
+        }
+
+        return $positionId;
     }
 
     /**
@@ -178,76 +219,12 @@ class CandidateController extends Controller
             }
 
             // Handle position
-            if (!empty($validated['position_id']) && str_starts_with($validated['position_id'], 'preset:')) {
-                $title = str_replace('preset:', '', $validated['position_id']);
-
-                if ($title === 'Custom Position') {
-                    // Fall through to handle via new_position_name if it was "Custom Position"
-                    // but usually "Custom Position" maps to value="other" in the frontend.
-                    // If they literally picked "Custom Position" from the preset list:
-                    $validated['position_id'] = null;
-                } else {
-                    $position = Position::firstOrCreate(
-                        ['title' => $title],
-                        ['organization_id' => $validated['organization_id'] ?? null]
-                    );
-                    $validated['position_id'] = $position->id;
-                }
-            }
-
-            if (empty($validated['position_id']) && !empty($validated['new_position_name'])) {
-
-                // Determine election_id for the new position (may be null)
-                $electionIdForPosition = $validated['election_id'] ?? null;
-
-                // Create or find position. If an election_id is provided, scope the position to that election.
-                if ($electionIdForPosition !== null) {
-                    $position = Position::firstOrCreate(
-                        [
-                            'title' => $validated['new_position_name'],
-                            'election_id' => $electionIdForPosition,
-                        ],
-                        ['organization_id' => $validated['organization_id'] ?? null]
-                    );
-                } else {
-                    // Check whether the DB allows NULL for positions.election_id
-                    // Using Schema facade is more portable than raw SQL
-                    $isNullable = true; // Default to true based on migrations
-                    try {
-                        // Check if the column is NOT NULL
-                        // In Laravel 11+, we can use Schema::getColumnType or similar,
-                        // but a simple way to check is using Schema manager or just assuming nullable if migration says so.
-                        // However, to be safe and avoid the raw query:
-                        $isNullable = Schema::getConnection()
-                            ->getDoctrineSchemaManager()
-                            ->listTableDetails('positions')
-                            ->getColumn('election_id')
-                            ->getNotnull() === false;
-                    } catch (\Exception $e) {
-                        // Fallback: If we can't determine, check the migration history or just allow it.
-                        // In this project, we know it was made nullable.
-                        Log::warning("Could not determine nullability of positions.election_id: " . $e->getMessage());
-                    }
-
-                    if ($isNullable === false) {
-                        // Database requires election_id. Return validation error asking user to select an election.
-                        DB::rollBack();
-                        $message = 'Creating a new position requires selecting an election on this server. Please select an election or use an existing position.';
-                        if ($request->ajax()) {
-                            return response()->json(['message' => $message, 'errors' => ['election_id' => ['Election required when creating a new position']]], 422);
-                        }
-                        return back()->withErrors(['election_id' => 'Election required when creating a new position'])->withInput();
-                    }
-
-                    // If DB allows NULL, create/find a global position record by title only
-                    $position = Position::firstOrCreate(
-                        ['title' => $validated['new_position_name']],
-                        ['organization_id' => $validated['organization_id'] ?? null]
-                    );
-                }
-
-                $validated['position_id'] = $position->id;
-            }
+            $validated['position_id'] = $this->resolvePositionId(
+                $validated['position_id'] ?? null,
+                $validated['new_position_name'] ?? null,
+                $validated['organization_id'] ?? null,
+                $validated['election_id'] ?? null
+            );
 
             // Check duplicate candidate
             $existingCandidate = Candidate::where('user_id', $userId)
@@ -430,7 +407,18 @@ class CandidateController extends Controller
             $positions = Position::all();
         }
 
-        return view($this->getView('candidate.edit'), compact('candidate', 'users', 'elections', 'partylists', 'positions', 'organizations'));
+        $commonPositions = [
+            'President',
+            'Vice President',
+            'Secretary',
+            'Treasurer',
+            'Auditor',
+            'P.R.O.',
+            'Business Manager',
+            'Custom Position'
+        ];
+
+        return view($this->getView('candidate.edit'), compact('candidate', 'users', 'elections', 'partylists', 'positions', 'organizations', 'commonPositions'));
     }
 
     /**
@@ -459,7 +447,8 @@ class CandidateController extends Controller
             'user_email' => 'nullable|email', // Support for x-model="formData.user_email"
             'organization_id' => 'nullable|exists:organizations,id',
             'election_id' => 'nullable|exists:elections,id',
-            'position_id' => 'required|exists:positions,id',
+            'position_id' => 'nullable|string',
+            'new_position_name' => 'nullable|string|max:255',
             'partylist_id' => 'nullable|exists:partylists,id',
             'platform' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:3072',
@@ -468,6 +457,14 @@ class CandidateController extends Controller
 
         try {
             DB::beginTransaction();
+
+            // Handle position
+            $validated['position_id'] = $this->resolvePositionId(
+                $validated['position_id'] ?? null,
+                $validated['new_position_name'] ?? null,
+                $validated['organization_id'] ?? $candidate->organization_id,
+                $validated['election_id'] ?? $candidate->election_id
+            );
 
             // Handle user name/email updates if provided
             if ($candidate->user) {
@@ -735,6 +732,27 @@ class CandidateController extends Controller
                 }
             }
 
+            $positionName = $row['designated_position'] ?? ($row['position'] ?? null);
+            $positionId = null;
+            $newPositionName = null;
+
+            if ($positionName) {
+                $pos = Position::where('title', 'LIKE', trim($positionName))->first();
+                if ($pos) {
+                    $positionId = $pos->id;
+                } else {
+                    // Try to match preset
+                    $presets = ['President', 'Vice President', 'Secretary', 'Treasurer', 'Auditor', 'P.R.O.', 'Business Manager'];
+                    $matchedPreset = collect($presets)->first(fn($p) => strtolower($p) === strtolower(trim($positionName)));
+                    if ($matchedPreset) {
+                        $positionId = 'preset:' . $matchedPreset;
+                    } else {
+                        $positionId = 'other';
+                        $newPositionName = $positionName;
+                    }
+                }
+            }
+
             return [
                 'index' => $index,
                 'full_name' => $fullName,
@@ -743,7 +761,9 @@ class CandidateController extends Controller
                 'organization_id' => $orgId,
                 'political_affiliation' => $partylistName,
                 'partylist_id' => $partylistId,
-                'designated_position' => $row['designated_position'] ?? null,
+                'designated_position' => $positionName,
+                'position_id' => $positionId,
+                'new_position_name' => $newPositionName,
                 'platform_statement' => $row['platform_statement'] ?? ($row['platform'] ?? null),
                 'profile_photo' => $row['profile_photo'] ?? ($row['photo'] ?? null),
                 'is_duplicate' => $isDuplicate,
@@ -852,6 +872,20 @@ class CandidateController extends Controller
                     continue;
                 }
 
+                $posId = $this->resolvePositionId(
+                    $overrides[$index]['position_id'] ?? null,
+                    $overrides[$index]['new_position_name'] ?? null,
+                    $orgId,
+                    $electionId
+                );
+
+                if (!$posId) {
+                    $posTitle = $row['designated_position'] ?? ($row['position'] ?? null);
+                    if ($posTitle) {
+                        $posId = $this->resolvePositionId(null, $posTitle, $orgId, $electionId);
+                    }
+                }
+
                 if (!$existingUser) {
                     // Create user as voter first? Or just a user.
                     $existingUser = User::create([
@@ -876,24 +910,6 @@ class CandidateController extends Controller
                         }
                     } catch (\Exception $e) {
                         Log::warning('Could not assign role to imported candidate: ' . $e->getMessage());
-                    }
-                }
-
-                $posTitle = $row['designated_position'] ?? null;
-                $posId = null;
-                if ($posTitle) {
-                    $posTitleClean = trim($posTitle);
-
-                    if ($electionId) {
-                        // Ensure the position exists for this election
-                        $pos = Position::firstOrCreate([
-                            'election_id' => $electionId,
-                            'title' => $posTitleClean
-                        ]);
-                        $posId = $pos->id;
-                    } else {
-                        $pos = Position::where('title', 'LIKE', $posTitleClean)->first();
-                        $posId = $pos ? $pos->id : null;
                     }
                 }
 

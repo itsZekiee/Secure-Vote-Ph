@@ -26,17 +26,13 @@ class VoterRegistrationController extends Controller
                 ->withErrors(['code' => 'Election not found.']);
         }
 
-        // Registration deadline check
-        try {
-            $this->validateRegistrationWindow($election);
-            $registrationOver = false;
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
-            $registrationOver = true;
-        }
+        // Always show login form as registration is removed
+        $isSignInMode = true;
 
         return view('voter.registration.index', [
             'election' => $election,
-            'registrationOver' => $registrationOver
+            'isSignInMode' => $isSignInMode,
+            'registrationOver' => false // Not relevant anymore if we only login
         ]);
     }
 
