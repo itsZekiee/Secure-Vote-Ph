@@ -26,6 +26,8 @@ use App\Http\Controllers\Auth\MagicLinkController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Voter\VoterOtpController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Voter\VoterPasswordOtpController;
+use App\Models\Election;
 
 
 
@@ -70,6 +72,18 @@ Route::post('/voter/otp', [VoterOtpController::class, 'verify'])
 
 Route::post('/otp/resend', [OtpController::class, 'resend'])
     ->name('otp.resend');
+
+Route::get('/voter/{election}/forgot-password', function ($election) {
+    $election = Election::findOrFail($election);
+    return view('voter.auth.forgot-password', compact('election'));
+})->name('voter.password.request');
+
+Route::post('/voter/password/otp/send/{code}', [VoterPasswordOtpController::class, 'send'])
+    ->name('voter.password.otp.send');
+
+Route::post('/voter/password/otp/verify/{code}', [VoterPasswordOtpController::class, 'verify'])
+    ->name('voter.password.otp.verify');
+
 
 
 
