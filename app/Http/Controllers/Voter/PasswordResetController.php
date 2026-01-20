@@ -145,32 +145,24 @@ class PasswordResetController extends Controller
             'password' => 'required|confirmed|min:8',
         ]);
 
-        $election = Election::where('code', $code)->firstOrFail();
-
-        // OTP verification check
         if (!session('password_reset_verified')) {
             return back()->withErrors([
                 'email' => 'Unauthorized password reset attempt.'
             ]);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $hashed = Hash::make($request->password);
 
-        if (!$user) {
-            return back()->withErrors(['email' => 'User not found.']);
+        $updated = DB::table('voters')
+            ->where('email', $request->email)
+            ->update(['password' => $hashed]);
+
+        if (!$updated) {
+            return back()->withErrors([
+                'email' => 'No voter record found for this email.'
+            ]);
         }
 
-        // Update password
-        $user->update([
-            'password' => Hash::make($request->password)
-        ]);
-
-        // Sync with voters table (if needed)
-        DB::table('voters')
-            ->where('user_id', $user->id)
-            ->update(['password' => $user->password]);
-
-        // Clear OTP session
         session()->forget([
             'password_reset_otp',
             'password_reset_email',
@@ -178,9 +170,13 @@ class PasswordResetController extends Controller
             'password_reset_verified'
         ]);
 
+        $election = Election::where('code', $code)->firstOrFail();
+
         return redirect()
             ->route('voter.registration.index', $election->id)
-            ->with('success', 'Your password has been reset! You can now sign in.');
+            ->with('success', 'Voter password has been reset successfully!');
     }
+
+
 
 }
