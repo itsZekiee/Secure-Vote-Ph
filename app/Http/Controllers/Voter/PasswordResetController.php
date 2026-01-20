@@ -39,7 +39,7 @@ class PasswordResetController extends Controller
             return response()->json(['success' => false, 'message' => 'Email not found.'], 404);
         }
 
-        $otp = rand(100000, 999999);
+        $otp = rand(10000000, 99999999);
 
         // Store OTP in session with expiration
         session([
@@ -64,7 +64,7 @@ class PasswordResetController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'otp' => 'required|numeric'
+            'otp' => 'required|digits:8'
         ]);
 
         $sessionOtp = session('password_reset_otp');
@@ -77,9 +77,10 @@ class PasswordResetController extends Controller
 
         // Generate a temporary token to unlock the password change form
         $token = Str::random(64);
-        session(['password_reset_verified_token' => $token]);
+        session(['password_reset_verified' => true]);
 
-        return response()->json(['success' => true, 'token' => $token]);
+        return response()->json(['success' => true]);
+
     }
 
     public function showLinkRequestForm($code)
@@ -141,41 +142,45 @@ class PasswordResetController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required|confirmed|min:6',
+            'password' => 'required|confirmed|min:8',
         ]);
 
         $election = Election::where('code', $code)->firstOrFail();
 
-        // Check for session-based OTP verification instead of token for this flow
-        if ($request->has('token')) {
-            $sessionToken = session('password_reset_verified_token');
-            if (!$sessionToken || $sessionToken !== $request->token) {
-                return back()->withErrors(['email' => 'Unauthorized password reset attempt.']);
-            }
-        } else {
-            // Original token-based flow
-            $request->validate(['token' => 'required']);
-            $record = DB::table('password_reset_tokens')->where('email', $request->email)->first();
-            if (!$record || !Hash::check($request->token, $record->token)) {
-                return back()->withErrors(['email' => 'This password reset token is invalid.']);
-            }
+        // OTP verification check
+        if (!session('password_reset_verified')) {
+            return back()->withErrors([
+                'email' => 'Unauthorized password reset attempt.'
+            ]);
         }
 
         $user = User::where('email', $request->email)->first();
+
         if (!$user) {
-            return back()->withErrors(['email' => 'We could not find a user with that email address.']);
+            return back()->withErrors(['email' => 'User not found.']);
         }
 
+        // Update password
         $user->update([
             'password' => Hash::make($request->password)
         ]);
 
-        // Sync password to all voter records for this user (for legacy support if needed)
-        DB::table('voters')->where('user_id', $user->id)->update(['password' => $user->password]);
+        // Sync with voters table (if needed)
+        DB::table('voters')
+            ->where('user_id', $user->id)
+            ->update(['password' => $user->password]);
 
-        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        // Clear OTP session
+        session()->forget([
+            'password_reset_otp',
+            'password_reset_email',
+            'password_reset_otp_expires',
+            'password_reset_verified'
+        ]);
 
-        return redirect()->route('voter.registration.index', $election->id)
+        return redirect()
+            ->route('voter.registration.index', $election->id)
             ->with('success', 'Your password has been reset! You can now sign in.');
     }
+
 }
