@@ -12,8 +12,19 @@ use App\Http\Controllers\Auth\OtpController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
 
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+
 class AuthenticatedSessionController extends Controller
 {
+    /**
+     * Get the throttle key for the given request.
+     */
+    protected function throttleKey(Request $request): string
+    {
+        return Str::transliterate(Str::lower($request->input('email')));
+    }
+
     public function create()
     {
         return view('welcome');
@@ -26,9 +37,19 @@ class AuthenticatedSessionController extends Controller
             'password' => ['required'],
         ]);
 
+        $throttleKey = $this->throttleKey($request);
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            throw ValidationException::withMessages([
+                'email' => "Too many login attempts. Please try again in $seconds seconds.",
+            ]);
+        }
+
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
+            RateLimiter::hit($throttleKey);
             throw ValidationException::withMessages([
                 'email' => __('The provided credentials do not match our records.'),
             ]);
@@ -80,6 +101,7 @@ class AuthenticatedSessionController extends Controller
         */
 
         if (!Auth::validate($request->only('email', 'password'))) {
+            RateLimiter::hit($throttleKey);
             // Record failed login attempt
             \Illuminate\Support\Facades\DB::table('failed_logins')->insert([
                 'user_id' => $user->id,
@@ -112,6 +134,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         // Reset failed attempts on successful credentials validation
+        RateLimiter::clear($throttleKey);
         $user->update([
             'failed_login_attempts' => 0,
             'locked_until' => null

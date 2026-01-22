@@ -54,7 +54,7 @@ class VoterAuth
                     $routeName = $request->route()->getName();
                     // Map common routes to voter's election
                     if (in_array($routeName, ['voter.elections.results', 'voter.elections.welcome', 'voter.elections.vote'])) {
-                        return redirect()->route($routeName, $voterElection->id)
+                        return redirect()->route($routeName, $voterElection->code)
                             ->with('info', 'You have been redirected to the election you are registered for.');
                     }
                 }

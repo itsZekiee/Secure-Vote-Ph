@@ -597,6 +597,50 @@
                                 </div>
 
                                 <!-- Login Activity Audit -->
+                                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden mb-8">
+                                    <div class="p-6 sm:p-8">
+                                        <div class="flex items-center gap-4 mb-8">
+                                            <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 text-lg shadow-sm">
+                                                <i class="ri-history-line"></i>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-lg font-bold text-slate-900">Session History</h3>
+                                                <p class="text-xs text-slate-500 font-medium">Previous and current login sessions</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-4">
+                                            @php
+                                                $currentSessionId = session()->getId();
+                                                $sortedSessions = collect($sessions)->sortByDesc('last_activity');
+                                            @endphp
+                                            @foreach($sortedSessions as $session)
+                                                <div class="flex items-center justify-between p-4 {{ $session->id === $currentSessionId ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100' }} rounded-xl border transition-all">
+                                                    <div class="flex items-center gap-4">
+                                                        <div class="w-10 h-10 {{ $session->id === $currentSessionId ? 'bg-indigo-100 text-indigo-600' : 'bg-white text-slate-400' }} rounded-lg flex items-center justify-center shadow-sm">
+                                                            <i class="ri-computer-line text-lg"></i>
+                                                        </div>
+                                                        <div>
+                                                            <div class="flex items-center gap-2">
+                                                                <span class="text-sm font-bold text-slate-900">{{ $session->ip_address }}</span>
+                                                                @if($session->id === $currentSessionId)
+                                                                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[8px] font-black uppercase tracking-widest">Current Session</span>
+                                                                @endif
+                                                            </div>
+                                                            <p class="text-[10px] text-slate-500 font-medium truncate max-w-[200px] sm:max-w-xs">{{ $session->user_agent }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Last Activity</p>
+                                                        <p class="text-xs font-bold text-slate-700">{{ \Carbon\Carbon::createFromTimestamp($session->last_activity)->diffForHumans() }}</p>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Login Activity Audit -->
                                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
                                     <div class="p-6 sm:p-8">
                                         <div class="flex items-center gap-4 mb-8">

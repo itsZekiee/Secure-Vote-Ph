@@ -38,6 +38,10 @@ class Election extends Model
         'max_votes',
         'auto_approve_voters',
         'require_id_verification',
+        'anonymize_results',
+        'reminder_sent_at',
+        'opened_notification_sent_at',
+        'closed_notification_sent_at',
     ];
 
     protected $casts = [
@@ -52,6 +56,10 @@ class Election extends Model
         'max_votes' => 'integer',
         'auto_approve_voters' => 'boolean',
         'require_id_verification' => 'boolean',
+        'anonymize_results' => 'boolean',
+        'reminder_sent_at' => 'datetime',
+        'opened_notification_sent_at' => 'datetime',
+        'closed_notification_sent_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',

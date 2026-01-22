@@ -5,9 +5,25 @@ namespace App\Http\Controllers\MainAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class UserManagementController extends Controller
 {
+    public function resetLoginAttempts(User $user)
+    {
+        $user->update([
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
+            'is_permanently_blocked' => false
+        ]);
+
+        $key = Str::transliterate(Str::lower($user->email));
+        RateLimiter::clear($key);
+
+        return back()->with('success', "Login attempts for {$user->name} have been reset.");
+    }
+
     public function index()
     {
         $users = User::whereIn('role', ['admin', 'manager'])

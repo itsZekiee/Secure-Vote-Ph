@@ -188,7 +188,7 @@
                                 ALL VOTES SUBMITTED
                             </div>
                         @else
-                            <a href="{{ route('voter.elections.vote', $election->id) }}"
+                            <a href="{{ route('voter.elections.vote', $election->code) }}"
                                id="voteBtn"
                                class="btn-start-voting px-12 py-6 rounded-[2rem] font-black flex items-center gap-4 shadow-2xl shadow-brand-accent/30 text-lg">
                                 <i class="fas fa-edit"></i>
@@ -202,7 +202,7 @@
                             </a>
                         @endif
 
-                        <a href="{{ route('voter.elections.results', $election->id) }}"
+                        <a href="{{ route('voter.elections.results', $election->code) }}"
                            class="btn-view-results px-12 py-6 rounded-[2rem] font-black flex items-center gap-4 text-lg border-2">
                             <i class="fas fa-poll-h"></i>
                             VIEW RESULTS

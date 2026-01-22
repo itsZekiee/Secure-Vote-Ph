@@ -206,6 +206,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->grou
 
     // Voter Management Routes
     Route::prefix('voters')->name('voters.')->group(function () {
+        Route::post('{voter}/reset-login-attempts', [VoterController::class, 'resetLoginAttempts'])->name('reset-login-attempts');
         Route::get('search', [VoterController::class, 'search'])->name('search');
         Route::get('export', [VoterController::class, 'export'])->name('export');
         Route::post('bulk-import', [VoterController::class, 'bulkImport'])->name('bulk-import');
@@ -227,6 +228,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->grou
     // User Management Routes
     Route::resource('users', UserManagementController::class);
     Route::prefix('users')->name('users.')->group(function () {
+        Route::post('{user}/reset-login-attempts', [UserManagementController::class, 'resetLoginAttempts'])->name('reset-login-attempts');
         Route::post('{user}/approve', [UserManagementController::class, 'approve'])->name('approve');
         Route::post('{user}/reject', [UserManagementController::class, 'reject'])->name('reject');
         Route::get('search', [UserManagementController::class, 'search'])->name('search');
