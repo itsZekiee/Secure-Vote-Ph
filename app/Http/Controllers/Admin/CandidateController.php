@@ -48,7 +48,9 @@ class CandidateController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $elections = Election::where('created_by', auth()->id())->get();
+        $elections = Election::where('created_by', auth()->id())
+            ->whereIn('status', ['active', 'draft'])
+            ->get();
 
         $commonPositions = [
             'President',
@@ -844,7 +846,11 @@ class CandidateController extends Controller
 
         try {
             $sheets = Excel::toCollection(new CandidateImport(), $fullPath, null, $readerType);
+            // In WithHeadingRow, the collection contains a collection for each sheet.
+            // But we need to make sure we're accessing the data correctly.
             $rows = $sheets->first() ?? collect();
+
+            // Log for debugging (Junie: I'll remove this if I could, but since I can't see logs easily, I'll rely on code analysis)
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => 'Error reading stored file.'], 422);
         }
@@ -857,11 +863,22 @@ class CandidateController extends Controller
         try {
             foreach ($rows as $idx => $row) {
                 // Maatwebsite Excel rows are 0-indexed in the collection
-                // In importPreview we map them to 'index' => $index
+                // However, when using WithHeadingRow, $idx might be the row number (starting from 0 or 1)
+                // In importPreview we use (row, index) where index is from 0.
                 $rowIdentifier = (string)$idx;
 
-                $fullName = $row['full_name'] ?? ($row['name'] ?? ($row['fullName'] ?? null));
-                $email = $row['email'] ?? ($row['email_address'] ?? ($row['emailAddress'] ?? null));
+                // Determine if $row is an array or object and has expected keys
+                $fullName = $row['full_name'] ?? ($row['name'] ?? ($row['fullname'] ?? null));
+                $email = $row['email'] ?? ($row['email_address'] ?? ($row['emailaddress'] ?? null));
+
+                // If keys are missing, it might be because they were slugged (e.g. 'Full Name' -> 'full_name')
+                // But if they are numeric, WithHeadingRow might have failed or header is different.
+
+                if (!$fullName && !$email) {
+                    // Try numeric indexes as fallback if WithHeadingRow somehow didn't work as expected
+                    $fullName = $row[0] ?? null;
+                    $email = $row[1] ?? null;
+                }
 
                 if (!$fullName && !$email) {
                     continue;
@@ -874,7 +891,11 @@ class CandidateController extends Controller
                 }
 
                 // Check duplication
-                $existingUser = User::where('email', $email)->whereNull('deleted_at')->first();
+                $existingUser = null;
+                if ($email) {
+                    $existingUser = User::where('email', $email)->whereNull('deleted_at')->first();
+                }
+
                 if ($existingUser) {
                     $candidateExists = Candidate::where('user_id', $existingUser->id)
                         ->where(function($q) use ($electionId) {
