@@ -337,11 +337,11 @@
                                             placeholder="Enter your ID"
                                             class="w-full px-4 py-3 border border-slate-200 rounded-xl input-brand focus:outline-none text-slate-700"
                                             oninput="
-                                                       let val = this.value.toUpperCase().replace(/[^A-Z0-9-]/g,''); // allow only letters, numbers, dash
-                                                       let count = val.replace(/-/g,''); // count without dashes
-                                                       if(count.length > 12) val = val.slice(0, 12 + (val.length - count.length)); // limit to 12 valid chars
-                                                       this.value = val;
-                                                   ">
+                                                           let val = this.value.toUpperCase().replace(/[^A-Z0-9-]/g,''); // allow only letters, numbers, dash
+                                                           let count = val.replace(/-/g,''); // count without dashes
+                                                           if(count.length > 12) val = val.slice(0, 12 + (val.length - count.length)); // limit to 12 valid chars
+                                                           this.value = val;
+                                                       ">
 
 
                                     </div>
@@ -444,7 +444,8 @@
 
                                 <!-- Sign In Form (Hidden by default) -->
                                 <form id="signin-form" action="{{ route('voter.registration.login', $election->id ?? '') }}"
-                                    method="POST" class="form-transition {{ ($registrationOver || request('mode') === 'signin') ? '' : 'hidden' }}">
+                                    method="POST"
+                                    class="form-transition {{ ($registrationOver || request('mode') === 'signin') ? '' : 'hidden' }}">
                                     @csrf
                                     <input type="hidden" name="latitude" id="login-lat">
                                     <input type="hidden" name="longitude" id="login-lng">
@@ -491,6 +492,7 @@
                                         <i class="fas fa-sign-in-alt"></i>
                                         Sign In & Continue
                                     </button>
+
                                 </form>
 
                             </div>
@@ -667,7 +669,7 @@
                 isSignInMode = true;
             @endif
 
-                    if (isSignInMode) {
+                        if (isSignInMode) {
                 registerForm.classList.add('hidden');
                 signinForm.classList.remove('hidden');
                 toggleText.textContent = "Don't have an account?";
@@ -707,7 +709,7 @@
 
             // AJAX Sign In handling
             if (signinForm) {
-                signinForm.addEventListener('submit', function(e) {
+                signinForm.addEventListener('submit', function (e) {
                     e.preventDefault();
 
                     const submitBtn = signinForm.querySelector('button[type="submit"]');
@@ -735,23 +737,23 @@
                             'Accept': 'application/json'
                         }
                     })
-                    .then(async response => {
-                        const data = await response.json();
-                        if (response.ok && data.success) {
-                            window.location.href = data.redirect;
-                        } else {
-                            throw data;
-                        }
-                    })
-                    .catch(error => {
-                        errorDiv.classList.remove('hidden');
-                        errorMsg.textContent = error.message || 'Invalid credentials or you are not registered as a voter.';
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnContent;
+                        .then(async response => {
+                            const data = await response.json();
+                            if (response.ok && data.success) {
+                                window.location.href = data.redirect;
+                            } else {
+                                throw data;
+                            }
+                        })
+                        .catch(error => {
+                            errorDiv.classList.remove('hidden');
+                            errorMsg.textContent = error.message || 'Invalid credentials or you are not registered as a voter.';
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnContent;
 
-                        // Scroll to error
-                        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    });
+                            // Scroll to error
+                            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        });
                 });
             }
 
@@ -881,7 +883,7 @@
                     }
                 });
             @endif
-                                    });
+                                        });
 
         // Toggle password visibility
         function togglePassword(inputId, iconId) {
@@ -902,34 +904,34 @@
         document.addEventListener('DOMContentLoaded', function () {
             // create modal element
             const modalHtml = `
-                    <div id="tos-privacy-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-                        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
-                        <div class="relative bg-white rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-300">
-                            <div class="gradient-brand p-6 text-white flex items-center justify-between shrink-0">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                                        <i class="fas fa-file-shield text-white text-xl"></i>
+                        <div id="tos-privacy-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+                            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+                            <div class="relative bg-white rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-300">
+                                <div class="gradient-brand p-6 text-white flex items-center justify-between shrink-0">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                                            <i class="fas fa-file-shield text-white text-xl"></i>
+                                        </div>
+                                        <div>
+                                            <h3 id="modal-title" class="text-xl font-bold tracking-tight">Title</h3>
+                                            <p id="modal-sub" class="text-xs text-white/80 uppercase tracking-widest font-semibold">Legal Information</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 id="modal-title" class="text-xl font-bold tracking-tight">Title</h3>
-                                        <p id="modal-sub" class="text-xs text-white/80 uppercase tracking-widest font-semibold">Legal Information</p>
-                                    </div>
+                                    <button id="modal-close" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/20 transition-all duration-200">
+                                        <i class="fas fa-times text-lg"></i>
+                                    </button>
                                 </div>
-                                <button id="modal-close" class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-white/20 transition-all duration-200">
-                                    <i class="fas fa-times text-lg"></i>
-                                </button>
+                                <div id="modal-body" class="p-8 text-slate-700 overflow-y-auto custom-scrollbar leading-relaxed">
+                                    <!-- content injected -->
+                                </div>
+                                <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
+                                    <button onclick="document.getElementById('tos-privacy-modal').classList.add('hidden'); document.body.style.overflow = '';"
+                                            class="btn-brand px-8 py-3 text-white font-bold rounded-xl shadow-lg hover:shadow-brand-primary/20 transition-all">
+                                        I Understand
+                                    </button>
+                                </div>
                             </div>
-                            <div id="modal-body" class="p-8 text-slate-700 overflow-y-auto custom-scrollbar leading-relaxed">
-                                <!-- content injected -->
-                            </div>
-                            <div class="p-6 bg-slate-50 border-t border-slate-100 flex justify-end shrink-0">
-                                <button onclick="document.getElementById('tos-privacy-modal').classList.add('hidden'); document.body.style.overflow = '';"
-                                        class="btn-brand px-8 py-3 text-white font-bold rounded-xl shadow-lg hover:shadow-brand-primary/20 transition-all">
-                                    I Understand
-                                </button>
-                            </div>
-                        </div>
-                    </div>`;
+                        </div>`;
 
             document.body.insertAdjacentHTML('beforeend', modalHtml);
 
@@ -940,88 +942,88 @@
             const modalClose = document.getElementById('modal-close');
 
             const termsContent = `
-                                            <div class="prose prose-slate max-w-none">
-                                                <div class="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
-                                                    <h4 class="font-bold text-brand-primary flex items-center gap-2 mb-2">
-                                                        <i class="fas fa-gavel text-brand-accent"></i>
-                                                        1. Purpose of the System
-                                                    </h4>
-                                                    <p class="text-sm text-slate-600">This Voting System is created to provide a secure and reliable way to conduct elections. It ensures fair voting, protects user data, and keeps all votes confidential. By using this system, users agree to follow these terms and allow their data to be processed as described below.</p>
-                                                </div>
-
-                                                <div class="space-y-6">
-                                                    <section>
-                                                        <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
-                                                            <span class="w-6 h-6 rounded-full bg-brand-primary text-white text-[10px] flex items-center justify-center">2</span>
-                                                            Authorized Use
+                                                <div class="prose prose-slate max-w-none">
+                                                    <div class="bg-slate-50 p-4 rounded-2xl mb-6 border border-slate-100">
+                                                        <h4 class="font-bold text-brand-primary flex items-center gap-2 mb-2">
+                                                            <i class="fas fa-gavel text-brand-accent"></i>
+                                                            1. Purpose of the System
                                                         </h4>
-                                                        <p class="text-sm text-slate-600 ml-8">Only registered and authorized users may access the system. Each user is responsible for keeping their account credentials private and secure.</p>
-                                                    </section>
+                                                        <p class="text-sm text-slate-600">This Voting System is created to provide a secure and reliable way to conduct elections. It ensures fair voting, protects user data, and keeps all votes confidential. By using this system, users agree to follow these terms and allow their data to be processed as described below.</p>
+                                                    </div>
 
-                                                    <section>
-                                                        <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
-                                                            <span class="w-6 h-6 rounded-full bg-brand-primary text-white text-[10px] flex items-center justify-center">3</span>
-                                                            Fair Use
-                                                        </h4>
-                                                        <p class="text-sm text-slate-600 ml-8">Users must use the system only for its intended purpose. Any attempt to manipulate votes, access other users’ data, or disrupt the system is strictly prohibited.</p>
-                                                    </section>
+                                                    <div class="space-y-6">
+                                                        <section>
+                                                            <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                                                <span class="w-6 h-6 rounded-full bg-brand-primary text-white text-[10px] flex items-center justify-center">2</span>
+                                                                Authorized Use
+                                                            </h4>
+                                                            <p class="text-sm text-slate-600 ml-8">Only registered and authorized users may access the system. Each user is responsible for keeping their account credentials private and secure.</p>
+                                                        </section>
 
-                                                    <section>
-                                                        <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
-                                                            <span class="w-6 h-6 rounded-full bg-brand-primary text-white text-[10px] flex items-center justify-center">4</span>
-                                                            One Person, One Vote
-                                                        </h4>
-                                                        <p class="text-sm text-slate-600 ml-8">Each eligible voter is allowed to vote only once per election. The system includes controls to prevent duplicate or unauthorized voting.</p>
-                                                    </section>
+                                                        <section>
+                                                            <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                                                <span class="w-6 h-6 rounded-full bg-brand-primary text-white text-[10px] flex items-center justify-center">3</span>
+                                                                Fair Use
+                                                            </h4>
+                                                            <p class="text-sm text-slate-600 ml-8">Users must use the system only for its intended purpose. Any attempt to manipulate votes, access other users’ data, or disrupt the system is strictly prohibited.</p>
+                                                        </section>
 
-                                                    <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 mt-8">
-                                                        <h4 class="font-bold text-amber-800 flex items-center gap-2 mb-2 text-sm">
-                                                            <i class="fas fa-calendar-check"></i>
-                                                            Acceptance & Effective Date
-                                                        </h4>
-                                                        <p class="text-xs text-amber-700">By using this Voting System, users acknowledge that they have read, understood, and agree to be bound by these Terms of Service. Effective as of January 1, 2024.</p>
+                                                        <section>
+                                                            <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                                                <span class="w-6 h-6 rounded-full bg-brand-primary text-white text-[10px] flex items-center justify-center">4</span>
+                                                                One Person, One Vote
+                                                            </h4>
+                                                            <p class="text-sm text-slate-600 ml-8">Each eligible voter is allowed to vote only once per election. The system includes controls to prevent duplicate or unauthorized voting.</p>
+                                                        </section>
+
+                                                        <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 mt-8">
+                                                            <h4 class="font-bold text-amber-800 flex items-center gap-2 mb-2 text-sm">
+                                                                <i class="fas fa-calendar-check"></i>
+                                                                Acceptance & Effective Date
+                                                            </h4>
+                                                            <p class="text-xs text-amber-700">By using this Voting System, users acknowledge that they have read, understood, and agree to be bound by these Terms of Service. Effective as of January 1, 2024.</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        `;
+                                            `;
 
             const privacyContent = `
-                                            <div class="prose prose-slate max-w-none">
-                                                <div class="bg-emerald-50 p-4 rounded-2xl mb-6 border border-emerald-100">
-                                                    <h4 class="font-bold text-emerald-800 flex items-center gap-2 mb-2">
-                                                        <i class="fas fa-user-shield"></i>
-                                                        RA 10173 Compliant
-                                                    </h4>
-                                                    <p class="text-sm text-emerald-700/80">Your privacy is our priority. We are fully committed to protecting your personal data in accordance with the Data Privacy Act of 2012.</p>
-                                                </div>
+                                                <div class="prose prose-slate max-w-none">
+                                                    <div class="bg-emerald-50 p-4 rounded-2xl mb-6 border border-emerald-100">
+                                                        <h4 class="font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                                                            <i class="fas fa-user-shield"></i>
+                                                            RA 10173 Compliant
+                                                        </h4>
+                                                        <p class="text-sm text-emerald-700/80">Your privacy is our priority. We are fully committed to protecting your personal data in accordance with the Data Privacy Act of 2012.</p>
+                                                    </div>
 
-                                                <div class="space-y-6">
-                                                    <section>
-                                                        <h4 class="font-bold text-slate-800 mb-2">1. Information We Collect</h4>
-                                                        <ul class="list-disc ml-5 text-sm text-slate-600 space-y-1">
-                                                            <li><strong>Personal Info:</strong> Name, email, and contact details</li>
-                                                            <li><strong>Credentials:</strong> Securely encrypted passwords</li>
-                                                            <li><strong>Voting Data:</strong> Participation status (anonymous)</li>
-                                                            <li><strong>Technical Data:</strong> IP address and browser type for security</li>
-                                                        </ul>
-                                                    </section>
+                                                    <div class="space-y-6">
+                                                        <section>
+                                                            <h4 class="font-bold text-slate-800 mb-2">1. Information We Collect</h4>
+                                                            <ul class="list-disc ml-5 text-sm text-slate-600 space-y-1">
+                                                                <li><strong>Personal Info:</strong> Name, email, and contact details</li>
+                                                                <li><strong>Credentials:</strong> Securely encrypted passwords</li>
+                                                                <li><strong>Voting Data:</strong> Participation status (anonymous)</li>
+                                                                <li><strong>Technical Data:</strong> IP address and browser type for security</li>
+                                                            </ul>
+                                                        </section>
 
-                                                    <section>
-                                                        <h4 class="font-bold text-slate-800 mb-2">2. How We Use Data</h4>
-                                                        <p class="text-sm text-slate-600">Data is strictly used for verifying eligibility, ensuring one-person-one-vote, and maintaining system security. We never share your data with third parties for marketing.</p>
-                                                    </section>
+                                                        <section>
+                                                            <h4 class="font-bold text-slate-800 mb-2">2. How We Use Data</h4>
+                                                            <p class="text-sm text-slate-600">Data is strictly used for verifying eligibility, ensuring one-person-one-vote, and maintaining system security. We never share your data with third parties for marketing.</p>
+                                                        </section>
 
-                                                    <section>
-                                                        <h4 class="font-bold text-slate-800 mb-2">3. Your Rights</h4>
-                                                        <p class="text-sm text-slate-600">You have the right to access, correct, or request deletion of your data. You may also withdraw consent at any time by contacting the system administrator.</p>
-                                                    </section>
+                                                        <section>
+                                                            <h4 class="font-bold text-slate-800 mb-2">3. Your Rights</h4>
+                                                            <p class="text-sm text-slate-600">You have the right to access, correct, or request deletion of your data. You may also withdraw consent at any time by contacting the system administrator.</p>
+                                                        </section>
 
-                                                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-[10px] text-slate-500 italic">
-                                                        Last updated: January 1, 2024. The system reserves the right to update this policy to maintain compliance with legal standards.
+                                                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-[10px] text-slate-500 italic">
+                                                            Last updated: January 1, 2024. The system reserves the right to update this policy to maintain compliance with legal standards.
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        `;
+                                            `;
 
             function openModal(type) {
                 if (type === 'terms') {
