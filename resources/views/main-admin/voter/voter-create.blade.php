@@ -21,6 +21,7 @@
         errors: {},
         loading: false,
         showSuccess: false,
+        showSummary: false,
 
         generateVoterCode() {
             // simple client-side preview id: V + timestamp fragment + random
@@ -44,12 +45,14 @@
             return Object.keys(this.errors).length === 0;
         },
 
-        submit() {
+        confirmSummary() {
             if (!this.validate()) return;
-            if (!confirm('Are you sure you want to submit and create this voter?')) {
-                return;
-            }
+            this.showSummary = true;
+        },
+
+        submit() {
             this.loading = true;
+            this.showSummary = false;
             const payload = new FormData();
             payload.append('voter_code', this.formData.voter_code);
             payload.append('full_name', this.formData.full_name);
@@ -112,7 +115,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <!-- Form column -->
                     <section class="lg:col-span-8">
-                        <form @submit.prevent="submit()" class="space-y-6">
+                        <form @submit.prevent="confirmSummary()" class="space-y-6">
                             @csrf
 
                             <div class="bg-white rounded-3xl border border-slate-200/60 shadow-2xl shadow-slate-200/50 overflow-hidden">
@@ -228,6 +231,67 @@
                                 </div>
                             </div>
                         </form>
+
+                        <!-- Summary / Confirmation Modal -->
+                        <div x-show="showSummary" x-transition:enter="transition ease-out duration-300"
+                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                            class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]"
+                            @click.self="showSummary = false" x-cloak>
+                            <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-100">
+                                <div class="px-8 py-6 bg-slate-50 border-b border-slate-100 flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                        <i class="ri-file-list-3-line text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-black text-slate-900 uppercase tracking-tight">Voter Summary</h3>
+                                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-0.5">Please confirm the details below</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-8 space-y-6">
+                                    <div class="grid grid-cols-2 gap-6">
+                                        <div class="space-y-1">
+                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Full Name</p>
+                                            <p class="text-sm font-bold text-slate-800" x-text="formData.full_name"></p>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email Address</p>
+                                            <p class="text-sm font-bold text-slate-800" x-text="formData.email"></p>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone Number</p>
+                                            <p class="text-sm font-bold text-slate-800" x-text="formData.phone || 'N/A'"></p>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Voter Code</p>
+                                            <p class="text-sm font-bold text-indigo-600" x-text="formData.voter_code"></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                                        <div class="flex items-center gap-3 mb-2">
+                                            <i class="ri-qr-code-line text-indigo-600"></i>
+                                            <p class="text-[10px] font-black text-indigo-900 uppercase tracking-widest">Assigned Election</p>
+                                        </div>
+                                        <p class="text-sm font-bold text-indigo-700" x-text="document.querySelector('#form-select option[value=\'' + formData.form_id + '\']')?.textContent || 'Selected Election'"></p>
+                                    </div>
+
+                                    <div class="flex items-start gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                                        <i class="ri-mail-send-line text-amber-600 text-lg"></i>
+                                        <p class="text-[10px] font-bold text-amber-800 leading-relaxed uppercase">An automated email invitation with these credentials will be sent to the voter immediately upon creation.</p>
+                                    </div>
+                                </div>
+
+                                <div class="px-8 py-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+                                    <button @click="showSummary = false" class="px-6 py-3 bg-white text-slate-600 rounded-xl font-black text-[10px] tracking-widest hover:bg-slate-100 transition-all border border-slate-200 uppercase">
+                                        Go Back
+                                    </button>
+                                    <button @click="submit()" class="px-10 py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] tracking-widest hover:bg-indigo-600 shadow-xl shadow-indigo-100 transition-all uppercase">
+                                        Confirm & Create
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- General Errors -->
                         <div x-show="Object.keys(errors).length && errors.general" x-transition class="mt-4 p-3.5 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-3 text-rose-600">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Imports\VoterImport;
+use App\Models\Voter;
 use App\Models\User;
 use App\Models\Election;
 use App\Mail\VoterImportedMail;

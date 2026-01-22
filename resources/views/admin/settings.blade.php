@@ -3,9 +3,9 @@
 @section('content')
     <div x-data="{
         activeTab: 'account',
-        showToast: false,
-        toastMessage: '',
-        toastType: 'success',
+        showToast: @if(session('success') || $errors->any()) true @else false @endif,
+        toastMessage: '@if(session('success')){{ session('success') }}@elseif($errors->any()){{ $errors->first() }}@endif',
+        toastType: '@if(session('success'))success @else error @endif',
         isEditing: false,
         showRecoveryCodes: false,
         recoveryCodes: [],
@@ -120,7 +120,7 @@
                                 </button>
                             </nav>
 
-                            @if(session('success'))
+                            {{-- @if(session('success'))
                                 <div class="mt-6 p-4 bg-emerald-50 border border-emerald-100 rounded-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
                                     <div class="flex items-center gap-2 text-emerald-700 font-bold text-xs mb-1">
                                         <i class="ri-checkbox-circle-fill text-lg"></i>
@@ -142,7 +142,7 @@
                                         @endforeach
                                     </ul>
                                 </div>
-                            @endif
+                            @endif --}}
                         </aside>
 
                         <!-- Main Content Tabs -->
@@ -1025,12 +1025,48 @@
         <form id="reset-settings" action="{{ route('admin.settings.reset') }}" method="POST" class="hidden">
             @csrf
         </form>
+
+        <!-- Toast Notifications -->
+        <div x-show="showToast"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-x-8"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-8"
+             class="alert-toaster"
+             x-cloak>
+            <div :class="toastType === 'success' ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'"
+                 class="p-4 rounded-2xl border shadow-xl flex items-start gap-4">
+                <div :class="toastType === 'success' ? 'bg-emerald-500' : 'bg-red-500'"
+                     class="w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                    <i :class="toastType === 'success' ? 'ri-checkbox-circle-line' : 'ri-error-warning-line'" class="text-xl"></i>
+                </div>
+                <div class="flex-1 pt-0.5">
+                    <p :class="toastType === 'success' ? 'text-emerald-900' : 'text-red-900'"
+                       class="text-sm font-bold" x-text="toastType === 'success' ? 'Success!' : 'Review Errors'"></p>
+                    <p :class="toastType === 'success' ? 'text-emerald-600' : 'text-red-600'"
+                       class="text-xs font-medium mt-1" x-text="toastMessage"></p>
+                </div>
+                <button @click="showToast = false" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="ri-close-line text-lg"></i>
+                </button>
+            </div>
+        </div>
     </div>
 @endsection
 
 @push('styles')
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <style>
+        .alert-toaster {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            max-width: 24rem;
+            width: calc(100% - 4rem);
+        }
         [x-cloak] { display: none !important; }
         .custom-scrollbar::-webkit-scrollbar {
             width: 5px;

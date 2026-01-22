@@ -275,9 +275,11 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-4">
-                                        <span class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-100">
-                                            {{ $candidate->position->name ?? ($candidate->position ?? 'President') }}
-                                        </span>
+                                        <div class="flex flex-col items-end">
+                                            <span class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-blue-100">
+                                                {{ $candidate->position->title ?? ($candidate->position->name ?? ($candidate->position ?? 'President')) }}
+                                            </span>
+                                        </div>
                                         <a href="{{ route('admin.candidates.edit', $candidate->id) }}" class="w-10 h-10 bg-white text-slate-400 rounded-lg flex items-center justify-center border border-slate-100 hover:text-blue-600 hover:border-blue-200 transition-all">
                                             <i class="ri-pencil-line text-lg"></i>
                                         </a>
