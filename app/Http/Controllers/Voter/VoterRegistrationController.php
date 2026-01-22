@@ -10,10 +10,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class VoterRegistrationController extends Controller
 {
+    /**
+     * Get the throttle key for the given request.
+     */
+    protected function throttleKey(Request $request): string
+    {
+        return Str::transliterate(Str::lower($request->input('email')));
+    }
+
     /**
      * Step 2: Show registration/login form
      */
@@ -249,6 +258,17 @@ class VoterRegistrationController extends Controller
             'longitude' => 'nullable|numeric',
         ]);
 
+        $throttleKey = $this->throttleKey($request);
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            $msg = "Too many login attempts. Please try again in $seconds seconds.";
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 429);
+            }
+            return back()->withErrors(['login' => $msg])->withInput();
+        }
+
         if ($election->require_geo_registration) {
             if (!$request->latitude || !$request->longitude) {
                 return back()->withErrors(['login' => 'Location access is required to sign in for this election. Please enable GPS.'])->withInput();
@@ -274,6 +294,7 @@ class VoterRegistrationController extends Controller
         $user = User::where('email', $email)->first();
 
         if (!$user) {
+            RateLimiter::hit($throttleKey);
             $msg = 'Invalid email or password.';
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 401);
@@ -319,6 +340,7 @@ class VoterRegistrationController extends Controller
         }
 
         if (!Hash::check($request->password, $user->password)) {
+            RateLimiter::hit($throttleKey);
             $user->increment('failed_login_attempts');
             $attempts = $user->failed_login_attempts;
             $maxAttempts = 6;
@@ -371,6 +393,7 @@ class VoterRegistrationController extends Controller
         }
 
         // Reset failed attempts on successful login
+        RateLimiter::clear($throttleKey);
         $user->update([
             'failed_login_attempts' => 0,
             'locked_until' => null

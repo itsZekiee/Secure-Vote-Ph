@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Imports\VoterImport;
 use App\Models\User;
 use App\Models\Election;
+use App\Models\Voter;
 use App\Mail\VoterImportedMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
@@ -16,9 +17,27 @@ use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\RateLimiter;
 
 class VoterController extends Controller
 {
+    public function resetLoginAttempts(Voter $voter)
+    {
+        $user = $voter->user;
+        if ($user) {
+            $user->update([
+                'failed_login_attempts' => 0,
+                'locked_until' => null,
+                'is_permanently_blocked' => false
+            ]);
+
+            $key = Str::transliterate(Str::lower($user->email));
+            RateLimiter::clear($key);
+        }
+
+        return back()->with('success', "Login attempts for {$voter->name} have been reset.");
+    }
+
     /**
      * Apply voter scope to a query builder and return it.
      */

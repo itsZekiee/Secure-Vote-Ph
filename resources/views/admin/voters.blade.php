@@ -415,6 +415,14 @@
                                                title="Edit Voter">
                                                 <i class="ri-edit-line text-sm"></i>
                                             </a>
+                                            <form method="POST" action="{{ route('admin.voters.reset-login-attempts', $id) }}" class="inline">
+                                                @csrf
+                                                <button type="submit" onclick="return confirm('Reset login attempts for this voter?')"
+                                                        class="w-8 h-8 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all shadow-sm"
+                                                        title="Reset Login Attempts">
+                                                    <i class="ri-lock-unlock-line text-sm"></i>
+                                                </button>
+                                            </form>
                                             @if($status === 'pending')
                                                 <form method="POST" action="{{ route('admin.voters.approve', $id) }}" class="inline">
                                                     @csrf

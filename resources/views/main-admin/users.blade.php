@@ -102,6 +102,13 @@
                                                         </form>
                                                     @endif
 
+                                                    <form action="{{ route('admin.users.reset-login-attempts', $user->id) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <button type="submit" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Reset Login Attempts" onclick="return confirm('Reset login attempts for this user?')">
+                                                            <i class="ri-lock-unlock-line text-lg"></i>
+                                                        </button>
+                                                    </form>
+
                                                     <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
                                                         @csrf
                                                         @method('DELETE')

@@ -363,7 +363,7 @@
                     <div class="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-3xl border border-slate-100 p-6">
                         <h3 class="text-xs font-black text-slate-900 uppercase tracking-[0.2em] mb-6">Quick Actions</h3>
                         <div class="space-y-3">
-                            <a href="{{ route('admin.reports.view', $party->election_id ?? 0) }}" class="w-full inline-block text-center py-4 bg-white text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
+                            <a href="{{ route('voter.elections.results', $party->election->code ?? 'N/A') }}" target="_blank" class="w-full inline-block text-center py-4 bg-white text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
                                 View Election Results
                             </a>
                             <a href="{{ route('admin.reports.export') }}?election_id={{ $party->election_id ?? 0 }}&format=csv" class="w-full inline-block text-center py-4 bg-white text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all">
