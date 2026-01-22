@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Imports\VoterImport;
-use App\Models\Voter;
 use App\Models\User;
 use App\Models\Election;
 use App\Mail\VoterImportedMail;
@@ -17,7 +16,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Voter;
 
 class VoterController extends Controller
 {
@@ -119,14 +117,18 @@ class VoterController extends Controller
         }
 
         $voters = $query->latest()->paginate(15);
-        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
+        $forms = \App\Models\Election::where('created_by', auth()->id())
+            ->whereIn('status', ['active', 'draft'])
+            ->get();
 
         return view($this->getView('voters'), compact('voters', 'forms'));
     }
 
     public function create()
     {
-        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
+        $forms = \App\Models\Election::where('created_by', auth()->id())
+            ->whereIn('status', ['active', 'draft'])
+            ->get();
         return view($this->getView('voter.voter-create'), compact('forms'));
     }
 
@@ -136,11 +138,9 @@ class VoterController extends Controller
             'full_name' => 'required|string|max:255',
             'email' => 'required|email',
             'phone' => 'nullable|string|max:20',
-            'student_id' => 'required|string|max:50|regex:/^[A-Z0-9-]+$/i',
+            'voter_code' => 'required|string|max:50',
             'form_id' => 'required|exists:elections,id',
             'registration_status' => 'required|in:approved,pending,declined'
-        ], [
-            'student_id.regex' => 'The ID format is invalid.',
         ]);
 
         $email = trim(strtolower($validated['email']));
@@ -149,12 +149,12 @@ class VoterController extends Controller
         $duplicate = \App\Models\Voter::where('election_id', $validated['form_id'])
             ->where(function($q) use ($email, $validated) {
                 $q->where('email', $email)
-                  ->orWhere('student_id', $validated['student_id']);
+                  ->orWhere('student_id', $validated['voter_code']);
             })
             ->first();
 
         if ($duplicate) {
-            return back()->withErrors(['student_id' => 'A voter with this email or ID already exists in this election.'])->withInput();
+            return response()->json(['success' => false, 'errors' => ['general' => ['A voter with this email or Voter ID already exists in this election.']]], 422);
         }
 
         try {
@@ -169,7 +169,7 @@ class VoterController extends Controller
                 if (empty($firstName)) { $firstName = $lastName; $lastName = ''; }
 
                 // Generate Unique Key / Temporary Password
-                $tempPassword = strtoupper(\Illuminate\Support\Str::random(10));
+                $tempPassword = Str::password(10, true, true, true, false);
 
                 $user = User::create([
                     'name' => $validated['full_name'],
@@ -183,7 +183,7 @@ class VoterController extends Controller
                 ]);
             } else {
                 // Generate Unique Key / Temporary Password for existing user
-                $tempPassword = strtoupper(\Illuminate\Support\Str::random(10));
+                $tempPassword = Str::password(10, true, true, true, false);
 
                 if ($validated['registration_status'] === 'approved') {
                     $user->update([
@@ -197,21 +197,23 @@ class VoterController extends Controller
                 'name' => $validated['full_name'],
                 'email' => $email,
                 'phone' => $validated['phone'] ?? null,
-                'student_id' => $validated['student_id'] ?? null,
+                'student_id' => $validated['voter_code'] ?? null,
                 'election_id' => $validated['form_id'],
                 'registration_status' => $validated['registration_status'],
                 'password' => $user->password,
                 'user_id' => $user->id,
             ]);
 
-            // Send Email Notification if approved
             if ($validated['registration_status'] === 'approved') {
-                try {
-                    $election = \App\Models\Election::find($validated['form_id']);
-                    Mail::to($email)->send(new VoterImportedMail($voter, $election, $tempPassword));
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error("Failed to send voter email to {$email}: " . $e->getMessage());
-                }
+                $this->assignVoterRole($user);
+            }
+
+            // Send Email Notification
+            try {
+                $election = \App\Models\Election::findOrFail($validated['form_id']);
+                Mail::to($email)->send(new VoterImportedMail($voter, $election, $tempPassword));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to send voter email to {$email}: " . $e->getMessage());
             }
 
             DB::commit();
@@ -242,7 +244,9 @@ class VoterController extends Controller
     public function edit(string $id)
     {
         $voter = \App\Models\Voter::with(['election'])->findOrFail($id);
-        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
+        $forms = \App\Models\Election::where('created_by', auth()->id())
+            ->whereIn('status', ['active', 'draft'])
+            ->get();
         return view($this->getView('voter.edit'), compact('voter', 'forms'));
     }
 
@@ -365,7 +369,9 @@ class VoterController extends Controller
             });
 
         $voters = $query->orderBy('created_at', 'desc')->paginate(15);
-        $forms = \App\Models\Election::where('created_by', auth()->id())->get();
+        $forms = \App\Models\Election::where('created_by', auth()->id())
+            ->whereIn('status', ['active', 'draft'])
+            ->get();
 
         if ($request->wantsJson()) {
             return response()->json(['voters' => $voters]);
