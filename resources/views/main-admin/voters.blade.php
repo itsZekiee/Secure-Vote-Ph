@@ -35,6 +35,41 @@
         selectedForm: 'all',
         perPage: 15,
         showPasswordModal: {{ session('temp_password_display') ? 'true' : 'false' }},
+        initializing: true,
+
+        init() {
+            // Set initial values from URL first
+            const urlParams = new URLSearchParams(window.location.search);
+            this.search = urlParams.get('q') || '';
+            this.filterBy = urlParams.get('filter') || 'all';
+            this.selectedForm = urlParams.get('election_id') || 'all';
+
+            this.$nextTick(() => {
+                this.initializing = false;
+            });
+
+            this.$watch('search', value => this.performSearch());
+            this.$watch('filterBy', value => this.performSearch());
+            this.$watch('selectedForm', value => this.performSearch());
+        },
+
+        performSearch() {
+            // Prevent search on initialization to avoid infinite loop
+            if (this.initializing) return;
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('q', this.search);
+            url.searchParams.set('filter', this.filterBy);
+            url.searchParams.set('election_id', this.selectedForm);
+            url.searchParams.set('page', 1); // Reset to page 1 on search
+
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                if (url.toString() !== window.location.href) {
+                    window.location.href = url.toString();
+                }
+            }, 700);
+        },
 
         // Import
         showImportModal: false,
@@ -243,11 +278,9 @@
                                 <label class="sr-only" for="global-search">Search voters</label>
                                 <div class="relative">
                                     <input id="global-search" x-model="search" type="search" placeholder="Search by name, email, or student ID"
-                                           @keyup.enter="$dispatch('search', { q: search, filter: filterBy, form: selectedForm })"
                                            class="w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                                            aria-label="Search voters" />
-                                    <button @click="$dispatch('search', { q: search, filter: filterBy, form: selectedForm })"
-                                            class="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-600 hover:text-indigo-800" aria-label="Execute search">
+                                    <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-600" aria-label="Search">
                                         <i class="ri-search-line text-lg"></i>
                                     </button>
                                 </div>

@@ -228,14 +228,20 @@ class CandidateController extends Controller
 
             // Check duplicate candidate
             $existingCandidate = Candidate::where('user_id', $userId)
-                ->when(!empty($validated['election_id']), fn($q) => $q->where('election_id', $validated['election_id']), fn($q) => $q->whereNull('election_id'))
-                ->where('position_id', $validated['position_id'])
+                ->where(function($q) use ($validated) {
+                    if (!empty($validated['election_id'])) {
+                        $q->where('election_id', $validated['election_id']);
+                    } else {
+                        $q->whereNull('election_id');
+                    }
+                })
+                ->whereNull('deleted_at')
                 ->first();
 
             if ($existingCandidate) {
                 DB::rollBack();
                 if ($request->ajax()) {
-                    return response()->json(['message' => 'This user is already a candidate for this position in this election', 'errors' => ['user_email' => ['Duplicate candidate']]], 422);
+                    return response()->json(['message' => 'This user is already a candidate in this election.', 'errors' => ['user_email' => ['Duplicate candidate']]], 422);
                 }
                 return back()->withErrors(['user_email' => 'Duplicate candidate'])->withInput();
             }
@@ -665,8 +671,10 @@ class CandidateController extends Controller
     {
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv,xml,tsv|max:51200',
+            'election_id' => 'nullable|exists:elections,id'
         ]);
 
+        $electionId = $request->input('election_id');
         $file = $request->file('file');
         $extension = strtolower($file->getClientOriginalExtension());
         $readerType = null;
@@ -690,11 +698,11 @@ class CandidateController extends Controller
             return response()->json(['success' => false, 'message' => 'The uploaded file is empty or has no data.'], 422);
         }
 
-        $data = $rows->map(function ($row, $index) {
-            $fullName = $row['full_name'] ?? ($row['name'] ?? null);
-            $email = $row['email'] ?? null;
-            $orgName = $row['organization'] ?? null;
-            $partylistName = $row['political_affiliation'] ?? ($row['partylist'] ?? null);
+        $data = $rows->map(function ($row, $index) use ($electionId) {
+            $fullName = $row['full_name'] ?? ($row['name'] ?? ($row['fullName'] ?? null));
+            $email = $row['email'] ?? ($row['email_address'] ?? ($row['emailAddress'] ?? null));
+            $orgName = $row['organization'] ?? ($row['org'] ?? null);
+            $partylistName = $row['political_affiliation'] ?? ($row['partylist'] ?? ($row['party'] ?? null));
 
             if (!$fullName && !$email) return null;
 
@@ -702,7 +710,14 @@ class CandidateController extends Controller
             $isDuplicate = false;
             if ($email) {
                 $isDuplicate = User::where('email', $email)
-                    ->whereHas('candidacies', function($q) {
+                    ->whereHas('candidacies', function($q) use ($electionId) {
+                        $q->where(function($sq) use ($electionId) {
+                            if ($electionId) {
+                                $sq->where('election_id', $electionId);
+                            } else {
+                                $sq->whereNull('election_id');
+                            }
+                        });
                         $q->whereNull('deleted_at');
                     })
                     ->whereNull('deleted_at')
@@ -712,8 +727,14 @@ class CandidateController extends Controller
             $orgId = null;
             $alerts = [];
             if ($orgName) {
-                $org = Organization::where('created_by', auth()->id())
-                    ->where('name', 'LIKE', trim($orgName))
+                $org = Organization::where('name', 'LIKE', trim($orgName))
+                    ->where(function($q) {
+                        $q->where('created_by', auth()->id())
+                          ->orWhere('id', auth()->user()->organization_id)
+                          ->orWhereIn('id', Organization::whereHas('members', function($sq) {
+                              $sq->where('user_id', auth()->id());
+                          })->pluck('id'));
+                    })
                     ->first();
                 if ($org) {
                     $orgId = $org->id;
@@ -830,37 +851,84 @@ class CandidateController extends Controller
 
         $created = 0;
         $skipped = 0;
+        $skippedDetails = [];
 
         DB::beginTransaction();
         try {
-            foreach ($rows as $index => $row) {
-                $fullName = $row['full_name'] ?? ($row['name'] ?? null);
-                $email = $row['email'] ?? null;
+            foreach ($rows as $idx => $row) {
+                // Maatwebsite Excel rows are 0-indexed in the collection
+                // In importPreview we map them to 'index' => $index
+                $rowIdentifier = (string)$idx;
+
+                $fullName = $row['full_name'] ?? ($row['name'] ?? ($row['fullName'] ?? null));
+                $email = $row['email'] ?? ($row['email_address'] ?? ($row['emailAddress'] ?? null));
+
+                if (!$fullName && !$email) {
+                    continue;
+                }
 
                 if (!$fullName || !$email) {
                     $skipped++;
+                    $skippedDetails[] = "Row $idx skipped: Missing name or email.";
                     continue;
                 }
 
                 // Check duplication
                 $existingUser = User::where('email', $email)->whereNull('deleted_at')->first();
-                if ($existingUser && Candidate::where('user_id', $existingUser->id)->whereNull('deleted_at')->exists()) {
-                    $skipped++;
-                    continue;
+                if ($existingUser) {
+                    $candidateExists = Candidate::where('user_id', $existingUser->id)
+                        ->where(function($q) use ($electionId) {
+                            if ($electionId) {
+                                $q->where('election_id', $electionId);
+                            } else {
+                                $q->whereNull('election_id');
+                            }
+                        })
+                        ->whereNull('deleted_at')
+                        ->exists();
+
+                    if ($candidateExists) {
+                        $skipped++;
+                        $skippedDetails[] = "Candidate with email $email already exists in this election.";
+                        continue;
+                    }
                 }
 
-                $orgId = $overrides[$index]['organization_id'] ?? null;
+                // Try to find overrides using multiple possible index keys
+                $rowOverride = $overrides[$rowIdentifier] ?? ($overrides[(int)$rowIdentifier] ?? null);
+
+                $orgId = $rowOverride['organization_id'] ?? null;
                 if (!$orgId) {
-                    $orgName = $row['organization'] ?? null;
+                    $orgName = $row['organization'] ?? ($row['org'] ?? null);
                     if ($orgName) {
-                        $org = Organization::where('name', 'LIKE', trim($orgName))->first();
+                        $org = Organization::where('name', 'LIKE', trim($orgName))
+                            ->where(function($q) {
+                                $q->where('created_by', auth()->id())
+                                  ->orWhere('id', auth()->user()->organization_id)
+                                  ->orWhereIn('id', Organization::whereHas('members', function($sq) {
+                                      $sq->where('user_id', auth()->id());
+                                  })->pluck('id'));
+                            })
+                            ->first();
                         if ($org) $orgId = $org->id;
                     }
                 }
 
-                $partylistId = $overrides[$index]['partylist_id'] ?? null;
+                if (!$orgId) {
+                    // Final fallback: use current user's organization if they are an admin
+                    $user = auth()->user();
+                    if ($user->organization_id) {
+                        $orgId = $user->organization_id;
+                    } else {
+                        // Or first organization they created
+                        $firstOrg = Organization::where('created_by', $user->id)->first();
+                        if ($firstOrg) $orgId = $firstOrg->id;
+                    }
+                }
+
+                $partylistId = $rowOverride['partylist_id'] ?? null;
                 if (!$partylistId) {
-                    $partylistName = $row['political_affiliation'] ?? ($row['partylist'] ?? null);
+                    $partylistName = $row['political_affiliation'] ?? ($row['partylist'] ?? ($row['party'] ?? null));
                     if ($partylistName) {
                         $pl = Partylist::where('name', 'LIKE', trim($partylistName))->first();
                         if ($pl) $partylistId = $pl->id;
@@ -868,13 +936,14 @@ class CandidateController extends Controller
                 }
 
                 if (!$orgId) {
+                    Log::warning("Skipping candidate $fullName because no organization could be resolved. IDX: $idx");
                     $skipped++;
                     continue;
                 }
 
                 $posId = $this->resolvePositionId(
-                    $overrides[$index]['position_id'] ?? null,
-                    $overrides[$index]['new_position_name'] ?? null,
+                    $rowOverride['position_id'] ?? null,
+                    $rowOverride['new_position_name'] ?? null,
                     $orgId,
                     $electionId
                 );
@@ -946,7 +1015,10 @@ class CandidateController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Successfully imported $created candidates. Skipped $skipped duplicates or invalid rows."
+            'message' => "Successfully imported $created candidates. Skipped $skipped rows.",
+            'skipped_count' => $skipped,
+            'skipped_details' => $skippedDetails,
+            'all_candidates' => Candidate::with(['user', 'election', 'partylist', 'position'])->get()->toArray()
         ]);
     }
 

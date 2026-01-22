@@ -95,9 +95,21 @@
             }
         },
 
+        init() {
+            this.$watch('selectedImportElection', () => {
+                if (this.importFile) {
+                    this.previewImport();
+                }
+            });
+            this.filter();
+        },
+
         previewImport() {
             const formData = new FormData();
             formData.append('file', this.importFile);
+            if (this.selectedImportElection) {
+                formData.append('election_id', this.selectedImportElection);
+            }
             formData.append('_token', '{{ csrf_token() }}');
 
             this.importing = true;
@@ -147,16 +159,22 @@
                     overrides: overrides
                 })
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.message);
-                    window.location.reload();
+            .then(async res => {
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    let msg = data.message;
+                    alert(msg);
+                    this.allCandidates = data.all_candidates || this.allCandidates;
+                    this.filter();
+                    this.showImportModal = false;
+                    this.importFile = null;
+                    this.importPreviewData = [];
+                    this.importPath = '';
                 } else {
                     alert(data.message || 'Import failed');
                 }
             })
-            .catch(err => alert('Import failed'))
+            .catch(err => alert('Import failed: ' + err))
             .finally(() => this.importing = false);
         },
 
@@ -224,6 +242,7 @@
         }
     }"
          x-init="
+        init();
         $watch('searchQuery', () => filter());
         $watch('sortBy', () => filter());
         $watch('filterElection', () => filter());
@@ -593,6 +612,14 @@
 
                                     <!-- Preview Table -->
                                     <div x-show="importPreviewData.length > 0" class="mt-6">
+                                        <div x-show="importPreviewData.some(row => row.status === 'Duplicate')"
+                                             class="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 text-amber-800 mb-4">
+                                            <i class="ri-error-warning-line text-xl mt-0.5"></i>
+                                            <div>
+                                                <p class="text-xs font-bold uppercase tracking-wider">Duplicate Candidates Detected</p>
+                                                <p class="text-[10px] font-medium mt-1 leading-relaxed">Some candidates in your file are already registered for this election. These rows will be skipped during the final import process to prevent data duplication.</p>
+                                            </div>
+                                        </div>
                                         <h4 class="text-sm font-bold text-gray-900 mb-3 flex items-center justify-between">
                                             Data Preview
                                             <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full" x-text="importPreviewData.length + ' rows found'"></span>
