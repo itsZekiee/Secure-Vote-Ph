@@ -94,7 +94,7 @@ class AuthController extends Controller
         if (!$user || !Hash::check($request->password, $user->password)) {
             // Record failed login attempt
             \Illuminate\Support\Facades\DB::table('failed_logins')->insert([
-                'user_id' => $user->id ?? null,
+                'voter_id' => $user->id ?? null,
                 'election_id' => $electionId,
                 'email' => $request->email,
                 'ip_address' => $request->ip(),

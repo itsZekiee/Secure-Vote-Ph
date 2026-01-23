@@ -331,7 +331,7 @@
                                             </span>
                                             <span class="text-sm text-slate-600">Remember me</span>
                                         </label>
-                                        <a href="{{ route('voter.password.request', $election->id) }}"
+                                        <a href="{{ route('voter.password.request', ['election' => $election->id]) }}"
                                             class="text-sm text-brand-accent hover:underline font-semibold">Forgot
                                             password?</a>
                                     </div>

@@ -3,14 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\CanResetPassword;
+use Illuminate\Auth\Passwords\CanResetPassword as CanResetPasswordTrait;
 use App\Traits\Auditable;
 
-class Voter extends Model
+class Voter extends Authenticatable implements CanResetPassword
 {
-    use HasUuids, Auditable;
+    use HasUuids, Auditable, Notifiable, CanResetPasswordTrait;
     protected $table = 'voters';
 
     protected $fillable = [
@@ -50,5 +51,10 @@ class Voter extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function votes()
+    {
+        return $this->hasMany(Vote::class);
     }
 }

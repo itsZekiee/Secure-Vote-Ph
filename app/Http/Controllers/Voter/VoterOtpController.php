@@ -28,9 +28,9 @@ class VoterOtpController extends Controller
         ]);
 
         $email = session('otp_email');
-        $userId = session('otp_user_id');
+        $voterId = session('otp_voter_id');
 
-        if (!$email || !$userId) {
+        if (!$email || !$voterId) {
             return redirect('/')->withErrors([
                 'token' => 'Session expired. Please login again.',
             ]);
@@ -57,10 +57,10 @@ class VoterOtpController extends Controller
         }
 
         if (!$response_successful) {
-            // Record failed OTP attempt
+            // Record failed OTP attempt (voter side)
             \Illuminate\Support\Facades\DB::table('failed_logins')->insert([
-                'user_id' => $userId,
-                'election_id' => session('election_id'),
+                'voter_id' => $voterId,
+                'election_id' => session('otp_election_id'),
                 'email' => $email,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->header('User-Agent'),
@@ -73,39 +73,33 @@ class VoterOtpController extends Controller
             ]);
         }
 
-        Auth::loginUsingId(
-            $userId,
+        Auth::guard('voter')->loginUsingId(
+            $voterId,
             session('remember_me', false)
         );
 
-        $user = User::find($userId);
+        $voter = \App\Models\Voter::find($voterId);
 
         // Set voter session for VoterAuth middleware
-        $electionId = session('otp_election_id');
-        if ($electionId) {
-            $voter = \App\Models\Voter::where('user_id', $user->id)
-                ->where('election_id', $electionId)
-                ->first();
-            if ($voter) {
-                session(['voter' => [
-                    'id' => $voter->id,
-                    'name' => $voter->name,
-                    'email' => $voter->email,
-                    'election_id' => $voter->election_id,
-                    'role' => 'voter'
-                ]]);
-            }
+        if ($voter) {
+            session(['voter' => [
+                'id' => $voter->id,
+                'name' => $voter->name,
+                'email' => $voter->email,
+                'election_id' => $voter->election_id,
+                'role' => 'voter'
+            ]]);
         }
 
         AuditLogger::log(
             'LOGIN',
             'Auth',
-            "Voter logged in: " . ($user->email ?? $userId)
+            "Voter logged in: " . ($voter->email ?? $voterId)
         );
 
         session()->forget([
             'otp_email',
-            'otp_user_id',
+            'otp_voter_id',
             'remember_me',
         ]);
 
@@ -116,7 +110,7 @@ class VoterOtpController extends Controller
                 ->with('success', 'Login verified successfully.');
         }
 
-        return redirect()->route('voter.welcome')
+        return redirect()->route('voter.dashboard')
             ->with('success', 'Login verified successfully.');
     }
 }

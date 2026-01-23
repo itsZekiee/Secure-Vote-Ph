@@ -47,7 +47,9 @@ class AuthenticatedSessionController extends Controller
         }
 
         $email = trim(strtolower($request->email));
-        $user = User::where('email', $email)->first();
+        $user = User::where('email', $email)
+            ->whereIn('role', [User::ROLE_SUPER_ADMIN, User::ROLE_ADMIN, User::ROLE_ELECTION_OFFICER])
+            ->first();
 
         if (!$user) {
             RateLimiter::hit($throttleKey);

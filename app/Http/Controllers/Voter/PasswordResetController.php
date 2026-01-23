@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Voter;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Voter;
 use App\Models\Election;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,30 +14,45 @@ use Illuminate\Support\Facades\Log;
 
 class PasswordResetController extends Controller
 {
-    public function searchEmails(Request $request, $code)
+    public function searchEmails(Request $request, $code = null)
     {
         $query = $request->get('q');
         if (strlen($query) < 2) {
             return response()->json([]);
         }
 
-        $emails = User::where('role', 'voter')
-            ->where('email', 'LIKE', "{$query}%")
+        $election = null;
+        if ($code) {
+            $election = Election::where('code', $code)->orWhere('id', $code)->first();
+        }
+
+        $emails = Voter::where('email', 'LIKE', "{$query}%")
+            ->when($election, function($q) use ($election) {
+                return $q->where('election_id', $election->id);
+            })
             ->limit(10)
             ->pluck('email');
 
         return response()->json($emails);
     }
 
-    public function sendOTP(Request $request, $code)
+    public function sendOTP(Request $request, $code = null)
     {
         $request->validate(['email' => 'required|email']);
-        $user = User::where('email', $request->email)
-            ->where('role', 'voter')
+
+        $election = null;
+        if ($code) {
+            $election = Election::where('code', $code)->orWhere('id', $code)->first();
+        }
+
+        $voter = Voter::where('email', $request->email)
+            ->when($election, function($q) use ($election) {
+                return $q->where('election_id', $election->id);
+            })
             ->first();
 
-        if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Email not found.'], 404);
+        if (!$voter) {
+            return response()->json(['success' => false, 'message' => 'Email not found for this election.'], 404);
         }
 
         $otp = rand(10000000, 99999999);
@@ -56,12 +71,11 @@ class PasswordResetController extends Controller
             return response()->json(['success' => true, 'message' => 'OTP sent to your email.']);
         } catch (\Exception $e) {
             Log::error('OTP Send failed: ' . $e->getMessage());
-            // For development/demo, we can return the OTP if mail fails, but better to just log
             return response()->json(['success' => false, 'message' => 'Failed to send OTP.'], 500);
         }
     }
 
-    public function verifyOTP(Request $request, $code)
+    public function verifyOTP(Request $request, $code = null)
     {
         $request->validate([
             'email' => 'required|email',
@@ -83,17 +97,27 @@ class PasswordResetController extends Controller
 
     }
 
-    public function showLinkRequestForm($code)
+    public function showLinkRequestForm(Request $request, $code = null)
     {
-        $election = Election::where('code', $code)->firstOrFail();
+        $election = null;
+        $electionId = $code ?: $request->get('election');
+
+        if ($electionId) {
+            $election = Election::where('id', $electionId)
+                ->orWhere('code', $electionId)
+                ->first();
+        }
         return view('voter.auth.forgot-password', compact('election'));
     }
 
 
 
-    public function showResetForm(Request $request, $code, $token = null)
+    public function showResetForm(Request $request, $code = null, $token = null)
     {
-        $election = Election::where('code', $code)->firstOrFail();
+        $election = null;
+        if ($code) {
+            $election = Election::where('code', $code)->first();
+        }
         return view('voter.auth.reset-password', [
             'token' => $token,
             'email' => $request->email,
@@ -101,7 +125,7 @@ class PasswordResetController extends Controller
         ]);
     }
 
-    public function reset(Request $request, $code)
+    public function reset(Request $request, $code = null)
     {
         $request->validate([
             'email' => 'required|email',
@@ -114,34 +138,37 @@ class PasswordResetController extends Controller
             ]);
         }
 
-        $hashed = Hash::make($request->password);
+        $election = null;
+        if ($code) {
+            $election = Election::where('code', $code)->orWhere('id', $code)->first();
+        }
 
-        $user = User::where('email', trim(strtolower($request->email)))
-            ->where('role', 'voter')
+        $voter = Voter::where('email', trim(strtolower($request->email)))
+            ->when($election, function($q) use ($election) {
+                return $q->where('election_id', $election->id);
+            })
             ->first();
 
-        if (!$user) {
+        if (!$voter) {
             return back()->withErrors([
                 'email' => 'Voter account not found.'
             ]);
         }
 
-        $user->update([
+        $hashed = Hash::make($request->password);
+
+        $voter->update([
             'password' => $hashed,
             'failed_login_attempts' => 0,
             'locked_until' => null,
+            'is_permanently_blocked' => 0,
         ]);
 
         \App\Services\AuditLogger::log(
             'PASSWORD_RESET',
             'Voter',
-            "Voter password reset successful for: {$user->email}"
+            "Voter password reset successful for: {$voter->email} in election: " . ($voter->election_id ?? 'N/A')
         );
-
-        // Sync to voter records if they exist
-        DB::table('voters')
-            ->where('user_id', $user->id)
-            ->update(['password' => $hashed]);
 
         session()->forget([
             'password_reset_otp',
@@ -150,11 +177,15 @@ class PasswordResetController extends Controller
             'password_reset_verified'
         ]);
 
-        $election = Election::where('code', $code)->firstOrFail();
+        if ($election) {
+            return redirect()
+                ->route('voter.registration.index', $election->id)
+                ->with('success', 'Your password has been reset successfully!');
+        }
 
         return redirect()
-            ->route('voter.registration.index', $election->id)
-            ->with('success', 'Voter password has been reset successfully!');
+            ->route('voter.elections.access')
+            ->with('success', 'Your password has been reset successfully! Please sign in.');
     }
 
 
