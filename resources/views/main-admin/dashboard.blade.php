@@ -344,6 +344,7 @@
                             </div>
                         </div>
 
+                        @if(auth()->user()->hasRole('super-admin'))
                         <!-- Audit Logs Table -->
                         <div class="mt-8">
                             <div class="flex items-center justify-between mb-4">
@@ -428,6 +429,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endif
 
                         <!-- Selected Election Header -->
                         <div x-show="selectedElection" x-transition class="mt-6 rounded-2xl overflow-hidden shadow-lg">

@@ -17,7 +17,7 @@ class SuperAdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'habee2004@gmail.com'],
             [
-                'name' => 'Niel Ezequiel Dungao',
+                'name' => 'Master Super Admin',
                 'password' => Hash::make('Zacchaues_01011010'),
                 'role' => User::ROLE_SUPER_ADMIN,
                 'email_verified_at' => now(),

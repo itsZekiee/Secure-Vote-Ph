@@ -762,8 +762,8 @@
                                 </div>
                                 @endif
 
-                                @if(auth()->user()->role === \App\Models\User::ROLE_SUPER_ADMIN)
-                                <!-- 2FA Recovery Codes -->
+                                @if(auth()->user()->hasRole('super-admin'))
+                        <!-- 2FA Recovery Codes -->
                                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
                                     <div class="p-6 sm:p-8">
                                         <div class="flex items-center gap-4 mb-8">

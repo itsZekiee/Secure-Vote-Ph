@@ -21,12 +21,31 @@ class UserManagementController extends Controller
         $key = Str::transliterate(Str::lower($user->email));
         RateLimiter::clear($key);
 
+        \App\Services\AuditLogger::log(
+            'SECURITY_RESET',
+            'User Management',
+            "Super Admin reset login lockout for: {$user->email} ({$user->role})"
+        );
+
         return back()->with('success', "Login attempts for {$user->name} have been reset.");
+    }
+
+    public function promoteToSuperAdmin(User $user)
+    {
+        $user->update(['role' => User::ROLE_SUPER_ADMIN]);
+
+        \App\Services\AuditLogger::log(
+            'ROLE_PROMOTION',
+            'User Management',
+            "Super Admin promoted {$user->email} to Super Admin"
+        );
+
+        return back()->with('success', "User {$user->name} has been promoted to Super Admin.");
     }
 
     public function index()
     {
-        $users = User::whereIn('role', ['admin', 'manager'])
+        $users = User::whereIn('role', [User::ROLE_ADMIN, User::ROLE_ELECTION_OFFICER, 'manager'])
             ->orderBy('created_at', 'desc')
             ->get();
 

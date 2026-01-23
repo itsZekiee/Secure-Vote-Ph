@@ -201,6 +201,12 @@ class VoterElectionController extends Controller
             }
         }
 
+        \App\Services\AuditLogger::log(
+            'VOTE_CAST',
+            'Voter',
+            "Voter cast a vote in election: {$election->title} (Ballot ID: {$ballotId})"
+        );
+
         $remainingVotes = $maxVotes - ($votedCount + 1);
         $successMsg = 'Your vote has been recorded successfully!';
         if ($remainingVotes > 0) {

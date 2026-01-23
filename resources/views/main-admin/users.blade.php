@@ -109,6 +109,15 @@
                                                         </button>
                                                     </form>
 
+                                                    @if($user->role !== \App\Models\User::ROLE_SUPER_ADMIN)
+                                                        <form action="{{ route('admin.users.promote', $user->id) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Promote to Super Admin" onclick="return confirm('Promote this user to Super Admin?')">
+                                                                <i class="ri-shield-user-line text-lg"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
+
                                                     <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
                                                         @csrf
                                                         @method('DELETE')

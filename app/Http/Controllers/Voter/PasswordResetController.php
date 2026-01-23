@@ -132,6 +132,12 @@ class PasswordResetController extends Controller
             'locked_until' => null,
         ]);
 
+        \App\Services\AuditLogger::log(
+            'PASSWORD_RESET',
+            'Voter',
+            "Voter password reset successful for: {$user->email}"
+        );
+
         // Sync to voter records if they exist
         DB::table('voters')
             ->where('user_id', $user->id)

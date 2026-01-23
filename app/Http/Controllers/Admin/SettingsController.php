@@ -295,6 +295,10 @@ class SettingsController extends Controller
 
     public function generateRecoveryCodes(Request $request)
     {
+        if (!auth()->user()->hasRole('super-admin')) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $user = auth()->user();
         $codes = [];
         for ($i = 0; $i < 10; $i++) {
@@ -314,6 +318,10 @@ class SettingsController extends Controller
 
     public function showRecoveryCodes(Request $request)
     {
+        if (!auth()->user()->hasRole('super-admin')) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
         $request->validate([
             'password' => 'required|string',
         ]);
