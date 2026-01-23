@@ -121,7 +121,16 @@ class VoterController extends Controller
 
     public function index(Request $request)
     {
+        $userId = auth()->id();
+        $isSuperAdmin = auth()->user()->hasRole('super-admin');
+
         $query = \App\Models\Voter::with(['election']);
+
+        if (!$isSuperAdmin) {
+            $query->whereHas('election', function ($q) use ($userId) {
+                $q->where('created_by', $userId);
+            });
+        }
 
         if ($request->has('q')) {
             $q = $request->q;
@@ -136,17 +145,36 @@ class VoterController extends Controller
             $query->where('election_id', $request->election_id);
         }
 
+        if ($request->has('organization_id') && $request->organization_id !== 'all') {
+            $query->whereHas('election', function($q) use ($request) {
+                $q->where('organization_id', $request->organization_id);
+            });
+        }
+
         $voters = $query->latest()->paginate(15);
-        $forms = \App\Models\Election::where('created_by', auth()->id())
+        $forms = \App\Models\Election::when(!$isSuperAdmin, function($q) use ($userId) {
+                return $q->where('created_by', $userId);
+            })
             ->whereIn('status', ['active', 'draft'])
             ->get();
 
-        return view($this->getView('voters'), compact('voters', 'forms'));
+        $organizations = \App\Models\Organization::when(!$isSuperAdmin, function($q) use ($userId) {
+                return $q->where('created_by', $userId);
+            })
+            ->orderBy('name')
+            ->get();
+
+        return view($this->getView('voters'), compact('voters', 'forms', 'organizations'));
     }
 
     public function create()
     {
-        $forms = \App\Models\Election::where('created_by', auth()->id())
+        $userId = auth()->id();
+        $isSuperAdmin = auth()->user()->hasRole('super-admin');
+
+        $forms = \App\Models\Election::when(!$isSuperAdmin, function($q) use ($userId) {
+                return $q->where('created_by', $userId);
+            })
             ->whereIn('status', ['active', 'draft'])
             ->get();
         return view($this->getView('voter.voter-create'), compact('forms'));
