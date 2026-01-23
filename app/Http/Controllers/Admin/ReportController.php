@@ -27,18 +27,42 @@ class ReportController extends Controller
 
     public function index(Request $request)
     {
+        $userId = auth()->id();
+        $isSuperAdmin = auth()->user()->hasRole('super-admin');
+
         $stats = [
-            'total_elections' => Election::count(),
-            'active_elections' => Election::where('status', 'active')->count(),
-            'total_voters' => $this->voterQuery()->count(),
-            'total_candidates' => Candidate::count(),
-            'total_votes' => Vote::count(),
-            'organizations_count' => Organization::count(),
+            'total_elections' => Election::when(!$isSuperAdmin, function($q) use ($userId) {
+                return $q->where('created_by', $userId);
+            })->count(),
+            'active_elections' => Election::where('status', 'active')
+                ->when(!$isSuperAdmin, function($q) use ($userId) {
+                    return $q->where('created_by', $userId);
+                })->count(),
+            'total_voters' => \App\Models\Voter::when(!$isSuperAdmin, function($q) use ($userId) {
+                return $q->whereHas('election', function($eq) use ($userId) {
+                    $eq->where('created_by', $userId);
+                });
+            })->count(),
+            'total_candidates' => Candidate::when(!$isSuperAdmin, function($q) use ($userId) {
+                return $q->where('created_by', $userId);
+            })->count(),
+            'total_votes' => Vote::when(!$isSuperAdmin, function($q) use ($userId) {
+                return $q->whereHas('election', function($eq) use ($userId) {
+                    $eq->where('created_by', $userId);
+                });
+            })->count(),
+            'organizations_count' => Organization::when(!$isSuperAdmin, function($q) use ($userId) {
+                return $q->where('created_by', $userId);
+            })->count(),
         ];
 
         // Fetch "forms" (elections)
         $query = Election::with(['organization'])
             ->withCount(['candidates', 'votes']);
+
+        if (!$isSuperAdmin) {
+            $query->where('created_by', $userId);
+        }
 
         if ($request->has('q')) {
             $query->where('title', 'like', '%' . $request->q . '%');
@@ -55,10 +79,15 @@ class ReportController extends Controller
         $forms = $query->latest()->paginate(10);
 
         // Organizations for the dropdown on the reports page
-        $organizations = Organization::orderBy('name')->get();
+        $organizations = Organization::when(!$isSuperAdmin, function($q) use ($userId) {
+            return $q->where('created_by', $userId);
+        })->orderBy('name')->get();
 
         // Years for filter
         $years = Election::selectRaw('YEAR(end_date) as year')
+            ->when(!$isSuperAdmin, function($q) use ($userId) {
+                return $q->where('created_by', $userId);
+            })
             ->whereNotNull('end_date')
             ->distinct()
             ->orderBy('year', 'desc')
@@ -110,14 +139,14 @@ class ReportController extends Controller
     public function voters()
     {
         $voters = $this->voterQuery()
-            ->with(['organization'])
+            ->with(['election.organization'])
             ->withCount(['votes'])
             ->orderBy('created_at', 'desc')
             ->get();
 
         $voter_stats = [
             'total_voters' => $voters->count(),
-            'active_voters' => $voters->where('is_active', true)->count(),
+            'approved_voters' => $voters->where('registration_status', 'approved')->count(),
             'voters_with_votes' => $voters->where('votes_count', '>', 0)->count(),
         ];
 
@@ -208,7 +237,7 @@ class ReportController extends Controller
                     $voter->id,
                     $voter->name,
                     $voter->email,
-                    $voter->is_active ? 'Active' : 'Inactive',
+                    $voter->registration_status,
                     $voter->votes_count,
                     $voter->created_at->format('Y-m-d H:i:s')
                 ]);
@@ -266,7 +295,7 @@ class ReportController extends Controller
     private function exportVoters($format)
     {
         $voters = $this->voterQuery()
-            ->with(['organization'])
+            ->with(['election.organization'])
             ->withCount(['votes'])
             ->get();
 
@@ -295,8 +324,8 @@ class ReportController extends Controller
                     $voter->name,
                     $voter->email,
                     $voter->student_id,
-                    $voter->organization->name ?? 'N/A',
-                    $voter->is_active ? 'Active' : 'Inactive',
+                    $voter->election->organization->name ?? 'N/A',
+                    $voter->registration_status,
                     $voter->votes_count,
                     $voter->created_at->format('Y-m-d H:i:s')
                 ]);
@@ -314,32 +343,6 @@ class ReportController extends Controller
      */
     private function voterQuery()
     {
-        $query = User::query();
-
-        if (Schema::hasColumn('users', 'role')) {
-            return $query->where('role', 'voter');
-        }
-
-        if (Schema::hasColumn('users', 'type')) {
-            return $query->where('type', 'voter');
-        }
-
-        if (Schema::hasColumn('users', 'role_id')) {
-            if (Schema::hasTable('roles')) {
-                $roleId = DB::table('roles')->where('name', 'voter')->value('id');
-                if ($roleId) {
-                    return $query->where('role_id', $roleId);
-                }
-            }
-            // roles table missing or no matching role => return empty query
-            return $query->whereRaw('0 = 1');
-        }
-
-        if (Schema::hasColumn('users', 'is_voter')) {
-            return $query->where('is_voter', 1);
-        }
-
-        // Unknown schema: avoid SQL errors by returning an empty query
-        return $query->whereRaw('0 = 1');
+        return \App\Models\Voter::query();
     }
 }

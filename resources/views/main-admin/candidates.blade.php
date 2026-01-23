@@ -17,7 +17,6 @@
         filterElection: '',
         filterPosition: '',
         filterPartylist: '',
-        filterStatus: '',
         allCandidates: @js($candidates->toArray() ?? []),
         filteredCandidates: @js($candidates->toArray() ?? []),
         elections: @js(isset($elections) ? $elections->toArray() : []),
@@ -184,7 +183,6 @@
             this.filterElection = '';
             this.filterPosition = '';
             this.filterPartylist = '';
-            this.filterStatus = '';
             this.filter();
         },
 
@@ -210,9 +208,6 @@
             }
             if (this.filterPartylist) {
                 list = list.filter(c => String(c.partylist_id || c.partylist?.id || '') === String(this.filterPartylist));
-            }
-            if (this.filterStatus) {
-                list = list.filter(c => (c.status || '').toLowerCase() === this.filterStatus.toLowerCase());
             }
 
             switch (this.sortBy) {
@@ -248,7 +243,6 @@
         $watch('filterElection', () => filter());
         $watch('filterPosition', () => filter());
         $watch('filterPartylist', () => filter());
-        $watch('filterStatus', () => filter());
     "
          class="flex min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-indigo-50/20">
 
@@ -363,13 +357,13 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-800 mb-2">Status</label>
+                                    <label class="block text-xs font-bold text-gray-800 mb-2">Election</label>
                                     <div class="relative">
-                                        <select x-model="filterStatus" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 bg-white appearance-none">
-                                            <option value="">All Statuses</option>
-                                            <option value="active">Active</option>
-                                            <option value="pending">Pending</option>
-                                            <option value="inactive">Inactive</option>
+                                        <select x-model="filterElection" class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500/20 bg-white appearance-none">
+                                            <option value="">All Elections</option>
+                                            <template x-for="election in elections" :key="election.id">
+                                                <option :value="election.id" x-text="election.title"></option>
+                                            </template>
                                         </select>
                                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                                             <i class="ri-arrow-down-s-line text-gray-400"></i>
@@ -394,9 +388,9 @@
                     <!-- Candidates Table (Desktop) / Cards (Mobile) -->
                     <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden">
                         <!-- Desktop View -->
-                        <div class="hidden md:block overflow-x-auto">
+                        <div class="hidden md:block overflow-x-auto" style="max-height: 480px;">
                             <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-slate-50/50">
+                                <thead class="bg-slate-50/50 sticky top-0 z-10">
                                 <tr>
                                     <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Candidate Profile</th>
                                     <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Election & Position</th>

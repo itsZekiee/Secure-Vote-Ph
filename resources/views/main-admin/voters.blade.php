@@ -33,6 +33,7 @@
         search: '',
         filterBy: 'all',
         selectedForm: 'all',
+        selectedOrganization: 'all',
         perPage: 15,
         showPasswordModal: {{ session('temp_password_display') ? 'true' : 'false' }},
         initializing: true,
@@ -43,6 +44,7 @@
             this.search = urlParams.get('q') || '';
             this.filterBy = urlParams.get('filter') || 'all';
             this.selectedForm = urlParams.get('election_id') || 'all';
+            this.selectedOrganization = urlParams.get('organization_id') || 'all';
 
             this.$nextTick(() => {
                 this.initializing = false;
@@ -51,6 +53,7 @@
             this.$watch('search', value => this.performSearch());
             this.$watch('filterBy', value => this.performSearch());
             this.$watch('selectedForm', value => this.performSearch());
+            this.$watch('selectedOrganization', value => this.performSearch());
         },
 
         performSearch() {
@@ -61,6 +64,7 @@
             url.searchParams.set('q', this.search);
             url.searchParams.set('filter', this.filterBy);
             url.searchParams.set('election_id', this.selectedForm);
+            url.searchParams.set('organization_id', this.selectedOrganization);
             url.searchParams.set('page', 1); // Reset to page 1 on search
 
             clearTimeout(this.searchTimeout);
@@ -273,7 +277,7 @@
                     </div>
 
                     <div class="p-4 sm:p-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                             <div class="md:col-span-2">
                                 <label class="sr-only" for="global-search">Search voters</label>
                                 <div class="relative">
@@ -297,6 +301,17 @@
                             </div>
 
                             <div>
+                                <label class="sr-only" for="filter-organization">Organization</label>
+                                <select id="filter-organization" x-model="selectedOrganization"
+                                        class="w-full border rounded-lg px-3 py-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                                    <option value="all">All Organizations</option>
+                                    @foreach($organizations as $org)
+                                        <option value="{{ $org->id }}">{{ $org->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
                                 <label class="sr-only" for="filter-form">Form</label>
                                 <select id="filter-form" x-model="selectedForm"
                                         class="w-full border rounded-lg px-3 py-3 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200">
@@ -310,7 +325,7 @@
                             </div>
 
                             <div class="flex items-center justify-end">
-                                <button @click="$dispatch('search', { q: search, filter: filterBy, form: selectedForm })"
+                                <button @click="performSearch()"
                                         class="w-full bg-slate-900 text-white rounded-lg px-6 py-3 font-bold text-xs tracking-widest hover:bg-indigo-600 transition-all shadow-md">
                                     REFINE
                                 </button>

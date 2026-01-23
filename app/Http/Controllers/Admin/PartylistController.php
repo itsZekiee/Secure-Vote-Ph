@@ -27,22 +27,31 @@ class PartylistController extends Controller
     public function index()
     {
         $userId = (string) auth()->id();
-        $partylists = Partylist::where(function($q) use ($userId) {
-                $q->where('created_by', $userId)
-                  ->orWhereHas('election', function($qe) use ($userId) {
-                      $qe->where('created_by', $userId)
-                         ->orWhereHas('subAdmins', function($qs) use ($userId) {
-                             $qs->where('user_id', $userId);
-                         });
-                  });
+        $isSuperAdmin = auth()->user()->hasRole('super-admin');
+
+        $partylists = Partylist::when(!$isSuperAdmin, function($q) use ($userId) {
+                $q->where(function($sq) use ($userId) {
+                    $sq->where('created_by', $userId)
+                      ->orWhereHas('election', function($qe) use ($userId) {
+                          $qe->where('created_by', $userId)
+                             ->orWhereHas('subAdmins', function($qs) use ($userId) {
+                                 $qs->where('user_id', $userId);
+                             });
+                      });
+                });
             })
             ->with(['election', 'organization'])
             ->withCount(['candidates'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $elections = Election::all();
-        $organizations = Organization::where('created_by', auth()->id())->orderBy('name')->get();
+        $elections = Election::when(!$isSuperAdmin, function($q) use ($userId) {
+            return $q->where('created_by', $userId);
+        })->get();
+
+        $organizations = Organization::when(!$isSuperAdmin, function($q) use ($userId) {
+            return $q->where('created_by', $userId);
+        })->orderBy('name')->get();
 
         return view($this->getView('partylists'), compact('partylists', 'elections', 'organizations'));
     }
