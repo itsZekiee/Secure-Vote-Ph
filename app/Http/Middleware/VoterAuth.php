@@ -9,6 +9,17 @@ class VoterAuth
 {
     public function handle(Request $request, Closure $next)
     {
+        // Strict role check if user is authenticated via Laravel Auth
+        if (auth()->check()) {
+            $user = auth()->user();
+            if ($user->role !== \App\Models\User::ROLE_VOTER && $user->role !== \App\Models\User::ROLE_CANDIDATE) {
+                auth()->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                return redirect()->route('home')->withErrors(['email' => 'Unauthorized access. Please use your voter credentials for this portal.']);
+            }
+        }
+
         $voter = session('voter');
         $electionParam = $request->route('election');
 

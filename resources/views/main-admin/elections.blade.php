@@ -1015,12 +1015,6 @@ document.addEventListener('alpine:init', () => {
                                                 <p class="mt-2 text-[10px] sm:text-xs text-gray-500">Only users with these email domains will be allowed to register.</p>
                                             </div>
 
-                                            <div>
-                                                <label for="registration_deadline" class="block text-sm font-semibold text-gray-900 mb-3">Registration Deadline</label>
-                                                <input type="datetime-local" id="registration_deadline" name="registration_deadline" x-model="formData.registration_deadline"
-                                                       class="block w-full rounded-xl border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent px-4 py-3 sm:px-5 sm:py-4 text-sm sm:text-base transition-all">
-                                                <p class="mt-2 text-[10px] sm:text-xs text-gray-500">Voters cannot register after this time.</p>
-                                            </div>
 
                                             <div>
                                                 <label for="max_votes" class="block text-sm font-semibold text-gray-900 mb-3">Max Number of Votes</label>

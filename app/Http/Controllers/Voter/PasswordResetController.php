@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Models\Election;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
@@ -33,7 +32,9 @@ class PasswordResetController extends Controller
     public function sendOTP(Request $request, $code)
     {
         $request->validate(['email' => 'required|email']);
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)
+            ->where('role', 'voter')
+            ->first();
 
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Email not found.'], 404);
@@ -76,7 +77,6 @@ class PasswordResetController extends Controller
         }
 
         // Generate a temporary token to unlock the password change form
-        $token = Str::random(64);
         session(['password_reset_verified' => true]);
 
         return response()->json(['success' => true]);
@@ -89,44 +89,7 @@ class PasswordResetController extends Controller
         return view('voter.auth.forgot-password', compact('election'));
     }
 
-    public function sendResetLinkEmail(Request $request, $code)
-    {
-        $request->validate(['email' => 'required|email']);
-        $election = Election::where('code', $code)->firstOrFail();
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user) {
-            return back()->withErrors(['email' => 'We could not find a user with that email address.']);
-        }
-
-        // Generate token
-        $token = Str::random(64);
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $request->email],
-            ['token' => Hash::make($token), 'created_at' => now()]
-        );
-
-        // Send email (In a real app, use Mail::to($request->email)->send(new ResetPasswordMail($token)))
-        // For now, let's just log it or use a simple mail if configured.
-        // Given the environment, I'll assume standard Mail works.
-
-        $resetUrl = route('voter.password.reset', ['code' => $election->code, 'token' => $token, 'email' => $request->email]);
-
-        // Simulating email sending by putting it in session for demo if needed,
-        // but let's try to use Mail::raw for simplicity if no Mailable exists.
-        try {
-            Mail::raw("Reset your password by clicking here: $resetUrl", function ($message) use ($request) {
-                $message->to($request->email)->subject('Voter Password Reset');
-            });
-        } catch (\Exception $e) {
-            \Log::error('Voter Password Reset Email failed: ' . $e->getMessage());
-            // Fallback for demo: show link in success message (ONLY FOR DEV/DEMO)
-            return back()->with('success', 'If the email address is valid, you will receive a password reset link shortly.');
-        }
-
-        return back()->with('success', 'We have emailed your password reset link!');
-    }
 
     public function showResetForm(Request $request, $code, $token = null)
     {
@@ -153,15 +116,26 @@ class PasswordResetController extends Controller
 
         $hashed = Hash::make($request->password);
 
-        $updated = DB::table('voters')
-            ->where('email', $request->email)
-            ->update(['password' => $hashed]);
+        $user = User::where('email', trim(strtolower($request->email)))
+            ->where('role', 'voter')
+            ->first();
 
-        if (!$updated) {
+        if (!$user) {
             return back()->withErrors([
-                'email' => 'No voter record found for this email.'
+                'email' => 'Voter account not found.'
             ]);
         }
+
+        $user->update([
+            'password' => $hashed,
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
+        ]);
+
+        // Sync to voter records if they exist
+        DB::table('voters')
+            ->where('user_id', $user->id)
+            ->update(['password' => $hashed]);
 
         session()->forget([
             'password_reset_otp',

@@ -31,7 +31,7 @@
                 </a>
                 <h2 class="text-3xl font-extrabold text-slate-900">Forgot your password?</h2>
                 <p class="mt-2 text-sm text-slate-600">
-                    No problem. Just let us know your email address and we will email you a password reset link.
+                    No problem. Enter your voter email address and we will send you a verification code.
                 </p>
             </div>
 

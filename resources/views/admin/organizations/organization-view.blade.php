@@ -174,17 +174,10 @@
 
                     <div class="space-y-6">
                         <div class="group">
-                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Organization Slug</label>
-                            <div class="text-slate-900 font-bold text-xs bg-slate-50 px-3 py-2 rounded-xl group-hover:bg-blue-50 transition-colors border border-slate-100">
-                                /{{ $organization->slug ?? '-' }}
-                            </div>
-                        </div>
-
-                        <div class="group">
                             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Official Email</label>
                             <div class="text-slate-900 font-bold text-xs flex items-center">
                                 <i class="ri-mail-line text-blue-600 mr-2"></i>
-                                {{ $organization->contact_email ?? $organization->email ?? 'no-email@org.com' }}
+                                {{ $organization->email ?? 'no-email@org.com' }}
                             </div>
                         </div>
 
@@ -192,7 +185,7 @@
                             <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block">Phone Number</label>
                             <div class="text-slate-900 font-bold text-xs flex items-center">
                                 <i class="ri-phone-line text-emerald-600 mr-2"></i>
-                                {{ $organization->contact_phone ?? $organization->phone ?? 'N/A' }}
+                                {{ $organization->contact_number ?? 'N/A' }}
                             </div>
                         </div>
 
@@ -206,7 +199,7 @@
                     </div>
 
                     <div class="mt-8 pt-6 border-t border-slate-100 space-y-3">
-                        <a href="{{ $membersUrl }}" class="w-full flex items-center justify-center px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black shadow-lg shadow-slate-200 transition-all group">
+                        <a href="{{ route('admin.voters.index', ['organization_id' => $organization->id]) }}" class="w-full flex items-center justify-center px-6 py-3.5 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black shadow-lg shadow-slate-200 transition-all group">
                             <i class="ri-user-settings-line mr-2 group-hover:scale-110 transition-transform"></i>
                             Member Directory
                         </a>

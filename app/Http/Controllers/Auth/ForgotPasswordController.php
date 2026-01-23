@@ -15,7 +15,9 @@ class ForgotPasswordController extends Controller
     public function sendOtp(Request $request)
     {
         $request->validate(['email' => 'required|email']);
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)
+            ->whereIn('role', [User::ROLE_SUPER_ADMIN, User::ROLE_ADMIN, User::ROLE_ELECTION_OFFICER])
+            ->first();
 
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Email not found.'], 404);
@@ -78,7 +80,9 @@ class ForgotPasswordController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized password reset attempt.'], 403);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)
+            ->whereIn('role', [User::ROLE_SUPER_ADMIN, User::ROLE_ADMIN, User::ROLE_ELECTION_OFFICER])
+            ->first();
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not found.'], 404);
         }
@@ -87,10 +91,6 @@ class ForgotPasswordController extends Controller
             'password' => Hash::make($request->password)
         ]);
 
-        // Sync to voter records if they exist
-        \Illuminate\Support\Facades\DB::table('voters')
-            ->where('user_id', $user->id)
-            ->update(['password' => $user->password]);
 
         // Clear session
         session()->forget([
