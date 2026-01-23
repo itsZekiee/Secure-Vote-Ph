@@ -388,7 +388,7 @@
                     <!-- Candidates Table (Desktop) / Cards (Mobile) -->
                     <div class="bg-white rounded-xl border border-gray-200/60 shadow-sm overflow-hidden">
                         <!-- Desktop View -->
-                        <div class="hidden md:block overflow-x-auto" style="max-height: 480px;">
+                        <div class="hidden md:block overflow-x-auto custom-scrollbar" style="max-height: 400px;">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-slate-50/50 sticky top-0 z-10">
                                 <tr>

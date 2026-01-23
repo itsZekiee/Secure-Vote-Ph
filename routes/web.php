@@ -20,6 +20,8 @@ use App\Http\Controllers\Voter\PasswordResetController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Elections\Store as ElectionStoreController;
 use App\Http\Controllers\MainAdmin\UserManagementController;
+use App\Http\Controllers\Voter\VoterForgotPasswordController;
+use App\Http\Controllers\Voter\VoterResetPasswordController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\MagicLinkController;
@@ -73,16 +75,33 @@ Route::post('/voter/otp', [VoterOtpController::class, 'verify'])
 Route::post('/otp/resend', [OtpController::class, 'resend'])
     ->name('otp.resend');
 
-Route::get('/voter/{election}/forgot-password', function ($election) {
-    $election = Election::findOrFail($election);
+Route::get('/voter/forgot-password/{code?}', function ($code = null) {
+    $election = null;
+    if ($code) {
+        $election = Election::where('code', $code)->first();
+    }
     return view('voter.auth.forgot-password', compact('election'));
-})->name('voter.password.request');
+})->name('voter.password.otp.request');
 
-Route::post('/voter/password/otp/send/{code}', [VoterPasswordOtpController::class, 'send'])
+Route::post('/voter/password/otp/send/{code?}', [PasswordResetController::class, 'sendOTP'])
     ->name('voter.password.otp.send');
 
-Route::post('/voter/password/otp/verify/{code}', [VoterPasswordOtpController::class, 'verify'])
+Route::post('/voter/password/otp/verify/{code?}', [PasswordResetController::class, 'verifyOTP'])
     ->name('voter.password.otp.verify');
+
+Route::post('/voter/password/update/{code?}', [PasswordResetController::class, 'reset'])
+    ->name('voter.password.update');
+
+Route::get('/voter/password/search/{code?}', [PasswordResetController::class, 'searchEmails'])
+    ->name('voter.password.search');
+
+// Voter Password Reset Routes (Standard Broker Flow)
+Route::prefix('voter')->name('voter.')->group(function () {
+    Route::get('password/reset', [VoterForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('password/email', [VoterForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('password/reset/{token}', [VoterResetPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('password/reset', [VoterResetPasswordController::class, 'reset'])->name('password.update');
+});
 
 
 
@@ -345,13 +364,13 @@ Route::prefix('voter')->name('voter.')->group(function () {
     Route::get('/elections/{election}/results/votes', [VoterElectionController::class, 'getVotes'])->name('elections.results.votes');
 
     // Voter Password Reset Routes
-    Route::get('/registration/{election}/forgot-password', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
-    Route::post('/registration/{election}/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
-    Route::get('/registration/{election}/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/registration/{election}/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
-    Route::get('/registration/{election}/password/search', [PasswordResetController::class, 'searchEmails'])->name('password.search');
-    Route::post('/registration/{election}/password/otp', [PasswordResetController::class, 'sendOTP'])->name('password.otp.send');
-    Route::post('/registration/{election}/password/otp/verify', [PasswordResetController::class, 'verifyOTP'])->name('password.otp.verify');
+    Route::get('/registration/{election?}/forgot-password', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/registration/{election?}/forgot-password', [PasswordResetController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('/registration/{election?}/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/registration/{election?}/reset-password', [PasswordResetController::class, 'reset'])->name('password.update');
+    Route::get('/registration/{election?}/password/search', [PasswordResetController::class, 'searchEmails'])->name('password.search');
+    Route::post('/registration/{election?}/password/otp', [PasswordResetController::class, 'sendOTP'])->name('password.otp.send');
+    Route::post('/registration/{election?}/password/otp/verify', [PasswordResetController::class, 'verifyOTP'])->name('password.otp.verify');
 
     // ==========================================
     // PROTECTED ROUTES (Voter Session Required)

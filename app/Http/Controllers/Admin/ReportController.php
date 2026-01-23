@@ -243,6 +243,19 @@ class ReportController extends Controller
                 ]);
             }
 
+            fputcsv($file, []);
+            fputcsv($file, ['CANDIDATES REPORT']);
+            fputcsv($file, ['ID', 'Name', 'Election', 'Votes', 'Created At']);
+            foreach ($data['candidates'] as $candidate) {
+                fputcsv($file, [
+                    $candidate->id,
+                    $candidate->name,
+                    $candidate->election->title ?? 'N/A',
+                    $candidate->votes_count,
+                    $candidate->created_at->format('Y-m-d H:i:s')
+                ]);
+            }
+
             fclose($file);
         };
 
@@ -328,6 +341,46 @@ class ReportController extends Controller
                     $voter->registration_status,
                     $voter->votes_count,
                     $voter->created_at->format('Y-m-d H:i:s')
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    private function exportCandidates($format)
+    {
+        $candidates = Candidate::with(['user', 'election'])->withCount(['votes'])->get();
+
+        if ($format === 'json') {
+            return response()->json(['candidates' => $candidates]);
+        }
+
+        $filename = 'candidates_report_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($candidates) {
+            if (ob_get_level() > 0) ob_end_clean();
+            $file = fopen('php://output', 'w');
+
+            fputcsv($file, [
+                'ID', 'Name', 'Email', 'Election', 'Votes', 'Created At'
+            ]);
+
+            foreach ($candidates as $candidate) {
+                fputcsv($file, [
+                    $candidate->id,
+                    $candidate->name,
+                    $candidate->user->email ?? 'N/A',
+                    $candidate->election->title ?? 'N/A',
+                    $candidate->votes_count,
+                    $candidate->created_at->format('Y-m-d H:i:s')
                 ]);
             }
 

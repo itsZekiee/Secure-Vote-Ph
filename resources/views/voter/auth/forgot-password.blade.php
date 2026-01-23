@@ -31,7 +31,7 @@
                 </a>
                 <h2 class="text-3xl font-extrabold text-slate-900">Forgot your password?</h2>
                 <p class="mt-2 text-sm text-slate-600">
-                    No problem. Enter your voter email address and we will send you a verification code.
+                    No problem. Enter your voter email address and we will send you an 8-digit verification code.
                 </p>
             </div>
 
@@ -151,15 +151,15 @@
                     <!-- Step 2: OTP Verification -->
                     <div x-show="step === 2" x-cloak x-transition.opacity.duration.300ms class="space-y-6">
                         <div class="text-center mb-6">
-                            <p class="text-sm text-slate-600">We've sent a 6-digit code to <span
+                            <p class="text-sm text-slate-600">We've sent an 8-digit code to <span
                                     class="font-bold text-slate-900" x-text="email"></span></p>
                         </div>
                         <div>
                             <label for="otp" class="block text-sm font-semibold text-slate-700 mb-2">
-                                Enter 6-Digit OTP
+                                Enter 8-Digit OTP
                             </label>
                             <input id="otp" x-model="otp" type="text" maxlength="8"
-                                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent transition-all text-center text-2xl tracking-[0.5em] font-bold"
+                                class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent transition-all text-center text-2xl tracking-[0.25em] font-bold"
                                 placeholder="00000000">
                         </div>
 
@@ -179,7 +179,14 @@
 
                     <!-- Step 3: Change Password -->
                     <div x-show="step === 3" x-cloak x-transition.opacity.duration.300ms class="space-y-6">
-                        <form action="{{ route('voter.password.update', $election->code) }}" method="POST">
+                        @php
+                            $updateRoute = 'voter.password.update';
+                            $updateParams = ['election' => $election->id ?? 0];
+                            if (isset($election->code)) {
+                                $updateParams = ['election' => $election->code];
+                            }
+                        @endphp
+                        <form action="{{ route($updateRoute, $updateParams) }}" method="POST">
                             @csrf
                             <input type="hidden" name="email" :value="email">
 
@@ -213,12 +220,16 @@
                     </div>
                 </div>
 
-                <div class="mt-6 text-center">
-                    <a href="{{ route('voter.registration.index', $election->id) }}"
-                        class="text-sm font-semibold text-brand-accent hover:underline">
-                        Back to Login
-                    </a>
-                </div>
+            <div class="mt-6 text-center">
+                @php
+                    $backRoute = $election ? 'voter.registration.index' : 'voter.elections.access';
+                    $backParams = $election ? ['election' => $election->id] : [];
+                @endphp
+                <a href="{{ route($backRoute, $backParams) }}"
+                    class="text-sm font-semibold text-brand-accent hover:underline">
+                    Back to Login
+                </a>
+            </div>
             </div>
         </div>
     </div>
@@ -242,7 +253,14 @@
                             return;
                         }
 
-                        fetch(`{{ route('voter.password.search', $election->code) }}?q=${this.email}`)
+                        @php
+                            $searchRoute = 'voter.password.search';
+                            $searchParams = ['election' => $election->id ?? 0];
+                            if (isset($election->code)) {
+                                $searchParams = ['election' => $election->code];
+                            }
+                        @endphp
+                        fetch(`{{ route($searchRoute, $searchParams) }}?q=${this.email}`)
                             .then(res => res.json())
                             .then(data => {
                                 this.suggestions = data;
@@ -258,11 +276,22 @@
                         this.loading = true;
                         this.message = '';
 
-                        fetch(`{{ route('voter.password.otp.send', $election->code) }}`, {
+                        // Refresh CSRF token from meta tag if available
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+
+                        @php
+                            $otpSendRoute = 'voter.password.otp.send';
+                            $otpSendParams = ['election' => $election->id ?? 0];
+                            if (isset($election->code)) {
+                                $otpSendParams = ['election' => $election->code];
+                            }
+                        @endphp
+                        fetch(`{{ route($otpSendRoute, $otpSendParams) }}`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
                             },
                             body: JSON.stringify({ email: this.email })
                         })
@@ -290,11 +319,21 @@
                         this.loading = true;
                         this.message = '';
 
-                        fetch(`{{ route('voter.password.otp.verify', $election->code) }}`, {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+
+                        @php
+                            $otpVerifyRoute = 'voter.password.otp.verify';
+                            $otpVerifyParams = ['election' => $election->id ?? 0];
+                            if (isset($election->code)) {
+                                $otpVerifyParams = ['election' => $election->code];
+                            }
+                        @endphp
+                        fetch(`{{ route($otpVerifyRoute, $otpVerifyParams) }}`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
                             },
                             body: JSON.stringify({ email: this.email, otp: this.otp })
                         })

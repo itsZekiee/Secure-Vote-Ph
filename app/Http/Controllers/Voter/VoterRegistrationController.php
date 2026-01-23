@@ -147,44 +147,6 @@ class VoterRegistrationController extends Controller
 
         DB::beginTransaction();
         try {
-            // Find or create global User account
-            $user = User::where('email', $email)->first();
-
-            if (!$user) {
-                $user = User::create([
-                    'name' => $request->name,
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'middle_name' => $middleName,
-                    'email' => $email,
-                    'password' => $request->password, // Hashed by User model cast
-                    'role' => 'voter',
-                    'is_active' => true,
-                    'is_approved' => true,
-                    'phone' => $request->phone,
-                    'student_id' => $request->student_id,
-                ]);
-            } else {
-                // User already exists.
-                // If it's a voter, update password to what they just entered to avoid confusion
-                if ($user->role === 'voter') {
-                    $user->update(['password' => $request->password]);
-                } else {
-                    // For non-voters (e.g. Admins), we should verify their existing password
-                    // or inform them that their current account password must be used.
-                    if (!Hash::check($request->password, $user->password)) {
-                        throw new \Exception('This email is already associated with an ' . ucfirst($user->role) . ' account. Please use your existing account password to register for this election.');
-                    }
-                }
-
-                $user->update([
-                    'phone' => $user->phone ?: $request->phone,
-                    'student_id' => $user->student_id ?: $request->student_id,
-                    'failed_login_attempts' => 0,
-                    'locked_until' => null
-                ]);
-            }
-
             $idPhotoPath = null;
             $idPhotoHash = null;
 
@@ -205,10 +167,7 @@ class VoterRegistrationController extends Controller
                     foreach ($existingHashes as $id => $existingHash) {
                         $distance = \App\Helpers\ImageHash::distance($idPhotoHash, $existingHash);
                         if ($distance <= 5) { // Threshold for similarity
-                            // We can log this or flag the voter
                             \Illuminate\Support\Facades\Log::warning("Potential duplicate ID photo detected for voter registration in election {$election->id}. New voter: {$request->email}, Matching voter ID: {$id}, Hamming Distance: {$distance}");
-                            // For now we just flag it in the database if we had a flag column,
-                            // but we can also just let the admin see it during review.
                         }
                     }
                 }
@@ -216,7 +175,6 @@ class VoterRegistrationController extends Controller
 
             $voter = Voter::create([
                 'election_id' => $election->id,
-                'user_id' => $user->id,
                 'name' => $request->name,
                 'first_name' => $firstName,
                 'middle_name' => $middleName,
@@ -224,7 +182,7 @@ class VoterRegistrationController extends Controller
                 'email' => $email,
                 'student_id' => $request->student_id ?? null,
                 'phone' => $request->phone ?? null,
-                'password' => $user->password, // Sync password
+                'password' => Hash::make($request->password),
                 'id_photo' => $idPhotoPath,
                 'id_photo_hash' => $idPhotoHash,
                 'registration_status' => ($election->auto_approve_voters && !$election->require_id_verification) ? 'approved' : 'pending',
@@ -291,9 +249,11 @@ class VoterRegistrationController extends Controller
         }
 
         $email = trim(strtolower($request->email));
-        $user = User::where('email', $email)->first();
+        $voter = Voter::where('email', $email)
+            ->where('election_id', $election->id)
+            ->first();
 
-        if (!$user) {
+        if (!$voter) {
             RateLimiter::hit($throttleKey);
             $msg = 'Invalid email or password.';
             if ($request->expectsJson()) {
@@ -302,26 +262,8 @@ class VoterRegistrationController extends Controller
             return back()->withErrors(['login' => $msg])->withInput();
         }
 
-        // Check if user is approved (global account status)
-        if (!$user->is_approved) {
-            $msg = 'Your account is pending approval by the main administrator.';
-            if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => $msg], 403);
-            }
-            return back()->withErrors(['login' => $msg])->withInput();
-        }
-
-        // Check if user is active
-        if (!$user->is_active) {
-            $msg = 'Your account is inactive. Please contact the administrator.';
-            if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => $msg], 403);
-            }
-            return back()->withErrors(['login' => $msg])->withInput();
-        }
-
         // Check if permanently blocked
-        if ($user->is_permanently_blocked) {
+        if ($voter->is_permanently_blocked) {
             $msg = 'Your account has been permanently blocked. Please contact the Administrator.';
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 403);
@@ -330,8 +272,8 @@ class VoterRegistrationController extends Controller
         }
 
         // Check if currently locked
-        if ($user->locked_until && $user->locked_until->isFuture()) {
-            $diff = $user->locked_until->diffForHumans();
+        if ($voter->locked_until && $voter->locked_until->isFuture()) {
+            $diff = $voter->locked_until->diffForHumans();
             $msg = "Your account is temporarily locked. Please try again in $diff.";
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 403);
@@ -339,17 +281,13 @@ class VoterRegistrationController extends Controller
             return back()->withErrors(['login' => $msg]);
         }
 
-        if (!Hash::check($request->password, $user->password)) {
+        if (!Hash::check($request->password, $voter->password)) {
             RateLimiter::hit($throttleKey);
-            $user->increment('failed_login_attempts');
-            $attempts = $user->failed_login_attempts;
+            $voter->increment('failed_login_attempts');
+            $attempts = $voter->failed_login_attempts;
             $maxAttempts = 6;
 
             $msg = "Invalid email or password. Attempt $attempts of $maxAttempts.";
-
-            if ($user->role !== 'voter' && $user->role !== 'candidate') {
-                $msg .= " Since you have an " . ucfirst($user->role) . " account, please use your primary credentials.";
-            }
 
             if ($attempts < 3) {
                 $msg .= " You will be locked out for 60 minutes after 3 failed attempts.";
@@ -358,13 +296,13 @@ class VoterRegistrationController extends Controller
             }
 
             if ($attempts >= $maxAttempts) {
-                $user->update(['is_permanently_blocked' => true]);
+                $voter->update(['is_permanently_blocked' => true]);
                 $msg = 'Your account has been permanently blocked due to too many failed attempts.';
             } elseif ($attempts == 5) {
-                $user->update(['locked_until' => now()->addHours(24)]);
+                $voter->update(['locked_until' => now()->addHours(24)]);
                 $msg = 'Too many failed attempts. Your account has been locked for 24 hours.';
             } elseif ($attempts == 3) {
-                $user->update(['locked_until' => now()->addMinutes(60)]);
+                $voter->update(['locked_until' => now()->addMinutes(60)]);
                 $msg = 'Too many failed attempts. Your account has been locked for 60 minutes.';
             }
 
@@ -380,21 +318,9 @@ class VoterRegistrationController extends Controller
             return back()->withErrors(['login' => $msg]);
         }
 
-        $voter = Voter::where('election_id', $election->id)
-            ->where('user_id', $user->id)
-            ->first();
-
-        if (!$voter) {
-            $msg = 'You are not registered for this election. Please register first.';
-            if ($request->expectsJson()) {
-                return response()->json(['success' => false, 'message' => $msg], 403);
-            }
-            return back()->withErrors(['login' => $msg]);
-        }
-
         // Reset failed attempts on successful login
         RateLimiter::clear($throttleKey);
-        $user->update([
+        $voter->update([
             'failed_login_attempts' => 0,
             'locked_until' => null
         ]);
@@ -437,18 +363,11 @@ class VoterRegistrationController extends Controller
             return back()->withErrors(['login' => $msg])->withInput();
         }
 
-        // 🔑 Keep current session data for voter
-        session([
-            'otp_voter_id' => $voter->id,
-            'otp_email' => $voter->email,
-            'otp_election_id' => $election->id,
-        ]);
-
-
         // Store OTP info in session for 2FA
         session([
             'otp_email' => $voter->email,
-            'otp_user_id' => $user->id,
+            'otp_voter_id' => $voter->id,
+            'otp_election_id' => $election->id,
             'remember_me' => $request->has('remember'),
         ]);
 
@@ -464,9 +383,6 @@ class VoterRegistrationController extends Controller
 
         return redirect()->route('voter.otp.form')
             ->with('success', 'A verification code has been sent to your email.');
-
-
-        return redirect()->route('voter.elections.welcome', $election->id);
     }
 
     /**
@@ -474,7 +390,10 @@ class VoterRegistrationController extends Controller
      */
     public function logout(Request $request)
     {
+        Auth::guard('voter')->logout();
         $request->session()->forget('voter');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()->route('voter.elections.access')
             ->with('success', 'You have been logged out.');

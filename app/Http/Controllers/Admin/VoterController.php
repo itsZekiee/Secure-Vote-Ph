@@ -149,6 +149,8 @@ class VoterController extends Controller
             $query->whereHas('election', function($q) use ($request) {
                 $q->where('organization_id', $request->organization_id);
             });
+        } elseif ($request->has('organization_id') && $request->organization_id === 'all') {
+            // No additional filter needed
         }
 
         $voters = $query->latest()->paginate(15);
@@ -206,40 +208,9 @@ class VoterController extends Controller
         }
 
         try {
-            DB::beginTransaction();
-
-            $user = User::where('email', $email)->first();
-
-            if (!$user) {
-                $nameParts = explode(' ', trim($validated['full_name']));
-                $lastName = count($nameParts) > 1 ? array_pop($nameParts) : '';
-                $firstName = implode(' ', $nameParts);
-                if (empty($firstName)) { $firstName = $lastName; $lastName = ''; }
-
-                // Generate Unique Key / Temporary Password
-                $tempPassword = Str::password(10, true, true, true, false);
-
-                $user = User::create([
-                    'name' => $validated['full_name'],
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'email' => $email,
-                    'password' => $tempPassword,
-                    'role' => 'voter',
-                    'is_active' => true,
-                    'is_approved' => ($validated['registration_status'] === 'approved'),
-                ]);
-            } else {
-                // Generate Unique Key / Temporary Password for existing user
-                $tempPassword = Str::password(10, true, true, true, false);
-
-                if ($validated['registration_status'] === 'approved') {
-                    $user->update([
-                        'is_approved' => true,
-                        'password' => $tempPassword
-                    ]);
-                }
-            }
+            // Generate Temporary Password
+            $tempPassword = Str::password(10, true, true, true, false);
+            $hashedPassword = Hash::make($tempPassword);
 
             $voter = \App\Models\Voter::create([
                 'name' => $validated['full_name'],
@@ -248,8 +219,7 @@ class VoterController extends Controller
                 'student_id' => $validated['voter_code'] ?? null,
                 'election_id' => $validated['form_id'],
                 'registration_status' => $validated['registration_status'],
-                'password' => $user->password,
-                'user_id' => $user->id,
+                'password' => $hashedPassword,
             ]);
 
             AuditLogger::log(
@@ -260,10 +230,6 @@ class VoterController extends Controller
                 $voter->toArray()
             );
 
-            if ($validated['registration_status'] === 'approved') {
-                $this->assignVoterRole($user);
-            }
-
             // Send Email Notification
             try {
                 $election = \App\Models\Election::findOrFail($validated['form_id']);
@@ -271,8 +237,6 @@ class VoterController extends Controller
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Failed to send voter email to {$email}: " . $e->getMessage());
             }
-
-            DB::commit();
 
             if ($request->ajax()) {
                 return response()->json(['success' => true]);
@@ -282,7 +246,6 @@ class VoterController extends Controller
                 ->with('success', 'Voter created successfully.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
             if ($request->ajax()) {
                 return response()->json(['success' => false, 'errors' => ['general' => [$e->getMessage()]]], 422);
             }
@@ -322,8 +285,6 @@ class VoterController extends Controller
         $email = trim(strtolower($validated['email']));
 
         try {
-            DB::beginTransaction();
-
             $voter->update([
                 'name' => $validated['name'],
                 'email' => $email,
@@ -333,26 +294,10 @@ class VoterController extends Controller
                 'registration_status' => $validated['registration_status'],
             ]);
 
-            // Sync with User record if exists
-            if ($voter->user_id) {
-                $user = User::find($voter->user_id);
-                if ($user) {
-                    $user->update([
-                        'name' => $validated['name'],
-                        'email' => $email,
-                        'is_approved' => ($validated['registration_status'] === 'approved')
-                    ]);
-                }
-            }
-
-            DB::commit();
-
             return redirect()->route('admin.voters.index')
                 ->with('success', 'Voter updated successfully.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return back()->withErrors(['general' => 'An error occurred while updating the voter'])
                 ->withInput();
         }
@@ -361,8 +306,6 @@ class VoterController extends Controller
     public function destroy(string $id)
     {
         try {
-            DB::beginTransaction();
-
             $voter = Voter::findOrFail($id);
 
             if ($voter->votes()->count() > 0) {
@@ -371,14 +314,10 @@ class VoterController extends Controller
 
             $voter->delete();
 
-            DB::commit();
-
             return redirect()->route('admin.voters.index')
                 ->with('success', 'Voter deleted successfully.');
 
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return back()->withErrors(['general' => 'An error occurred while deleting the voter']);
         }
     }
@@ -388,11 +327,6 @@ class VoterController extends Controller
         $voter = Voter::findOrFail($id);
         $voter->registration_status = 'approved';
         $voter->save();
-
-        // Also approve the user account if linked
-        if ($voter->user_id) {
-            User::where('id', $voter->user_id)->update(['is_approved' => true]);
-        }
 
         return back()->with('success', 'Voter approved.');
     }
@@ -582,7 +516,6 @@ class VoterController extends Controller
 
         $created = 0;
         $skipped = 0;
-        DB::beginTransaction();
         try {
             foreach ($rows as $row) {
                 $email = trim(strtolower($row['email'] ?? ($row['email_address'] ?? ($row['email address'] ?? null))));
@@ -604,8 +537,6 @@ class VoterController extends Controller
                     continue;
                 }
 
-                $user = User::where('email', $email)->first();
-
                 // Generate Unique Key / Temporary Password
                 // Must include: Alphabets, Numbers, and Special Characters
                 $tempPassword = Str::password(10, true, true, true, false);
@@ -619,7 +550,6 @@ class VoterController extends Controller
                     'password' => $hashedPassword,
                     'election_id' => $electionId,
                     'registration_status' => $registrationStatus,
-                    'user_id' => $user->id ?? null,
                 ];
 
                 $voter = \App\Models\Voter::create($data);
@@ -632,47 +562,6 @@ class VoterController extends Controller
                     $voter->toArray()
                 );
 
-                // If approved, create user account if doesn't exist
-                if ($registrationStatus === 'approved') {
-                    if (!$user) {
-                        $nameParts = explode(' ', trim($name));
-                        $lastName = count($nameParts) > 1 ? array_pop($nameParts) : '';
-                        $firstName = implode(' ', $nameParts);
-                        if (empty($firstName)) {
-                            $firstName = $lastName;
-                            $lastName = '';
-                        }
-
-                        $user = User::create([
-                            'name' => $name,
-                            'first_name' => $firstName,
-                            'last_name' => $lastName,
-                            'email' => $email,
-                            'password' => $tempPassword, // Model cast handles hashing
-                            'role' => 'voter',
-                            'is_active' => true,
-                            'is_approved' => true,
-                        ]);
-                    } else {
-                        // User exists, ensure they are approved and update password for the election
-                        $user->update([
-                            'is_approved' => true,
-                            'password' => $tempPassword
-                        ]);
-                    }
-
-                    $voter->update(['user_id' => $user->id]);
-                    $this->assignVoterRole($user);
-                }
-
-                // Always send email if it's newly created (regardless of approved/pending status,
-                // but the prompt says "immediately after an Admin or Super Admin successfully imports/uploads a voter data file"
-                // and "send an individual email to every voter's registered email address found in the dataset")
-                // Wait, if it's pending, they can't login yet?
-                // Usually, imported voters are "approved" by default in this flow.
-                // The current code only sends if approved. I'll keep it consistent or follow the prompt's "every voter" strictly.
-                // Re-reading prompt: "send an individual email to every voter's registered email address found in the dataset."
-
                 try {
                     Mail::to($email)->send(new VoterImportedMail($voter, $election, $tempPassword));
                 } catch (\Exception $e) {
@@ -681,10 +570,8 @@ class VoterController extends Controller
 
                 $created++;
             }
-            DB::commit();
             Storage::disk('local')->delete($path);
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json(['success' => false, 'message' => 'Error importing data: ' . $e->getMessage()], 500);
         }
 

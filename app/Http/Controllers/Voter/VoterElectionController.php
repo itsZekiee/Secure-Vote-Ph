@@ -59,12 +59,29 @@ class VoterElectionController extends Controller
     {
         $voter = session('voter');
 
-        $hasVoted = $this->getBallotCount($election->id, $voter['id']) >= ($election->max_votes ?? 1);
+        if (!$voter && auth()->check()) {
+            // Admin or other web-guard user previewing
+            $voter = [
+                'id' => null,
+                'name' => auth()->user()->name,
+                'role' => 'admin'
+            ];
+        }
+
+        if (!$voter) {
+            return redirect()->route('voter.registration.index', $election->id)
+                ->withErrors(['session' => 'Please sign in to view the election welcome page.']);
+        }
+
+        $ballotCount = $voter['id'] ? $this->getBallotCount($election->id, $voter['id']) : 0;
+        $hasVoted = $voter['id'] ? ($ballotCount >= ($election->max_votes ?? 1)) : false;
 
         return view('voter.welcome', [
             'election' => $election,
             'voter' => $voter,
-            'hasVoted' => $hasVoted
+            'hasVoted' => $hasVoted,
+            'ballotCount' => $ballotCount,
+            'maxVotes' => $election->max_votes ?? 1
         ]);
     }
 
@@ -275,7 +292,7 @@ class VoterElectionController extends Controller
 
         $resultsAnonymized = $election->anonymize_results;
 
-        return view('live.result', [
+        return view('voter.elections.results', [
             'election' => $election,
             'positions' => $positions,
             'partylists' => $partylists,

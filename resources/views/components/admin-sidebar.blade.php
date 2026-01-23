@@ -57,128 +57,167 @@
                 </button>
             </div>
 
-        <!-- Navigation -->
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto" x-show="!collapsed || isMobile">
-            <!-- Dashboard -->
-            <a href="{{ route('admin.dashboard') }}"
-               :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
-               class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.dashboard') ? 'bg-slate-700 text-white border-l-4 border-blue-500 shadow-lg' : '' }}">
-                <i class="ri-dashboard-3-line text-lg {{ request()->routeIs('admin.dashboard') ? 'text-blue-400' : 'text-slate-400' }}"></i>
-                <span x-show="!collapsed || isMobile"
-                      x-transition:enter="transition ease-out duration-200 delay-75"
-                      x-transition:enter-start="opacity-0 translate-x-2"
-                      x-transition:enter-end="opacity-100 translate-x-0"
-                      class="font-medium text-sm">Dashboard</span>
-            </a>
-
-            <!-- Elections -->
-            <a href="{{ route('admin.elections.index') }}"
-               :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
-               class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.elections.*') ? 'bg-slate-700 text-white border-l-4 border-emerald-500 shadow-lg' : '' }}">
-                <i class="ri-government-line text-lg {{ request()->routeIs('admin.elections.*') ? 'text-emerald-400' : 'text-slate-400' }}"></i>
-                <span x-show="!collapsed || isMobile"
-                      x-transition:enter="transition ease-out duration-200 delay-75"
-                      x-transition:enter-start="opacity-0 translate-x-2"
-                      x-transition:enter-end="opacity-100 translate-x-0"
-                      class="font-medium text-sm">Elections</span>
-            </a>
-
-            <!-- Organizations -->
-            <a href="{{ route('admin.organizations.index') }}"
-               :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
-               class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.organizations.*') ? 'bg-slate-700 text-white border-l-4 border-cyan-500 shadow-lg' : '' }}">
-                <i class="ri-building-line text-lg {{ request()->routeIs('admin.organizations.*') ? 'text-cyan-400' : 'text-slate-400' }}"></i>
-                <span x-show="!collapsed || isMobile"
-                      x-transition:enter="transition ease-out duration-200 delay-75"
-                      x-transition:enter-start="opacity-0 translate-x-2"
-                      x-transition:enter-end="opacity-100 translate-x-0"
-                      class="font-medium text-sm">Organizations</span>
-            </a>
-
-            <!-- Partylists -->
-            <a href="{{ route('admin.partylists.index') }}"
-               :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
-               class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.partylists.*') ? 'bg-slate-700 text-white border-l-4 border-indigo-500 shadow-lg' : '' }}">
-                <i class="ri-flag-line text-lg {{ request()->routeIs('admin.partylists.*') ? 'text-indigo-400' : 'text-slate-400' }}"></i>
-                <span x-show="!collapsed || isMobile"
-                      x-transition:enter="transition ease-out duration-200 delay-75"
-                      x-transition:enter-start="opacity-0 translate-x-2"
-                      x-transition:enter-end="opacity-100 translate-x-0"
-                      class="font-medium text-sm">Partylists</span>
-            </a>
-
-            <!-- Voters -->
-            <a href="{{ route('admin.voters.index') }}"
-               :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
-               class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.voters.*') ? 'bg-slate-700 text-white border-l-4 border-purple-500 shadow-lg' : '' }}">
-                <i class="ri-team-line text-lg {{ request()->routeIs('admin.voters.*') ? 'text-purple-400' : 'text-slate-400' }}"></i>
-                <span x-show="!collapsed || isMobile"
-                      x-transition:enter="transition ease-out duration-200 delay-75"
-                      x-transition:enter-start="opacity-0 translate-x-2"
-                      x-transition:enter-end="opacity-100 translate-x-0"
-                      class="font-medium text-sm">Voters</span>
-            </a>
-
-            @if(auth()->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN))
-                <!-- User Management -->
-                <a href="{{ route('admin.users.index') }}"
+        @if(auth()->check())
+            <!-- Navigation -->
+            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto" x-show="!collapsed || isMobile">
+                <!-- Dashboard -->
+                <a href="{{ route('admin.dashboard') }}"
                    :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
-                   class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.users.*') ? 'bg-slate-700 text-white border-l-4 border-amber-500 shadow-lg' : '' }}">
-                    <i class="ri-user-settings-line text-lg {{ request()->routeIs('admin.users.*') ? 'text-amber-400' : 'text-slate-400' }}"></i>
+                   class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.dashboard') ? 'bg-slate-700 text-white border-l-4 border-blue-500 shadow-lg' : '' }}">
+                    <i class="ri-dashboard-3-line text-lg {{ request()->routeIs('admin.dashboard') ? 'text-blue-400' : 'text-slate-400' }}"></i>
                     <span x-show="!collapsed || isMobile"
                           x-transition:enter="transition ease-out duration-200 delay-75"
                           x-transition:enter-start="opacity-0 translate-x-2"
                           x-transition:enter-end="opacity-100 translate-x-0"
-                          class="font-medium text-sm">User Management</span>
+                          class="font-medium text-sm">Dashboard</span>
                 </a>
-            @endif
 
-            <!-- Candidates -->
-            <a href="{{ route('admin.candidates.index') }}"
-               :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
-               class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.candidates.*') ? 'bg-slate-700 text-white border-l-4 border-orange-500 shadow-lg' : '' }}">
-                <i class="ri-user-star-line text-lg {{ request()->routeIs('admin.candidates.*') ? 'text-orange-400' : 'text-slate-400' }}"></i>
-                <span x-show="!collapsed || isMobile"
-                      x-transition:enter="transition ease-out duration-200 delay-75"
-                      x-transition:enter-start="opacity-0 translate-x-2"
-                      x-transition:enter-end="opacity-100 translate-x-0"
-                      class="font-medium text-sm">Candidates</span>
-            </a>
+                <!-- Elections -->
+                <a href="{{ route('admin.elections.index') }}"
+                   :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
+                   class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.elections.*') ? 'bg-slate-700 text-white border-l-4 border-emerald-500 shadow-lg' : '' }}">
+                    <i class="ri-government-line text-lg {{ request()->routeIs('admin.elections.*') ? 'text-emerald-400' : 'text-slate-400' }}"></i>
+                    <span x-show="!collapsed || isMobile"
+                          x-transition:enter="transition ease-out duration-200 delay-75"
+                          x-transition:enter-start="opacity-0 translate-x-2"
+                          x-transition:enter-end="opacity-100 translate-x-0"
+                          class="font-medium text-sm">Elections</span>
+                </a>
 
-            <!-- Reports & Tally -->
-            <a href="{{ route('admin.reports.index') }}"
-               :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
-               class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.reports.*') ? 'bg-slate-700 text-white border-l-4 border-pink-500 shadow-lg' : '' }}">
-                <i class="ri-bar-chart-box-line text-lg {{ request()->routeIs('admin.reports.*') ? 'text-pink-400' : 'text-slate-400' }}"></i>
-                <span x-show="!collapsed || isMobile"
-                      x-transition:enter="transition ease-out duration-200 delay-75"
-                      x-transition:enter-start="opacity-0 translate-x-2"
-                      x-transition:enter-end="opacity-100 translate-x-0"
-                      class="font-medium text-sm">Reports & Tally</span>
-            </a>
+                <!-- Organizations -->
+                <a href="{{ route('admin.organizations.index') }}"
+                   :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
+                   class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.organizations.*') ? 'bg-slate-700 text-white border-l-4 border-cyan-500 shadow-lg' : '' }}">
+                    <i class="ri-building-line text-lg {{ request()->routeIs('admin.organizations.*') ? 'text-cyan-400' : 'text-slate-400' }}"></i>
+                    <span x-show="!collapsed || isMobile"
+                          x-transition:enter="transition ease-out duration-200 delay-75"
+                          x-transition:enter-start="opacity-0 translate-x-2"
+                          x-transition:enter-end="opacity-100 translate-x-0"
+                          class="font-medium text-sm">Organizations</span>
+                </a>
 
-            <!-- Settings -->
-            <a href="{{ route('admin.settings') }}"
-               :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
-               class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.settings') ? 'bg-slate-700 text-white border-l-4 border-slate-500 shadow-lg' : '' }}">
-                <i class="ri-settings-3-line text-lg {{ request()->routeIs('admin.settings') ? 'text-slate-300' : 'text-slate-400' }}"></i>
-                <span x-show="!collapsed || isMobile"
-                      x-transition:enter="transition ease-out duration-200 delay-75"
-                      x-transition:enter-start="opacity-0 translate-x-2"
-                      x-transition:enter-end="opacity-100 translate-x-0"
-                      class="font-medium text-sm">Settings</span>
-            </a>
-        </nav>
+                <!-- Partylists -->
+                <a href="{{ route('admin.partylists.index') }}"
+                   :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
+                   class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.partylists.*') ? 'bg-slate-700 text-white border-l-4 border-indigo-500 shadow-lg' : '' }}">
+                    <i class="ri-flag-line text-lg {{ request()->routeIs('admin.partylists.*') ? 'text-indigo-400' : 'text-slate-400' }}"></i>
+                    <span x-show="!collapsed || isMobile"
+                          x-transition:enter="transition ease-out duration-200 delay-75"
+                          x-transition:enter-start="opacity-0 translate-x-2"
+                          x-transition:enter-end="opacity-100 translate-x-0"
+                          class="font-medium text-sm">Partylists</span>
+                </a>
+
+                <!-- Voters -->
+                <a href="{{ route('admin.voters.index') }}"
+                   :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
+                   class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.voters.*') ? 'bg-slate-700 text-white border-l-4 border-purple-500 shadow-lg' : '' }}">
+                    <i class="ri-team-line text-lg {{ request()->routeIs('admin.voters.*') ? 'text-purple-400' : 'text-slate-400' }}"></i>
+                    <span x-show="!collapsed || isMobile"
+                          x-transition:enter="transition ease-out duration-200 delay-75"
+                          x-transition:enter-start="opacity-0 translate-x-2"
+                          x-transition:enter-end="opacity-100 translate-x-0"
+                          class="font-medium text-sm">Voters</span>
+                </a>
+
+                @if(auth()->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN))
+                    <!-- User Management -->
+                    <a href="{{ route('admin.users.index') }}"
+                       :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
+                       class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.users.*') ? 'bg-slate-700 text-white border-l-4 border-amber-500 shadow-lg' : '' }}">
+                        <i class="ri-user-settings-line text-lg {{ request()->routeIs('admin.users.*') ? 'text-amber-400' : 'text-slate-400' }}"></i>
+                        <span x-show="!collapsed || isMobile"
+                              x-transition:enter="transition ease-out duration-200 delay-75"
+                              x-transition:enter-start="opacity-0 translate-x-2"
+                              x-transition:enter-end="opacity-100 translate-x-0"
+                              class="font-medium text-sm">User Management</span>
+                    </a>
+                @endif
+
+                <!-- Candidates -->
+                <a href="{{ route('admin.candidates.index') }}"
+                   :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
+                   class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.candidates.*') ? 'bg-slate-700 text-white border-l-4 border-orange-500 shadow-lg' : '' }}">
+                    <i class="ri-user-star-line text-lg {{ request()->routeIs('admin.candidates.*') ? 'text-orange-400' : 'text-slate-400' }}"></i>
+                    <span x-show="!collapsed || isMobile"
+                          x-transition:enter="transition ease-out duration-200 delay-75"
+                          x-transition:enter-start="opacity-0 translate-x-2"
+                          x-transition:enter-end="opacity-100 translate-x-0"
+                          class="font-medium text-sm">Candidates</span>
+                </a>
+
+                <!-- Reports & Tally -->
+                <a href="{{ route('admin.reports.index') }}"
+                   :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
+                   class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.reports.*') ? 'bg-slate-700 text-white border-l-4 border-pink-500 shadow-lg' : '' }}">
+                    <i class="ri-bar-chart-box-line text-lg {{ request()->routeIs('admin.reports.*') ? 'text-pink-400' : 'text-slate-400' }}"></i>
+                    <span x-show="!collapsed || isMobile"
+                          x-transition:enter="transition ease-out duration-200 delay-75"
+                          x-transition:enter-start="opacity-0 translate-x-2"
+                          x-transition:enter-end="opacity-100 translate-x-0"
+                          class="font-medium text-sm">Reports & Tally</span>
+                </a>
+
+                <!-- Settings -->
+                <a href="{{ route('admin.settings') }}"
+                   :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3 px-4'"
+                   class="flex items-center py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('admin.settings') ? 'bg-slate-700 text-white border-l-4 border-slate-500 shadow-lg' : '' }}">
+                    <i class="ri-settings-3-line text-lg {{ request()->routeIs('admin.settings') ? 'text-slate-300' : 'text-slate-400' }}"></i>
+                    <span x-show="!collapsed || isMobile"
+                          x-transition:enter="transition ease-out duration-200 delay-75"
+                          x-transition:enter-start="opacity-0 translate-x-2"
+                          x-transition:enter-end="opacity-100 translate-x-0"
+                          class="font-medium text-sm">Settings</span>
+                </a>
+            </nav>
+        @else
+            <!-- Navigation for Voters -->
+            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto" x-show="!collapsed || isMobile">
+                @php
+                    $voter = auth()->guard('voter')->user();
+                    $election = $voter->election ?? null;
+                @endphp
+                @if($election)
+                    <a href="{{ route('voter.elections.welcome', $election->code) }}"
+                       class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('voter.elections.welcome') ? 'bg-slate-700 text-white border-l-4 border-blue-500 shadow-lg' : '' }}">
+                        <i class="ri-home-4-line text-lg"></i>
+                        <span class="font-medium text-sm">Election Welcome</span>
+                    </a>
+                    <a href="{{ route('voter.elections.results', $election->code) }}"
+                       class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('voter.elections.results') ? 'bg-slate-700 text-white border-l-4 border-emerald-500 shadow-lg' : '' }}">
+                        <i class="ri-bar-chart-line text-lg"></i>
+                        <span class="font-medium text-sm">Live Results</span>
+                    </a>
+                @endif
+                <a href="{{ route('voter.profile.index') }}"
+                   class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('voter.profile.*') ? 'bg-slate-700 text-white border-l-4 border-purple-500 shadow-lg' : '' }}">
+                    <i class="ri-user-line text-lg"></i>
+                    <span class="font-medium text-sm">My Profile</span>
+                </a>
+                <a href="{{ route('voter.history.index') }}"
+                   class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-300 hover:bg-slate-700/50 hover:text-white transition-all duration-200 group {{ request()->routeIs('voter.history.*') ? 'bg-slate-700 text-white border-l-4 border-orange-500 shadow-lg' : '' }}">
+                    <i class="ri-history-line text-lg"></i>
+                    <span class="font-medium text-sm">Voting History</span>
+                </a>
+            </nav>
+        @endif
 
         <!-- User Profile Footer -->
         <div class="p-2 border-t border-slate-700 bg-slate-800/50 flex-shrink-0" x-show="!collapsed || isMobile">
+            @php
+                $sidebarUser = auth()->user() ?? auth()->guard('voter')->user();
+                $sidebarUserName = $sidebarUser->name ?? 'Unknown';
+                $sidebarUserEmail = $sidebarUser->email ?? 'No email';
+                $sidebarUserPhoto = property_exists($sidebarUser, 'profile_photo') ? $sidebarUser->profile_photo : null;
+                $sidebarUserAvatar = method_exists($sidebarUser, 'getAvatarUrlAttribute') || isset($sidebarUser->avatar_url) ? $sidebarUser->avatar_url : null;
+            @endphp
             <div :class="(collapsed && !isMobile) ? 'justify-center px-0' : 'gap-3'"
                  class="flex items-center p-2 rounded-lg hover:bg-slate-700/50 transition-colors cursor-pointer group">
                 <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-lg flex-shrink-0 overflow-hidden">
-                    @if(auth()->user()->profile_photo)
-                        <img src="{{ auth()->user()->avatar_url }}" alt="Profile" class="w-full h-full object-cover">
+                    @if($sidebarUserAvatar)
+                        <img src="{{ $sidebarUserAvatar }}" alt="Profile" class="w-full h-full object-cover">
                     @else
-                        {{ substr(auth()->user()->name ?? 'U', 0, 1) }}
+                        {{ substr($sidebarUserName, 0, 1) }}
                     @endif
                 </div>
                 <div x-show="!collapsed || isMobile"
@@ -186,8 +225,8 @@
                      x-transition:enter-start="opacity-0 translate-x-2"
                      x-transition:enter-end="opacity-100 translate-x-0"
                      class="flex-1 min-w-0 overflow-hidden">
-                    <div class="font-semibold text-white text-sm truncate">{{ auth()->user()->name ?? 'Unknown' }}</div>
-                    <div class="text-xs text-slate-400 truncate">{{ auth()->user()->email ?? 'No email' }}</div>
+                    <div class="font-semibold text-white text-sm truncate">{{ $sidebarUserName }}</div>
+                    <div class="text-xs text-slate-400 truncate">{{ $sidebarUserEmail }}</div>
                 </div>
                 <button x-show="!collapsed || isMobile"
                         x-transition:enter="transition ease-out duration-200 delay-100"
@@ -199,9 +238,15 @@
                     <i class="ri-logout-box-line text-base"></i>
                 </button>
             </div>
-            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-                @csrf
-            </form>
+            @if(auth()->guard('voter')->check())
+                <form id="logout-form" action="{{ route('voter.logout') }}" method="POST" class="hidden">
+                    @csrf
+                </form>
+            @else
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                    @csrf
+                </form>
+            @endif
         </div>
     </div>
 </aside>
