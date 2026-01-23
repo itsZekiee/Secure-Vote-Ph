@@ -321,12 +321,6 @@
                 @endforeach
             </div>
 
-            <div class="mt-12 text-center">
-                <a href="{{ route('voter.elections.vote', $election->code) }}" class="inline-flex items-center gap-2 px-8 py-4 bg-brand-primary text-white font-black rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 text-sm">
-                    <i class="fas fa-arrow-left"></i>
-                    BACK TO BALLOT
-                </a>
-            </div>
         </main>
     </div>
 

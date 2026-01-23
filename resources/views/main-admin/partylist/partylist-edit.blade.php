@@ -100,73 +100,98 @@
                                 </div>
 
                                 <div class="p-8 space-y-6">
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Party Name *</label>
-                                        <div class="relative">
-                                            <input type="text" x-model="formData.name" @input="generateAcronym()"
-                                                   class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm shadow-sm">
-                                            <button type="button" @click="generateAcronym()" class="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-600 hover:text-indigo-700">
-                                                <i class="ri-refresh-line"></i>
-                                            </button>
+                                        <div class="space-y-2">
+                                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Party Name *</label>
+                                            <div class="relative group">
+                                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                    <i class="ri-flag-2-line text-slate-400 group-focus-within:text-indigo-600 transition-colors"></i>
+                                                </div>
+                                                <input type="text" x-model="formData.name" @input="generateAcronym()"
+                                                       class="w-full pl-11 pr-12 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500 transition-all font-bold text-slate-700 text-sm shadow-sm"
+                                                       placeholder="Enter official party name">
+                                                <button type="button" @click="generateAcronym()" class="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-600 hover:text-indigo-700 p-1 hover:bg-indigo-50 rounded-lg transition-all" title="Regenerate Acronym">
+                                                    <i class="ri-refresh-line"></i>
+                                                </button>
+                                            </div>
+                                            <div x-show="errors.name" class="mt-1 text-[9px] text-red-500 font-black uppercase tracking-wider ml-1" x-text="errors.name?.[0]"></div>
                                         </div>
-                                        <div x-show="errors.name" class="mt-1 text-[9px] text-red-500 font-black uppercase tracking-wider ml-1" x-text="errors.name?.[0]"></div>
-                                    </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div class="space-y-2">
-                                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Acronym</label>
-                                            <input type="text" x-model="formData.acronym"
-                                                   class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm shadow-sm">
-                                        </div>
-                                        <div class="space-y-2">
-                                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Status</label>
-                                            <div class="relative">
-                                                <select x-model="formData.status"
-                                                        class="w-full pl-5 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm shadow-sm appearance-none">
-                                                    <option value="active">Active</option>
-                                                    <option value="inactive">Inactive</option>
-                                                    <option value="suspended">Suspended</option>
-                                                </select>
-                                                <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Acronym</label>
+                                                <div class="relative group">
+                                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                        <i class="ri-font-size text-slate-400 group-focus-within:text-indigo-600 transition-colors"></i>
+                                                    </div>
+                                                    <input type="text" x-model="formData.acronym"
+                                                           class="w-full pl-11 pr-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500 transition-all font-bold text-slate-700 text-sm shadow-sm"
+                                                           placeholder="Short name">
+                                                </div>
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Status</label>
+                                                <div class="relative group">
+                                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                        <i class="ri-checkbox-circle-line text-slate-400 group-focus-within:text-indigo-600 transition-colors"></i>
+                                                    </div>
+                                                    <select x-model="formData.status"
+                                                            class="w-full pl-11 pr-10 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500 transition-all font-bold text-slate-700 text-sm shadow-sm appearance-none cursor-pointer">
+                                                        <option value="active">Active</option>
+                                                        <option value="inactive">Inactive</option>
+                                                        <option value="suspended">Suspended</option>
+                                                    </select>
+                                                    <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div class="space-y-2">
-                                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Organization *</label>
-                                            <div class="relative">
-                                                <select x-model="formData.organization_id"
-                                                        class="w-full pl-5 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm shadow-sm appearance-none">
-                                                    <option value="">Select Organization</option>
-                                                    @foreach($organizations ?? [] as $org)
-                                                        <option value="{{ $org->id }}">{{ $org->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Organization *</label>
+                                                <div class="relative group">
+                                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                        <i class="ri-building-line text-slate-400 group-focus-within:text-indigo-600 transition-colors"></i>
+                                                    </div>
+                                                    <select x-model="formData.organization_id"
+                                                            class="w-full pl-11 pr-10 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500 transition-all font-bold text-slate-700 text-sm shadow-sm appearance-none cursor-pointer">
+                                                        <option value="">Select Organization</option>
+                                                        @foreach($organizations ?? [] as $org)
+                                                            <option value="{{ $org->id }}">{{ $org->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                                </div>
+                                                <div x-show="errors.organization_id" class="mt-1 text-[9px] text-red-500 font-black uppercase tracking-wider ml-1" x-text="errors.organization_id?.[0]"></div>
                                             </div>
-                                            <div x-show="errors.organization_id" class="mt-1 text-[9px] text-red-500 font-black uppercase tracking-wider ml-1" x-text="errors.organization_id?.[0]"></div>
-                                        </div>
-                                        <div class="space-y-2">
-                                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Election</label>
-                                            <div class="relative">
-                                                <select x-model="formData.election_id"
-                                                        class="w-full pl-5 pr-10 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm shadow-sm appearance-none">
-                                                    <option value="">Select Election</option>
-                                                    @foreach($elections ?? [] as $election)
-                                                        <option value="{{ $election->id }}">{{ $election->title }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                            <div class="space-y-2">
+                                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Election</label>
+                                                <div class="relative group">
+                                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                                        <i class="ri-database-2-line text-slate-400 group-focus-within:text-indigo-600 transition-colors"></i>
+                                                    </div>
+                                                    <select x-model="formData.election_id"
+                                                            class="w-full pl-11 pr-10 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500 transition-all font-bold text-slate-700 text-sm shadow-sm appearance-none cursor-pointer">
+                                                        <option value="">Select Election</option>
+                                                        @foreach($elections ?? [] as $election)
+                                                            <option value="{{ $election->id }}">{{ $election->title }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <i class="ri-arrow-down-s-line absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div class="space-y-2">
-                                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>
-                                        <textarea x-model="formData.description" rows="4"
-                                                  class="w-full px-5 py-3.5 bg-slate-50 border-none rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all font-bold text-slate-700 text-sm shadow-sm resize-none"></textarea>
-                                    </div>
+                                        <div class="space-y-2">
+                                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>
+                                            <div class="relative group">
+                                                <div class="absolute top-4 left-4 pointer-events-none">
+                                                    <i class="ri-text-snippet text-slate-400 group-focus-within:text-indigo-600 transition-colors"></i>
+                                                </div>
+                                                <textarea x-model="formData.description" rows="4"
+                                                          class="w-full pl-11 pr-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:bg-white focus:border-indigo-500 transition-all font-bold text-slate-700 text-sm shadow-sm resize-none"
+                                                          placeholder="Briefly describe the party list..."></textarea>
+                                            </div>
+                                        </div>
                                 </div>
                             </div>
 

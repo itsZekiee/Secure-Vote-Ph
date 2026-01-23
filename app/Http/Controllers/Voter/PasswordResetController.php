@@ -32,7 +32,9 @@ class PasswordResetController extends Controller
     public function sendOTP(Request $request, $code)
     {
         $request->validate(['email' => 'required|email']);
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)
+            ->where('role', 'voter')
+            ->first();
 
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Email not found.'], 404);
@@ -87,7 +89,7 @@ class PasswordResetController extends Controller
         return view('voter.auth.forgot-password', compact('election'));
     }
 
-    
+
 
     public function showResetForm(Request $request, $code, $token = null)
     {
@@ -114,13 +116,26 @@ class PasswordResetController extends Controller
 
         $hashed = Hash::make($request->password);
 
-        $updated = User::where('email', trim(strtolower($request->email)))
+        $user = User::where('email', trim(strtolower($request->email)))
             ->where('role', 'voter')
-            ->update([
-                'password' => $hashed,
-                'failed_login_attempts' => 0,
-                'locked_until' => null,
+            ->first();
+
+        if (!$user) {
+            return back()->withErrors([
+                'email' => 'Voter account not found.'
             ]);
+        }
+
+        $user->update([
+            'password' => $hashed,
+            'failed_login_attempts' => 0,
+            'locked_until' => null,
+        ]);
+
+        // Sync to voter records if they exist
+        DB::table('voters')
+            ->where('user_id', $user->id)
+            ->update(['password' => $hashed]);
 
         session()->forget([
             'password_reset_otp',
