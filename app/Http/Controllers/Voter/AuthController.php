@@ -71,7 +71,11 @@ class AuthController extends Controller
         ]);
 
         $email = trim(strtolower($request->email));
-        $user = User::where('email', $email)->first();
+        $electionId = session('election_id');
+
+        $user = User::where('email', $email)
+            ->where('election_id', $electionId)
+            ->first();
 
         if ($user && (!$user->is_approved || !$user->is_active)) {
             $msg = 'Your account is not approved or is inactive. Please contact an administrator.';
@@ -86,7 +90,7 @@ class AuthController extends Controller
         $electionId = session('election_id');
 
         // Check credentials WITHOUT logging in
-        if (!Auth::validate(['email' => $email, 'password' => $request->password])) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             // Record failed login attempt
             \Illuminate\Support\Facades\DB::table('failed_logins')->insert([
                 'user_id' => $user->id ?? null,
