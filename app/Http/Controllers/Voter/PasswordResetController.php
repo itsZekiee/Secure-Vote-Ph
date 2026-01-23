@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Voter;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Election;
-use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -133,10 +132,10 @@ class PasswordResetController extends Controller
             'locked_until' => null,
         ]);
 
-        AuditLogger::log(
+        \App\Services\AuditLogger::log(
             'PASSWORD_RESET',
-            'Auth',
-            "Voter password reset for: {$user->email}"
+            'Voter',
+            "Voter password reset successful for: {$user->email}"
         );
 
         // Sync to voter records if they exist

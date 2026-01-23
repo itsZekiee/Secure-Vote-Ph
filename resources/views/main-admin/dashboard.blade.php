@@ -344,7 +344,7 @@
                             </div>
                         </div>
 
-                        @if(auth()->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN))
+                        @if(auth()->user()->hasRole('super-admin'))
                         <!-- Audit Logs Table -->
                         <div class="mt-8">
                             <div class="flex items-center justify-between mb-4">

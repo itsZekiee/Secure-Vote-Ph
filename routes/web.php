@@ -230,6 +230,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'ip.control'])->grou
     Route::prefix('users')->name('users.')->group(function () {
         Route::post('{user}/promote', [UserManagementController::class, 'promoteToSuperAdmin'])->name('promote');
         Route::post('{user}/reset-login-attempts', [UserManagementController::class, 'resetLoginAttempts'])->name('reset-login-attempts');
+        Route::post('{user}/promote', [UserManagementController::class, 'promoteToSuperAdmin'])->name('promote');
         Route::post('{user}/approve', [UserManagementController::class, 'approve'])->name('approve');
         Route::post('{user}/reject', [UserManagementController::class, 'reject'])->name('reject');
         Route::get('search', [UserManagementController::class, 'search'])->name('search');

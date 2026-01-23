@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Http\Controllers\Auth\OtpController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
-use App\Services\AuditLogger;
 
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -47,7 +46,8 @@ class AuthenticatedSessionController extends Controller
             ]);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $email = trim(strtolower($request->email));
+        $user = User::where('email', $email)->first();
 
         if (!$user) {
             RateLimiter::hit($throttleKey);
@@ -101,12 +101,12 @@ class AuthenticatedSessionController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (!Auth::validate($request->only('email', 'password'))) {
+        if (!Auth::validate(['email' => $email, 'password' => $request->password])) {
             RateLimiter::hit($throttleKey);
             // Record failed login attempt
             \Illuminate\Support\Facades\DB::table('failed_logins')->insert([
                 'user_id' => $user->id,
-                'email' => $request->email,
+                'email' => $email,
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->header('User-Agent'),
                 'reason' => 'Invalid credentials',
@@ -121,15 +121,36 @@ class AuthenticatedSessionController extends Controller
             if ($attempts >= 6) {
                 $user->update(['is_permanently_blocked' => true]);
                 $message = 'Your account has been permanently blocked due to too many failed attempts. Please contact the Administrator.';
-                AuditLogger::log('LOCKOUT', 'Auth', "Account permanently blocked: {$user->email}");
+
+                \App\Services\AuditLogger::log(
+                    'LOCKOUT',
+                    'Auth',
+                    "User permanently blocked: {$user->email} (Max attempts reached)",
+                    null,
+                    ['failed_attempts' => $attempts]
+                );
             } elseif ($attempts == 5) {
                 $user->update(['locked_until' => now()->addHours(24)]);
                 $message = 'Too many failed attempts. Your account has been locked for 24 hours.';
-                AuditLogger::log('LOCKOUT', 'Auth', "Account locked for 24h: {$user->email}");
+
+                \App\Services\AuditLogger::log(
+                    'LOCKOUT',
+                    'Auth',
+                    "User locked for 24h: {$user->email}",
+                    null,
+                    ['failed_attempts' => $attempts]
+                );
             } elseif ($attempts == 3) {
                 $user->update(['locked_until' => now()->addMinutes(60)]);
                 $message = 'Too many failed attempts. Your account has been locked for 60 minutes.';
-                AuditLogger::log('LOCKOUT', 'Auth', "Account locked for 60m: {$user->email}");
+
+                \App\Services\AuditLogger::log(
+                    'LOCKOUT',
+                    'Auth',
+                    "User locked for 60m: {$user->email}",
+                    null,
+                    ['failed_attempts' => $attempts]
+                );
             }
 
             throw ValidationException::withMessages([
@@ -143,6 +164,12 @@ class AuthenticatedSessionController extends Controller
             'failed_login_attempts' => 0,
             'locked_until' => null
         ]);
+
+        \App\Services\AuditLogger::log(
+            'LOGIN_SUCCESS',
+            'Auth',
+            "User successfully signed in: {$user->email} ({$user->role})"
+        );
 
         /*
         |--------------------------------------------------------------------------
