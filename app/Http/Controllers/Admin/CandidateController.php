@@ -9,6 +9,7 @@ use App\Models\Organization;
 use App\Models\Partylist;
 use App\Models\Position;
 use App\Imports\CandidateImport;
+use App\Services\AuditLogger;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -318,13 +319,21 @@ class CandidateController extends Controller
                 'created_by' => auth()->id(),
             ];
 
-            Candidate::updateOrCreate(
+            $candidate = Candidate::updateOrCreate(
                 [
                     'user_id' => $userId,
                     'election_id' => $validated['election_id'] ?? null,
                     'position_id' => $validated['position_id'],
                 ],
                 $candidateData
+            );
+
+            AuditLogger::log(
+                'CREATE',
+                'Candidates',
+                "Created/Updated candidate: {$candidate->name}",
+                null,
+                $candidate->toArray()
             );
 
             DB::commit();

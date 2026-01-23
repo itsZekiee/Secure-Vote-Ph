@@ -21,13 +21,19 @@
                             <h1 class="text-2xl font-bold text-slate-900">Admin Management</h1>
                             <p class="text-slate-500 text-sm mt-1">Manage admin and manager accounts.</p>
                         </div>
+                        <div class="flex items-center gap-3">
+                            <div class="px-4 py-2 bg-purple-50 text-purple-700 rounded-lg border border-purple-100 text-xs font-bold flex items-center gap-2">
+                                <i class="ri-shield-flash-line"></i>
+                                Role Promotion Active
+                            </div>
+                        </div>
                     </div>
 
                     @if(session('success'))
-                        <divon  class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-600 text-sm flex items-center gap-3">
+                        <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-600 text-sm flex items-center gap-3">
                             <i class="ri-checkbox-circle-fill"></i>
                             {{ session('success') }}
-                        </divon>
+                        </div>
                     @endif
 
                     @if(session('info'))
@@ -64,8 +70,10 @@
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4">
-                                                <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                                                    {{ ucfirst($user->role) }}
+                                                <span class="px-2.5 py-1 text-xs font-medium rounded-full
+                                                    @if($user->role === \App\Models\User::ROLE_SUPER_ADMIN) bg-purple-50 text-purple-700 border-purple-100
+                                                    @else bg-slate-100 text-slate-600 border-slate-200 @endif border">
+                                                    {{ $user->role === \App\Models\User::ROLE_SUPER_ADMIN ? 'Super Admin' : ucfirst($user->role) }}
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4">
@@ -108,6 +116,15 @@
                                                             <i class="ri-lock-unlock-line text-lg"></i>
                                                         </button>
                                                     </form>
+
+                                                    @if(auth()->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN) && $user->role !== \App\Models\User::ROLE_SUPER_ADMIN)
+                                                        <form action="{{ route('admin.users.promote', $user->id) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="Promote to Super Admin" onclick="return confirm('Are you sure you want to promote this user to Super Admin?')">
+                                                                <i class="ri-shield-user-line text-lg"></i>
+                                                            </button>
+                                                        </form>
+                                                    @endif
 
                                                     <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
                                                         @csrf

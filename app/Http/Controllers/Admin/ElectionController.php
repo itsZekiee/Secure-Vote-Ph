@@ -113,6 +113,14 @@ class ElectionController extends Controller
                 'require_id_verification' => $request->boolean('require_id_verification'),
             ]);
 
+            AuditLogger::log(
+                'CREATE',
+                'Elections',
+                "Created election: {$election->title}",
+                null,
+                $election->toArray()
+            );
+
             foreach ($validated['positions'] as $positionData) {
                 $position = $election->positions()->create([
                     'name' => $positionData['name']

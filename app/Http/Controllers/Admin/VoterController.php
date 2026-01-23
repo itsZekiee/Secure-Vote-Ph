@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Election;
 use App\Models\Voter;
 use App\Mail\VoterImportedMail;
+use App\Services\AuditLogger;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
@@ -222,6 +223,14 @@ class VoterController extends Controller
                 'password' => $user->password,
                 'user_id' => $user->id,
             ]);
+
+            AuditLogger::log(
+                'CREATE',
+                'Voters',
+                "Added voter: {$voter->name} to election ID: {$voter->election_id}",
+                null,
+                $voter->toArray()
+            );
 
             if ($validated['registration_status'] === 'approved') {
                 $this->assignVoterRole($user);
@@ -586,6 +595,14 @@ class VoterController extends Controller
                 ];
 
                 $voter = \App\Models\Voter::create($data);
+
+                AuditLogger::log(
+                    'CREATE',
+                    'Voters',
+                    "Imported voter: {$voter->name}",
+                    null,
+                    $voter->toArray()
+                );
 
                 // If approved, create user account if doesn't exist
                 if ($registrationStatus === 'approved') {

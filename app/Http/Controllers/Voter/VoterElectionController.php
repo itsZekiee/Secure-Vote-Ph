@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Election;
 use App\Models\Vote;
 use App\Models\Voter;
+use App\Services\AuditLogger;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -200,6 +201,12 @@ class VoterElectionController extends Controller
                 }
             }
         }
+
+        AuditLogger::log(
+            'VOTE_CAST',
+            'Elections',
+            "Voter cast a vote in election: {$election->title}. Ballot ID: {$ballotId}"
+        );
 
         $remainingVotes = $maxVotes - ($votedCount + 1);
         $successMsg = 'Your vote has been recorded successfully!';

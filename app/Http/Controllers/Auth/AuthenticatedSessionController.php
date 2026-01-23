@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Http\Controllers\Auth\OtpController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
+use App\Services\AuditLogger;
 
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -120,12 +121,15 @@ class AuthenticatedSessionController extends Controller
             if ($attempts >= 6) {
                 $user->update(['is_permanently_blocked' => true]);
                 $message = 'Your account has been permanently blocked due to too many failed attempts. Please contact the Administrator.';
+                AuditLogger::log('LOCKOUT', 'Auth', "Account permanently blocked: {$user->email}");
             } elseif ($attempts == 5) {
                 $user->update(['locked_until' => now()->addHours(24)]);
                 $message = 'Too many failed attempts. Your account has been locked for 24 hours.';
+                AuditLogger::log('LOCKOUT', 'Auth', "Account locked for 24h: {$user->email}");
             } elseif ($attempts == 3) {
                 $user->update(['locked_until' => now()->addMinutes(60)]);
                 $message = 'Too many failed attempts. Your account has been locked for 60 minutes.';
+                AuditLogger::log('LOCKOUT', 'Auth', "Account locked for 60m: {$user->email}");
             }
 
             throw ValidationException::withMessages([

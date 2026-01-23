@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -90,6 +91,12 @@ class ForgotPasswordController extends Controller
         $user->update([
             'password' => Hash::make($request->password)
         ]);
+
+        AuditLogger::log(
+            'PASSWORD_RESET',
+            'Auth',
+            "Admin password reset for: {$user->email}"
+        );
 
 
         // Clear session

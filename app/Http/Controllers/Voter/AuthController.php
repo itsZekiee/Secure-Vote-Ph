@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Voter;
 use App\Http\Controllers\Controller;
 use App\Models\Election;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -123,12 +124,15 @@ class AuthController extends Controller
                 if ($attempts >= $maxAttempts) {
                     $user->update(['is_permanently_blocked' => true]);
                     $msg = 'Your account has been permanently blocked due to too many failed attempts.';
+                    AuditLogger::log('LOCKOUT', 'Auth', "Voter account permanently blocked: {$user->email}");
                 } elseif ($attempts == 5) {
                     $user->update(['locked_until' => now()->addHours(24)]);
                     $msg = 'Too many failed attempts. Your account has been locked for 24 hours.';
+                    AuditLogger::log('LOCKOUT', 'Auth', "Voter account locked for 24h: {$user->email}");
                 } elseif ($attempts == 3) {
                     $user->update(['locked_until' => now()->addMinutes(60)]);
                     $msg = 'Too many failed attempts. Your account has been locked for 60 minutes.';
+                    AuditLogger::log('LOCKOUT', 'Auth', "Voter account locked for 60m: {$user->email}");
                 }
             }
 

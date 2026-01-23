@@ -171,6 +171,9 @@ class AdminController extends Controller
 
     public function logs()
     {
+        if (!auth()->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN)) {
+            abort(403, 'Unauthorized. Access restricted to Super Admins.');
+        }
         return view($this->getView('system.logs'));
     }
 

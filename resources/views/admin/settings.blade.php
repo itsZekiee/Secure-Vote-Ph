@@ -687,7 +687,7 @@
                                     </div>
                                 </div>
 
-                                @if(auth()->user()->role === \App\Models\User::ROLE_SUPER_ADMIN)
+                                @if(auth()->user()->hasRole(\App\Models\User::ROLE_SUPER_ADMIN))
                                 <!-- 2FA Recovery Codes -->
                                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
                                     <div class="p-6 sm:p-8">
