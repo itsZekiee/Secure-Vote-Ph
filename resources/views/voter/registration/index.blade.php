@@ -175,7 +175,7 @@
                                         {{ $election->end_date->format('M d, Y') }}</span>
                                 </div>
                                 @if($election->organization)
-                                    <div class="flex items-center gap-2 text-slate-600">
+                                      <div class="flex items-center gap-2 text-slate-600">
                                         <i class="fas fa-building text-brand-accent"></i>
                                         <span>{{ $election->organization->name }}</span>
                                     </div>
@@ -292,7 +292,7 @@
                                 @endif
 
                                 <!-- Sign In Form -->
-                                <form id="signin-form" action="{{ route('voter.registration.login', $election->id ?? '') }}"
+                                <form id="signin-form" action="{{ route('voter.registration.login', $election->code) }}"
                                     method="POST"
                                     class="form-transition">
                                     @csrf
@@ -331,7 +331,7 @@
                                             </span>
                                             <span class="text-sm text-slate-600">Remember me</span>
                                         </label>
-                                        <a href="{{ route('voter.password.request', ['election' => $election->id]) }}"
+                                        <a href="{{ route('voter.password.request', ['election' => $election->code]) }}"
                                             class="text-sm text-brand-accent hover:underline font-semibold">Forgot
                                             password?</a>
                                     </div>

@@ -49,7 +49,7 @@ class VoterElectionController extends Controller
         // Store election in session and redirect to login form
         session(['election_id' => $election->id, 'election_code' => $election->code]);
 
-        return redirect()->route('voter.registration.index', ['election' => $election->id, 'form' => 'login']);
+        return redirect()->route('voter.registration.index', ['election' => $election->code, 'form' => 'login']);
     }
 
     /**
@@ -69,7 +69,7 @@ class VoterElectionController extends Controller
         }
 
         if (!$voter) {
-            return redirect()->route('voter.registration.index', $election->id)
+            return redirect()->route('voter.registration.index', $election->code)
                 ->withErrors(['session' => 'Please sign in to view the election welcome page.']);
         }
 
@@ -95,17 +95,17 @@ class VoterElectionController extends Controller
 
         // Rest of existing logic...
         if (Carbon::now()->lt($election->start_date)) {
-            return redirect()->route('voter.elections.welcome', $election->id)
+            return redirect()->route('voter.elections.welcome', $election->code)
                 ->withErrors(['election' => 'Election has not started yet.']);
         }
 
         if (Carbon::now()->gt($election->end_date)) {
-            return redirect()->route('voter.elections.welcome', $election->id)
+            return redirect()->route('voter.elections.welcome', $election->code)
                 ->withErrors(['election' => 'Election has already ended.']);
         }
 
         if ($this->getBallotCount($election->id, $voter['id']) >= ($election->max_votes ?? 1)) {
-            return redirect()->route('voter.elections.welcome', $election->id)
+            return redirect()->route('voter.elections.welcome', $election->code)
                 ->with('info', 'You have already reached the maximum number of votes allowed for this election.');
         }
 
@@ -142,7 +142,7 @@ class VoterElectionController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $msg], 422);
             }
-            return redirect()->route('voter.elections.welcome', $election->id)
+            return redirect()->route('voter.elections.welcome', $election->code)
                 ->withErrors(['error' => $msg]);
         }
 

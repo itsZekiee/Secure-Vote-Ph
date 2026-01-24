@@ -192,7 +192,7 @@
         <!-- Top Navigation -->
         <header class="glass-header sticky top-0 z-50 px-6 py-4">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <a href="{{ route('voter.elections.welcome', $election->id) }}"
+                <a href="{{ route('voter.elections.welcome', $election->code) }}"
                     class="flex items-center gap-2 text-brand-primary font-bold hover:opacity-70 transition-opacity">
                     <i class="fas fa-arrow-left"></i>
                     <span>Back to Home</span>
@@ -219,7 +219,7 @@
                     candidates.</p>
             </div>
 
-            <form action="{{ route('voter.elections.submit', $election->id) }}" method="POST" id="voting-form">
+            <form action="{{ route('voter.elections.submit', $election->code) }}" method="POST" id="voting-form">
                 @csrf
                 <input type="hidden" name="latitude" id="lat-input">
                 <input type="hidden" name="longitude" id="lng-input">
@@ -598,7 +598,7 @@
                             }
 
                             setTimeout(() => {
-                                window.location.href = "{{ route('voter.elections.welcome', $election->id) }}";
+                                window.location.href = "{{ route('voter.elections.welcome', $election->code) }}";
                             }, 3000);
                         } else {
                             const data = await response.json();

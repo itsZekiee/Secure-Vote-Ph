@@ -179,7 +179,7 @@ class PasswordResetController extends Controller
 
         if ($election) {
             return redirect()
-                ->route('voter.registration.index', $election->id)
+                ->route('voter.registration.index', $election->code)
                 ->with('success', 'Your password has been reset successfully!');
         }
 

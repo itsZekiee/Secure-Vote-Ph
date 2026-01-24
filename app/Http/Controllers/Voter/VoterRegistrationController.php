@@ -7,6 +7,7 @@ use App\Models\Election;
 use App\Models\Voter;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
@@ -198,7 +199,7 @@ class VoterRegistrationController extends Controller
             ? 'Registration successful! You can now Sign In.'
             : 'Registration submitted! Please wait 1 to 24 hours for admin approval of your registration before you can Sign In.';
 
-        return redirect()->route('voter.registration.index', $election->id)
+        return redirect()->route('voter.registration.index', $election->code)
             ->with('success', $msg)
             ->with('switch_to_login', true)
             ->with('registered_email', $request->email);

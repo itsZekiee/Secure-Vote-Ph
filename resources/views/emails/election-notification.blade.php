@@ -19,7 +19,7 @@
         @endif
 
         <p>You can access the election portal here:</p>
-        <p><a href="{{ route('voter.registration.index', $election->id) }}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Go to Election Portal</a></p>
+        <p><a href="{{ route('voter.registration.index', $election->code) }}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Go to Election Portal</a></p>
 
         <p>Best regards,<br>The Secure-Vote-Ph Team</p>
     </div>

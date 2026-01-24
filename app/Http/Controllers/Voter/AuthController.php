@@ -46,7 +46,7 @@ class AuthController extends Controller
         if (session()->has('election_id')) {
             $election = Election::find(session('election_id'));
             if ($election) {
-                return redirect()->route('voter.elections.welcome', $election->id);
+                return redirect()->route('voter.elections.welcome', $election->code);
             }
         }
 
@@ -87,8 +87,6 @@ class AuthController extends Controller
                 'email' => $msg,
             ]);
         }
-
-        $electionId = session('election_id');
 
         // Check credentials WITHOUT logging in
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -247,7 +245,7 @@ class AuthController extends Controller
                 ->withErrors(['error' => 'Election not found.']);
         }
 
-        // Redirect to the proper route with election id
-        return redirect()->route('voter.elections.welcome', $election->id);
+        // Redirect to the proper route with election code
+        return redirect()->route('voter.elections.welcome', $election->code);
     }
 }

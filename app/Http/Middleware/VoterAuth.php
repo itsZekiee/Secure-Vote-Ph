@@ -60,7 +60,7 @@ class VoterAuth
                     }
                 }
 
-                return redirect()->route('voter.registration.index', $election->id)
+                return redirect()->route('voter.registration.index', $election->code)
                     ->withErrors(['session' => 'Please register for this election.']);
             }
         }
