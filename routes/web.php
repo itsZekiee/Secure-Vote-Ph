@@ -118,7 +118,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 | Election Registration Route (Public)
 |--------------------------------------------------------------------------
 */
-Route::get('/elections/register/{election}', [VoterElectionController::class, 'register'])
+Route::get('/elections/register/{election:code}', [VoterElectionController::class, 'register'])
     ->name('elections.register');
 
 /*
@@ -355,13 +355,13 @@ Route::prefix('voter')->name('voter.')->group(function () {
     })->name('elections.index');
 
     // Step 2: Voter Registration/Login for specific election
-    Route::get('/registration/{election}', [VoterRegistrationController::class, 'index'])->name('registration.index');
-    Route::post('/registration/{election}', [VoterRegistrationController::class, 'store'])->name('registration.store');
-    Route::post('/registration/{election}/login', [VoterRegistrationController::class, 'login'])->name('registration.login');
+    Route::get('/registration/{election:code}', [VoterRegistrationController::class, 'index'])->name('registration.index');
+    Route::post('/registration/{election:code}', [VoterRegistrationController::class, 'store'])->name('registration.store');
+    Route::post('/registration/{election:code}/login', [VoterRegistrationController::class, 'login'])->name('registration.login');
 
     // Public Results (Real-time data)
-    Route::get('/elections/{election}/results', [VoterElectionController::class, 'results'])->name('elections.results');
-    Route::get('/elections/{election}/results/votes', [VoterElectionController::class, 'getVotes'])->name('elections.results.votes');
+    Route::get('/elections/{election:code}/results', [VoterElectionController::class, 'results'])->name('elections.results');
+    Route::get('/elections/{election:code}/results/votes', [VoterElectionController::class, 'getVotes'])->name('elections.results.votes');
 
     // Voter Password Reset Routes
     Route::get('/registration/{election?}/forgot-password', [PasswordResetController::class, 'showLinkRequestForm'])->name('password.request');
@@ -378,11 +378,11 @@ Route::prefix('voter')->name('voter.')->group(function () {
     Route::middleware(['voter.auth'])->group(function () {
 
         // Step 3: Welcome page with countdown
-        Route::get('/elections/{election}/welcome', [VoterElectionController::class, 'welcome'])->name('elections.welcome');
+        Route::get('/elections/{election:code}/welcome', [VoterElectionController::class, 'welcome'])->name('elections.welcome');
 
         // Step 4: Voting page
-        Route::get('/elections/{election}/vote', [VoterElectionController::class, 'index'])->name('elections.vote');
-        Route::post('/elections/{election}/submit', [VoterElectionController::class, 'submitVote'])->name('elections.submit');
+        Route::get('/elections/{election:code}/vote', [VoterElectionController::class, 'index'])->name('elections.vote');
+        Route::post('/elections/{election:code}/submit', [VoterElectionController::class, 'submitVote'])->name('elections.submit');
 
         // Voter Profile & History
         Route::get('/profile', [VoterElectionController::class, 'profile'])->name('profile.index');
@@ -408,8 +408,8 @@ Route::prefix('voter')->name('voter.')->group(function () {
     })->name('elections.join');
 
     // Voter direct election link redirection
-    Route::get('/register/{election}', function (\App\Models\Election $election) {
-        return redirect()->route('voter.registration.index', ['election' => $election->id, 'mode' => 'signin']);
+    Route::get('/register/{election:id}', function (\App\Models\Election $election) {
+        return redirect()->route('voter.registration.index', ['election' => $election->code, 'mode' => 'signin']);
     })->name('register.direct');
 
     Route::post('/elections/join', function () {
