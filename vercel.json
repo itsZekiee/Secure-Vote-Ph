@@ -3,7 +3,33 @@
   "builds": [
     {
       "src": "/api/index.php",
-      "use": "vercel-php@0.7.1"
+      "use": "vercel-php@0.7.1",
+      "config": {
+        "includeFiles": [
+          "app/**",
+          "bootstrap/**",
+          "config/**",
+          "database/migrations/**",
+          "database/seeders/**",
+          "public/**",
+          "resources/**",
+          "routes/**",
+          "storage/framework/views/.gitignore",
+          "storage/framework/cache/.gitignore",
+          "storage/framework/sessions/.gitignore",
+          "storage/logs/.gitignore"
+        ],
+        "excludeFiles": [
+          "node_modules/**",
+          "tests/**",
+          "storage/framework/cache/**",
+          "storage/framework/sessions/**",
+          "storage/framework/views/**",
+          "storage/logs/**",
+          ".git/**",
+          ".github/**"
+        ]
+      }
     },
     {
       "src": "package.json",
