@@ -45,7 +45,12 @@
             "npm run build"
         ],
         "vercel-build": [
-            "composer install --optimize-autoloader --no-dev --prefer-dist"
+            "chmod +x artisan",
+            "composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader",
+            "php artisan config:cache",
+            "php artisan route:cache",
+            "php artisan view:cache",
+            "php artisan key:generate --force"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
